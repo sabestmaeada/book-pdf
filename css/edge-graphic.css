@@ -1,0 +1,79 @@
+/* =========================================================
+   edge-graphic.css — OUTER EDGE GRAPHICS v4 (margin-box method)
+   For WeasyPrint book interior 170mm x 228mm + 3mm bleed
+
+   วิธีการที่ใช้งานได้จริง (ทดสอบกับ WeasyPrint 68.1 แล้ว):
+   - ใช้ @right-top / @left-top margin box เป็น "ที่วางภาพ"
+   - กำหนดให้ box สูง 234mm (228mm + bleed 3mm บน + 3mm ล่าง)
+   - กำหนดให้ box กว้าง 18mm (margin 15mm + bleed 3mm)
+   - ใช้ negative margin ดึง box ออกไปครอบคลุม bleed area
+
+   ผลที่ได้:
+   - หน้าคู่ (left)  : กราฟิกชิดขอบซ้าย ยื่นเข้า bleed ทั้งบน-ล่าง-ซ้าย
+   - หน้าคี่ (right) : กราฟิกชิดขอบขวา ยื่นเข้า bleed ทั้งบน-ล่าง-ขวา
+   - กราฟิกไม่กินเนื้อหา (อยู่ใน outer margin)
+
+   ใช้กับ CSS หลัก:
+   body:left  margin = 18mm 22mm 20mm 15mm
+   body:right margin = 18mm 15mm 20mm 22mm
+
+   ขนาดภาพต้นฉบับ:
+   - left-graphic-18x234mm-300dpi.png  (หรือ .jpg)
+   - right-graphic-18x234mm-300dpi.png (หรือ .jpg)
+   ========================================================= */
+
+
+/* ---------------------------------------------------------
+   หน้าคู่ / LEFT PAGE — กราฟิกขอบซ้าย
+   --------------------------------------------------------- */
+@page body:left {
+  @left-top {
+    content: "";
+    background-image: url("../assets/left-graphic-18x234mm-300dpi.png");
+    background-repeat: no-repeat;
+    background-size: 18mm 234mm;
+    background-position: left top;
+    width: 18mm;
+    height: 234mm;
+    margin: -21mm 0 0 -3mm;
+    padding: 0;
+  }
+}
+
+
+/* ---------------------------------------------------------
+   หน้าคี่ / RIGHT PAGE — กราฟิกขอบขวา
+   --------------------------------------------------------- */
+@page body:right {
+  @right-top {
+    content: "";
+    background-image: url("../assets/right-graphic-18x234mm-300dpi.png");
+    background-repeat: no-repeat;
+    background-size: 18mm 234mm;
+    background-position: right top;
+    width: 18mm;
+    height: 234mm;
+    margin: -21mm -3mm 0 0;
+    padding: 0;
+  }
+}
+
+
+/* หน้าว่าง ไม่แสดงกราฟิก */
+@page :blank {
+  @left-top { content: none; }
+  @right-top { content: none; }
+}
+
+
+/* =========================================================
+   OPTIONAL: ซ่อนกราฟิกในหน้าแรกของบท
+   ถ้าต้องการให้หน้าแรกของแต่ละ chapter โล่ง ไม่มี ornament
+   ให้เอา comment ออกจาก block ด้านล่าง
+
+@page body:first {
+  @left-top { content: none; }
+  @right-top { content: none; }
+}
+
+   ========================================================= */

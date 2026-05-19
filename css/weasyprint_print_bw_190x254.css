@@ -1,0 +1,1530 @@
+@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap');
+
+/* =========================================================
+   WeasyPrint CSS - BLACK & WHITE EDITION
+   Book Interior Trim Size: 190mm x 254mm
+   Bleed: 3mm
+   Crop Marks: enabled
+
+   ปรับจากเวอร์ชันสีให้เหมาะกับหนังสือขาวดำ
+   - ข้อความหลัก (body): #000000 ดำ 100% (K100)
+   - หัวข้อ accent → ดำเข้ม
+   - พื้นหลังโน้ต/โค้ด → เทาอ่อน อ่านง่าย
+   - เส้นขอบ → เทาเข้มเพียงพอ
+   ========================================================= */
+
+/* =========================================
+   1. CSS Variables & Base Setup
+   ========================================= */
+:root {
+  --bg: #FFFFFF;
+  --text: #000000;          /* ดำ 100% สำหรับ K100 */
+  --muted: #555555;         /* เทาเข้ม อ่านง่าย */
+
+  --accent: #000000;        /* แทนน้ำเงิน → ดำ 100% */
+  --accent-lt: #EEEEEE;     /* พื้นหลังอ่อน เทาอ่อน */
+  --accent-dk: #000000;     /* หัวข้อเข้ม → ดำ 100% */
+
+  --border: #B0B0B0;        /* เส้นขอบเทากลาง มองเห็นชัด */
+  --note-bg: #F2F2F2;       /* พื้นโน้ต เทาอ่อน */
+  --note-bd: #555555;       /* เส้นโน้ต เทาเข้ม */
+
+  --code-bg: #FFFFFF;
+  --code-tx: #000000;       /* โค้ด ดำ 100% */
+  --ln-bg: #EEEEEE;         /* เลขบรรทัด พื้นเทาอ่อน */
+  --ln-tx: #555555;         /* เลขบรรทัด ตัวเทาเข้ม */
+  --ln-border: #B0B0B0;
+
+  --hd: 'IBM Plex Sans Thai', sans-serif;
+  --bd: 'Sarabun', sans-serif;
+  --cd: 'JetBrains Mono', monospace;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  background: #FFFFFF;
+  color: #000000;           /* ข้อความหลัก ดำ 100% */
+  font-family: var(--bd);
+  font-size: 10.8pt;
+  line-height: 1.48;
+  font-variant-ligatures: none;
+  font-feature-settings: "liga" 0, "calt" 0;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  counter-reset: ch-counter;
+}
+
+/* =========================================
+   2. Page Setup for WeasyPrint
+   ========================================= */
+
+/* หน้าเริ่มต้น */
+@page {
+  size: 190mm 254mm;
+  margin: 18mm 15mm 20mm 22mm;
+  bleed: 3mm;
+  marks: crop;
+}
+
+@page :right {
+  size: 190mm 254mm;
+  margin: 18mm 15mm 20mm 22mm;
+  bleed: 3mm;
+  marks: crop;
+
+  @bottom-right {
+    content: counter(page);
+    font-family: 'IBM Plex Sans Thai', sans-serif;
+    font-size: 9pt;
+    color: #555555;         /* เลขหน้า เทาเข้ม */
+  }
+
+  @bottom-left {
+    content: none;
+  }
+}
+
+@page :left {
+  size: 190mm 254mm;
+  margin: 18mm 22mm 20mm 15mm;
+  bleed: 3mm;
+  marks: crop;
+
+  @bottom-left {
+    content: counter(page);
+    font-family: 'IBM Plex Sans Thai', sans-serif;
+    font-size: 9pt;
+    color: #555555;
+  }
+
+  @bottom-right {
+    content: none;
+  }
+}
+
+/* หน้าเต็ม: ปกใน / ภาพเปิดเล่ม / ภาพปิดเล่ม */
+@page inside-full {
+  size: 190mm 254mm;
+  margin: 0;
+  bleed: 3mm;
+  marks: crop;
+
+  @top-left { content: none; }
+  @top-center { content: none; }
+  @top-right { content: none; }
+  @bottom-left { content: none; }
+  @bottom-center { content: none; }
+  @bottom-right { content: none; }
+}
+
+/* หน้า front matter: ลิขสิทธิ์ / คำนำ / สารบัญ ไม่มีเลขหน้า */
+@page frontmatter:right {
+  size: 190mm 254mm;
+  margin: 18mm 15mm 20mm 22mm;
+  bleed: 3mm;
+  marks: crop;
+
+  @bottom-left { content: none; }
+  @bottom-center { content: none; }
+  @bottom-right { content: none; }
+}
+
+@page frontmatter:left {
+  size: 190mm 254mm;
+  margin: 18mm 22mm 20mm 15mm;
+  bleed: 3mm;
+  marks: crop;
+
+  @bottom-left { content: none; }
+  @bottom-center { content: none; }
+  @bottom-right { content: none; }
+}
+
+/* หน้าเนื้อหา: มีเลขหน้า */
+@page body:right {
+  size: 190mm 254mm;
+  margin: 18mm 15mm 20mm 22mm;
+  bleed: 3mm;
+  marks: crop;
+
+  @top-left { content: none; }
+  @top-right { content: none; }
+
+  @bottom-right {
+    content: counter(page);
+    font-family: 'IBM Plex Sans Thai', sans-serif;
+    font-size: 9pt;
+    color: #555555;
+  }
+
+  @bottom-left { content: none; }
+}
+
+@page body:left {
+  size: 190mm 254mm;
+  margin: 18mm 22mm 20mm 15mm;
+  bleed: 3mm;
+  marks: crop;
+
+  @top-left {
+    content: string(chapter-title);
+    font-family: 'Prompt', 'IBM Plex Sans Thai', sans-serif;
+    font-size: 8.5pt;
+    font-weight: 500;
+    color: #555555;
+    vertical-align: bottom;
+    padding-bottom: 6mm;
+  }
+
+  @top-right { content: none; }
+
+  @bottom-left {
+    content: counter(page);
+    font-family: 'IBM Plex Sans Thai', sans-serif;
+    font-size: 9pt;
+    color: #555555;
+  }
+
+  @bottom-right { content: none; }
+}
+
+/* หน้าแรกของแต่ละบท */
+@page body:first {
+  @top-left { content: none; }
+  @top-center { content: none; }
+  @top-right { content: none; }
+}
+
+/* หน้าว่าง */
+@page :blank {
+  @top-left { content: none; }
+  @top-center { content: none; }
+  @top-right { content: none; }
+  @bottom-left { content: none; }
+  @bottom-center { content: none; }
+  @bottom-right { content: none; }
+}
+
+/* =========================================
+   3. Page Assignment
+   ========================================= */
+.cover,
+.cover.cover-has-image {
+  page: inside-full;
+}
+
+.copyright-page,
+.preface,
+.toc {
+  page: frontmatter;
+}
+
+.chapter {
+  page: body;
+}
+
+.back-cover {
+  page: inside-full;
+}
+
+/* =========================================
+   4. Full Page: Inside Cover / Opening Page
+   ========================================= */
+.cover {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 190mm;
+  height: 254mm;
+  min-height: 254mm;
+  text-align: center;
+  padding: 22mm 18mm;
+  background: #FFFFFF;
+  break-after: page;
+  page-break-after: always;
+  overflow: visible;
+}
+
+.cover.cover-has-image {
+  width: 190mm;
+  height: 254mm;
+  min-height: 254mm;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
+}
+
+.cover-image {
+  display: block;
+  width: 196mm;
+  height: 260mm;
+  margin: -3mm;
+  max-width: none;
+  max-height: none;
+  object-fit: cover;
+  object-position: center center;
+  border: none;
+  border-radius: 0;
+}
+
+.cover-title {
+  font-family: var(--hd);
+  font-size: 26pt;
+  font-weight: 700;
+  color: #000000;           /* ดำ 100% */
+  line-height: 1.2;
+  margin-bottom: 18pt;
+}
+
+.cover-subtitle {
+  font-family: var(--hd);
+  font-size: 12.5pt;
+  font-weight: 500;
+  color: #555555;
+  margin-bottom: 28pt;
+}
+
+.cover-meta {
+  font-size: 10pt;
+  color: #555555;
+  line-height: 1.8;
+}
+
+.cover-line {
+  width: 22mm;
+  height: 1.2mm;
+  background: #000000;
+  margin: 22pt auto;
+  border-radius: 0;
+}
+
+/* =========================================
+   5. Book Wrap & Sections
+   ========================================= */
+.book-wrap {
+  width: auto;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.copyright-page {
+  break-before: page;
+  page-break-before: always;
+  break-after: page;
+  page-break-after: always;
+  padding-top: 26mm;
+}
+
+.copyright-inner {
+  width: 100%;
+  max-width: 120mm;
+  margin: 0 auto;
+  text-align: left;
+  color: #000000;
+}
+
+.copyright-label {
+  font-family: var(--hd);
+  font-size: 13.5pt;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #000000;           /* ดำ 100% */
+  margin: 0 0 12pt 0;
+}
+
+.copyright-detail {
+  font-family: var(--hd);
+  font-size: 10pt;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #000000;
+  margin: 0 0 3pt 0;
+}
+
+.copyright-detail-label {
+  font-weight: 600;
+}
+
+.copyright-legal {
+  font-family: var(--bd);
+  font-size: 9.8pt;
+  line-height: 1.55;
+  color: #000000;
+  margin: 12pt 0 7pt 0;
+  font-weight: 600;
+}
+
+.copyright-restriction {
+  font-family: var(--bd);
+  font-size: 9.5pt;
+  line-height: 1.55;
+  color: #000000;
+  margin: 0 0 5pt 0;
+}
+
+.copyright-note {
+  font-family: var(--bd);
+  font-size: 9.5pt;
+  line-height: 1.55;
+  color: #555555;
+  margin: 5pt 0 12pt 0;
+}
+
+.copyright-info-grid {
+  border-top: 0.5pt solid #B0B0B0;
+  padding-top: 9pt;
+  margin-top: 6pt;
+}
+
+.copyright-info-item {
+  font-family: var(--bd);
+  font-size: 9.5pt;
+  line-height: 1.55;
+  color: #000000;
+}
+
+.copyright-info-label {
+  font-family: var(--hd);
+  font-weight: 600;
+  display: inline-block;
+  min-width: 28mm;
+}
+
+.preface {
+  break-before: page;
+  page-break-before: always;
+  padding: 0;
+}
+
+.preface-title {
+  font-family: var(--hd);
+  font-size: 17pt;
+  font-weight: 700;
+  text-align: center;
+  margin: 0 0 18pt 0;
+  color: #000000;           /* หัวข้อ ดำ 100% */
+}
+
+.preface-content {
+  max-width: none;
+  margin: 0;
+}
+
+.preface-content p {
+  margin-bottom: 7pt;
+  text-align: justify;
+  text-indent: 1.6em;
+  line-height: 1.48;
+  hyphens: auto;
+  orphans: 3;
+  widows: 3;
+  color: #000000;           /* ย่อหน้าคำนำ ดำ 100% */
+}
+
+.preface-content p[style*="text-align: right"],
+.preface-content p[style*="text-align:right"],
+.preface-content p[align="right"] {
+  text-indent: 0 !important;
+  hyphens: none !important;
+  text-align: right !important;
+}
+
+.toc {
+  break-before: page;
+  page-break-before: always;
+  padding: 0;
+}
+
+.toc-title {
+  font-family: var(--hd);
+  font-size: 17pt;
+  font-weight: 700;
+  text-align: center;
+  margin: 0 0 18pt 0;
+  color: #000000;
+}
+
+.toc-list {
+  max-width: none;
+  margin: 0;
+}
+
+.toc-item {
+  display: flex;
+  align-items: baseline;
+  text-decoration: none;
+  color: #000000;
+  padding: 3pt 0;
+  border-bottom: 0.4pt dashed #B0B0B0;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.toc-num {
+  font-family: var(--hd);
+  font-weight: 600;
+  font-size: 9.5pt;
+  color: #000000;           /* เลขบท ดำ 100% */
+  display: inline-block;
+  min-width: 18mm;
+  flex-shrink: 0;
+}
+
+.toc-name {
+  font-family: var(--hd);
+  font-weight: 500;
+  font-size: 10.5pt;
+  flex-shrink: 1;
+}
+
+.toc-leader {
+  flex: 1 1 auto;
+  border-bottom: 0.4pt dotted #888888;
+  margin: 0 4pt;
+  min-width: 4mm;
+  position: relative;
+  top: -2pt;
+}
+
+.toc-page {
+  font-family: var(--hd);
+  font-weight: 500;
+  font-size: 10pt;
+  color: #555555;
+  min-width: 8mm;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+a.toc-item::after {
+  content: target-counter(attr(href), page);
+  font-family: 'Prompt', 'IBM Plex Sans Thai', sans-serif;
+  font-weight: 500;
+  font-size: 10pt;
+  color: #555555;
+  min-width: 10mm;
+  text-align: right;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.chapter {
+  break-before: page;
+  page-break-before: always;
+  padding: 0 0 12mm 0;
+  counter-increment: ch-counter;
+}
+
+/* ----- Chapter Header — Horizontal Layout (บทที่ + เลข | ชื่อบท) ----- */
+.ch-hdr {
+  display: flex;
+  align-items: stretch;
+  margin-bottom: 18pt;
+  padding-bottom: 0;
+  border-bottom: none;
+  break-inside: avoid;
+  page-break-inside: avoid;
+  string-set: chapter-title "";
+  min-height: 18mm;
+}
+
+.ch-hdr::after {
+  content: none;
+}
+
+/* คอลัมน์ซ้าย: "บทที่" + เลขบท (ซ่อนข้อความเดิม "CHAPTER N") */
+.ch-num {
+  font-family: 'Prompt', 'IBM Plex Sans Thai', sans-serif;
+  font-size: 0;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: none;
+  padding: 0 16pt 0 0;
+  min-width: 26mm;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #000000;
+}
+
+.ch-num::before {
+  content: "บทที่";
+  display: block;
+  font-size: 14pt;
+  font-weight: 500;
+  color: #555555;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.ch-num::after {
+  content: counter(ch-counter, decimal-leading-zero);
+  display: block;
+  font-size: 38pt;
+  font-weight: 700;
+  color: #000000;
+  line-height: 1;
+  letter-spacing: -1pt;
+  margin-top: 1pt;
+}
+
+/* คอลัมน์ขวา: ชื่อบท + เส้นคั่นด้านซ้าย */
+.ch-title {
+  font-family: 'Prompt', 'IBM Plex Sans Thai', sans-serif;
+  font-size: 17pt;
+  font-weight: 700;
+  color: #000000;
+  line-height: 1.22;
+  padding-left: 16pt;
+  border-left: 1pt solid #999999;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  margin: 0;
+  break-after: avoid;
+  page-break-after: avoid;
+  string-set: chapter-title content();
+}
+
+.ch-meta {
+  display: none;
+}
+
+/* =========================================
+   6. Back Cover / Closing Full Page
+   ========================================= */
+.back-cover {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 190mm;
+  height: 254mm;
+  min-height: 254mm;
+  text-align: center;
+  padding: 0;
+  margin: 0;
+  background: #FFFFFF;
+  break-before: page;
+  page-break-before: always;
+  break-after: avoid;
+  page-break-after: avoid;
+  overflow: visible;
+}
+
+.back-cover-image {
+  display: block;
+  width: 196mm;
+  height: 260mm;
+  margin: -3mm;
+  max-width: none;
+  max-height: none;
+  object-fit: cover;
+  object-position: center center;
+  border: none;
+  border-radius: 0;
+}
+
+/* =========================================
+   7. Content Typography
+   ========================================= */
+.content h1,
+.content h2,
+.content h3,
+.content h4 {
+  font-family: var(--hd);
+  page-break-after: avoid;
+  break-after: avoid;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.content h1 {
+  font-size: 16.5pt;
+  font-weight: 700;
+  margin: 16pt 0 7pt 0;
+  line-height: 1.25;
+  color: #000000;           /* H1 ดำ 100% */
+}
+
+.content h2 {
+  font-size: 13.8pt;
+  font-weight: 700;
+  color: #000000;           /* H2 ดำ 100% (เดิมน้ำเงิน) */
+  margin: 15pt 0 7pt 0;
+  padding: 4.5pt 7pt 5.5pt 8pt;
+  line-height: 1.3;
+  border-left: 2.2pt solid #000000;       /* เส้นข้าง ดำ */
+  border-bottom: 1.2pt solid #000000;
+  background: #FFFFFF;
+}
+
+.content h3 {
+  font-size: 12.2pt;
+  font-weight: 600;
+  margin: 12pt 0 5pt 0;
+  padding: 3.5pt 7pt 4pt 7pt;
+  line-height: 1.3;
+  color: #000000;
+  background: #F2F2F2;
+}
+
+.content h4 {
+  font-size: 10pt;
+  font-weight: 700;
+  color: #000000;
+  background: #E8E8E8;
+  border-radius: 0;
+  padding: 4.5pt 7pt;
+  margin: 10pt 0 5pt 1.45em;
+  display: block;
+  line-height: 1.35;
+}
+
+.content h1+*,
+.content h2+*,
+.content h3+*,
+.content h4+* {
+  page-break-before: avoid;
+  break-before: avoid;
+}
+
+.content p {
+  margin: 0 0 6.5pt 0;
+  text-align: justify;
+  text-indent: 1.6em;
+  line-height: 1.48;
+  hyphens: auto;
+  orphans: 3;
+  widows: 3;
+  color: #000000;           /* ย่อหน้าหลัก ดำ 100% */
+}
+
+.content strong,
+.content b {
+  font-weight: 600;
+  color: #000000;           /* bold ดำ 100% (เดิมน้ำเงินเข้ม) */
+}
+
+.content ul,
+.content ol {
+  margin: 5pt 0 8pt 15pt;
+  padding-left: 7pt;
+  line-height: 1.45;
+  orphans: 3;
+  widows: 3;
+  color: #000000;
+}
+
+.content li {
+  margin-bottom: 2.5pt;
+  padding-left: 1.5pt;
+  color: #000000;
+}
+
+.content ul li::marker {
+  color: #000000;
+}
+
+.drop-cap::first-letter {
+  font-family: var(--hd);
+  font-size: 28pt;
+  font-weight: 700;
+  color: #000000;
+  float: left;
+  line-height: 0.9;
+  margin: 1pt 4pt 0 0;
+}
+
+/* =========================================
+   8. Components: Code, Note, Quote, Table, Image
+   ========================================= */
+.code-block {
+  background: #FFFFFF;
+  border-radius: 0;
+  border: 0.5pt solid #B0B0B0;
+  margin: 8pt 0 10pt 0;
+  overflow: hidden;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.code-header {
+  display: flex;
+  align-items: center;
+  background: #E8E8E8;      /* แถบหัว code เทาอ่อน */
+  border-bottom: 0.5pt solid #B0B0B0;
+}
+
+.code-lang-badge {
+  font-family: var(--cd);
+  font-size: 7pt;
+  font-weight: 700;
+  color: #FFFFFF;
+  background: #666666;      /* แบดจ์ภาษา พื้นเทาเข้ม ตัวขาว */
+  padding: 3pt 6pt;
+  letter-spacing: 0.5pt;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.code-filename {
+  font-family: var(--cd);
+  font-size: 7.2pt;
+  color: #000000;
+  padding: 3pt 6pt;
+  letter-spacing: 0.1pt;
+  font-weight: 500;
+}
+
+.code-linecount {
+  font-family: var(--cd);
+  font-size: 7.2pt;
+  color: #555555;
+  margin-left: auto;
+  padding: 3pt 6pt;
+}
+
+.code-block pre {
+  padding: 5pt 0;
+  margin: 0;
+  white-space: pre-wrap;
+  counter-reset: line-num;
+  background: #FFFFFF;
+}
+
+.code-block code {
+  font-family: var(--cd);
+  font-size: 8pt;
+  color: #000000;           /* code ดำ 100% */
+  line-height: 1.35;
+  display: block;
+  white-space: pre-wrap;
+  font-variant-ligatures: none;
+  font-feature-settings: "liga" 0, "calt" 0;
+}
+
+.line {
+  display: block;
+  counter-increment: line-num;
+  padding-left: 3.4em;
+  padding-right: 6pt;
+  position: relative;
+  min-height: 1.35em;
+  color: #000000;
+  font-size: 8pt;
+  line-height: 1.35;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.line::before {
+  content: counter(line-num);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2.8em;
+  text-align: right;
+  padding-right: 0.5em;
+  color: #555555;
+  font-size: 7pt;
+  line-height: 1.35;
+  border-right: 0.5pt solid #B0B0B0;
+  background: #EEEEEE;      /* gutter เลขบรรทัด พื้นเทาอ่อน */
+}
+
+.inline-code {
+  font-family: var(--cd);
+  font-size: 9pt;
+  background: #EEEEEE;      /* inline code พื้นเทาอ่อน */
+  color: #000000;
+  padding: 0.8pt 3pt;
+  border-radius: 0;
+  border: 0.5pt solid #B0B0B0;
+  font-variant-ligatures: none;
+  font-feature-settings: "liga" 0, "calt" 0;
+}
+
+.note {
+  background: #F2F2F2;      /* พื้นโน้ต เทาอ่อน อ่านง่าย */
+  border: 0.5pt solid #B0B0B0;
+  border-left: 2.2pt solid #555555;
+  border-radius: 0;
+  padding: 7pt 9pt;
+  margin: 9pt 0;
+  break-inside: avoid;
+  page-break-inside: avoid;
+  color: #000000;
+}
+
+.note-label {
+  font-family: var(--hd);
+  font-weight: 700;
+  font-size: 9pt;
+  color: #000000;           /* label โน้ต ดำ 100% (เดิมเหลือง #7A5B00) */
+  margin-bottom: 3pt;
+  display: block;
+  line-height: 1.3;
+}
+
+.note p {
+  margin: 0;
+  font-size: 9.8pt;
+  line-height: 1.45;
+  text-indent: 0;
+  color: #000000;
+}
+
+blockquote {
+  border-left: 2.2pt solid #000000;
+  background: #E8E8E8;      /* พื้น quote เทาอ่อน */
+  padding: 7pt 9pt;
+  margin: 9pt 0;
+  border-radius: 0;
+  color: #000000;           /* ตัวอักษร ดำ 100% (เดิมน้ำเงิน) */
+  font-style: italic;
+  line-height: 1.45;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+hr {
+  border: none;
+  height: 0.5pt;
+  background: #B0B0B0;
+  margin: 14pt 0;
+}
+
+.table-wrap {
+  overflow: visible;
+  margin: 9pt 0;
+  border-radius: 0;
+  border: 0.5pt solid #B0B0B0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 9.2pt;
+}
+
+thead {
+  display: table-header-group;
+  background: #E8E8E8;      /* แถวหัวตาราง เทาอ่อน */
+}
+
+tfoot {
+  display: table-footer-group;
+}
+
+tr {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+th {
+  font-family: var(--hd);
+  font-weight: 600;
+  text-align: left;
+  padding: 4.5pt 6pt;
+  border-bottom: 0.8pt solid #000000;
+  color: #000000;
+}
+
+td {
+  padding: 4pt 6pt;
+  border-bottom: 0.5pt solid #B0B0B0;
+  vertical-align: top;
+  color: #000000;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+.book-img {
+  margin: 11pt 0;
+  text-align: center;
+  break-inside: avoid;
+  page-break-inside: avoid;
+  display: block;
+}
+
+.book-img img {
+  max-width: 62%;
+  max-height: 105mm;
+  display: block;
+  margin: 0 auto;
+  border-radius: 0;
+  border: 0.5pt solid #999999;
+  object-fit: contain;
+}
+
+.book-img figcaption {
+  font-family: var(--hd);
+  font-size: 8.5pt;
+  color: #555555;
+  margin-top: 4.5pt;
+  font-style: italic;
+  text-align: center;
+}
+
+.img-placeholder {
+  background: #FFFFFF;
+  border: 0.7pt dashed #777777;
+  border-radius: 0;
+  padding: 12pt;
+  margin: 9pt 0;
+  text-align: center;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.img-icon {
+  font-size: 16pt;
+  margin-bottom: 4pt;
+}
+
+.img-desc {
+  font-family: var(--hd);
+  font-size: 9pt;
+  font-weight: 600;
+  color: #000000;
+  margin-bottom: 3pt;
+}
+
+.img-prompt {
+  font-family: var(--cd);
+  font-size: 7pt;
+  color: #555555;
+  background: #F2F2F2;
+  padding: 3pt 5pt;
+  border-radius: 0;
+  display: inline-block;
+  border: 0.5pt solid #B0B0B0;
+}
+
+/* =========================================
+   9. WeasyPrint Print Safeguards
+   ========================================= */
+.cover-meta,
+.book-footer {
+  display: none;
+}
+
+img {
+  image-rendering: auto;
+}
+
+.content h4::before,
+.code-filename::before {
+  content: none;
+}
+
+.page-break,
+.break-page {
+  break-after: page;
+  page-break-after: always;
+}
+
+.keep-together {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+/* =========================================================
+   Prompt Headings Override
+   ========================================================= */
+.content h1,
+.content h2,
+.content h3,
+.content h4 {
+  font-family: 'Prompt', 'IBM Plex Sans Thai', 'Sarabun', sans-serif !important;
+  font-style: normal !important;
+}
+
+.content h1,
+.content h2,
+.content h4 {
+  font-weight: 700 !important;
+}
+
+.content h3 {
+  font-weight: 600 !important;
+}
+
+/* =========================================================
+   FIX 2026-05-12 — Compact table + Heading guard
+   ========================================================= */
+
+.table-wrap {
+  margin: 7pt 0 8pt 0 !important;
+  overflow: visible !important;
+  border-radius: 0 !important;
+}
+
+table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  table-layout: fixed !important;
+  font-size: 8pt !important;
+  line-height: 1.28 !important;
+}
+
+table * {
+  font-size: 8pt !important;
+  line-height: 1.28 !important;
+  box-sizing: border-box !important;
+}
+
+thead {
+  display: table-header-group !important;
+}
+
+tfoot {
+  display: table-footer-group !important;
+}
+
+th {
+  font-family: 'Prompt', 'IBM Plex Sans Thai', 'Sarabun', sans-serif !important;
+  font-size: 8.2pt !important;
+  font-weight: 600 !important;
+  line-height: 1.25 !important;
+  padding: 3.2pt 4.5pt !important;
+  vertical-align: top !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+  hyphens: auto !important;
+  color: #000000 !important;
+}
+
+td {
+  font-family: var(--bd) !important;
+  font-size: 8pt !important;
+  line-height: 1.28 !important;
+  padding: 3pt 4.5pt !important;
+  vertical-align: top !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+  hyphens: auto !important;
+  color: #000000 !important;
+}
+
+th p,
+td p,
+th .content p,
+td .content p,
+.content th p,
+.content td p {
+  font-size: 8pt !important;
+  line-height: 1.28 !important;
+  margin: 0 0 2pt 0 !important;
+  padding: 0 !important;
+  text-indent: 0 !important;
+  text-align: left !important;
+  hyphens: auto !important;
+  orphans: 2 !important;
+  widows: 2 !important;
+  color: #000000 !important;
+}
+
+th p:last-child,
+td p:last-child,
+.content th p:last-child,
+.content td p:last-child {
+  margin-bottom: 0 !important;
+}
+
+th ul,
+th ol,
+td ul,
+td ol,
+.content th ul,
+.content th ol,
+.content td ul,
+.content td ol {
+  font-size: 8pt !important;
+  line-height: 1.28 !important;
+  margin: 1.5pt 0 1.5pt 8pt !important;
+  padding-left: 5pt !important;
+}
+
+th li,
+td li,
+.content th li,
+.content td li {
+  font-size: 8pt !important;
+  line-height: 1.28 !important;
+  margin: 0 0 1pt 0 !important;
+  padding-left: 0 !important;
+  color: #000000 !important;
+}
+
+th code,
+td code,
+th pre,
+td pre,
+th .inline-code,
+td .inline-code,
+.content th code,
+.content td code,
+.content th pre,
+.content td pre,
+.content th .inline-code,
+.content td .inline-code {
+  font-family: var(--cd) !important;
+  font-size: 7.2pt !important;
+  line-height: 1.22 !important;
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere !important;
+  word-wrap: break-word !important;
+  color: #000000 !important;
+}
+
+th .inline-code,
+td .inline-code,
+.content th .inline-code,
+.content td .inline-code {
+  padding: 0.3pt 1.8pt !important;
+  border-width: 0.4pt !important;
+}
+
+th img,
+td img,
+.content th img,
+.content td img {
+  max-width: 100% !important;
+  max-height: 32mm !important;
+  height: auto !important;
+  object-fit: contain !important;
+}
+
+tr {
+  break-inside: avoid-page !important;
+  page-break-inside: avoid !important;
+}
+
+/* ---------- Heading keep-with-next improvements ---------- */
+.content h1,
+.content h2,
+.content h3,
+.content h4,
+.ch-hdr,
+.ch-title,
+.preface-title,
+.toc-title {
+  break-after: avoid-page !important;
+  page-break-after: avoid !important;
+  break-inside: avoid-page !important;
+  page-break-inside: avoid !important;
+  orphans: 3 !important;
+  widows: 3 !important;
+}
+
+.content h1+*,
+.content h2+*,
+.content h3+*,
+.content h4+*,
+.ch-hdr+*,
+.preface-title+*,
+.toc-title+* {
+  break-before: avoid-page !important;
+  page-break-before: avoid !important;
+}
+
+.content h1 {
+  font-size: 15.8pt !important;
+  line-height: 1.22 !important;
+  margin: 13pt 0 5.5pt 0 !important;
+  color: #000000 !important;
+}
+
+.content h2 {
+  font-size: 13.2pt !important;
+  line-height: 1.24 !important;
+  margin: 12pt 0 5.5pt 0 !important;
+  padding: 4pt 6.5pt 5pt 7.5pt !important;
+  color: #000000 !important;
+}
+
+.content h3 {
+  font-size: 11.7pt !important;
+  line-height: 1.25 !important;
+  margin: 10pt 0 4.5pt 0 !important;
+  padding: 3.2pt 6.5pt 3.8pt 6.5pt !important;
+  color: #000000 !important;
+  background: #F2F2F2 !important;
+}
+
+.content h4 {
+  font-size: 9.7pt !important;
+  line-height: 1.28 !important;
+  margin: 8pt 0 4pt 1.45em !important;
+  padding: 4pt 6.5pt !important;
+  color: #000000 !important;
+  border-left: none !important;
+}
+
+.content h1+p,
+.content h2+p,
+.content h3+p,
+.content h4+p,
+.content h1+ul,
+.content h2+ul,
+.content h3+ul,
+.content h4+ul,
+.content h1+ol,
+.content h2+ol,
+.content h3+ol,
+.content h4+ol,
+.content h1+.note,
+.content h2+.note,
+.content h3+.note,
+.content h4+.note,
+.content h1+.table-wrap,
+.content h2+.table-wrap,
+.content h3+.table-wrap,
+.content h4+.table-wrap,
+.content h1+.book-img,
+.content h2+.book-img,
+.content h3+.book-img,
+.content h4+.book-img,
+.content h1+blockquote,
+.content h2+blockquote,
+.content h3+blockquote,
+.content h4+blockquote {
+  break-before: avoid-page !important;
+  page-break-before: avoid !important;
+  orphans: 3 !important;
+  widows: 3 !important;
+}
+
+.keep-heading-with-next {
+  break-inside: avoid-page !important;
+  page-break-inside: avoid !important;
+}
+
+/* =========================================================
+   TYPOGRAPHY NORMALIZATION PATCH
+   ========================================================= */
+
+html,
+body {
+  font-size: 10.6pt !important;
+  line-height: 1.46 !important;
+  color: #000000 !important;
+}
+
+.content p,
+.preface-content p {
+  font-size: 10.6pt !important;
+  line-height: 1.46 !important;
+  margin: 0 0 6pt 0 !important;
+  text-indent: 1.45em !important;
+  text-align: justify !important;
+  hyphens: auto !important;
+  orphans: 3 !important;
+  widows: 3 !important;
+  color: #000000 !important;             /* ย่อหน้าหลัก K100 */
+}
+
+.content h1+p,
+.content h2+p,
+.content h3+p,
+.content h4+p {
+  margin-top: 0 !important;
+}
+
+.content ul,
+.content ol {
+  font-size: 10.4pt !important;
+  line-height: 1.43 !important;
+  margin: 4.5pt 0 7pt 14pt !important;
+  padding-left: 7pt !important;
+  orphans: 3 !important;
+  widows: 3 !important;
+  color: #000000 !important;
+}
+
+.content li {
+  font-size: 10.4pt !important;
+  line-height: 1.43 !important;
+  margin: 0 0 2.2pt 0 !important;
+  padding-left: 1.2pt !important;
+  color: #000000 !important;
+}
+
+.content li>p {
+  font-size: 10.4pt !important;
+  line-height: 1.43 !important;
+  margin: 0 0 3pt 0 !important;
+  text-indent: 0 !important;
+  color: #000000 !important;
+}
+
+.content li>p:last-child {
+  margin-bottom: 0 !important;
+}
+
+.note {
+  font-size: 10pt !important;
+  line-height: 1.42 !important;
+  padding: 6.5pt 8pt !important;
+  margin: 8pt 0 !important;
+}
+
+.note-label {
+  font-size: 9.3pt !important;
+  line-height: 1.28 !important;
+  margin-bottom: 3pt !important;
+  color: #000000 !important;
+}
+
+.note p,
+.note li,
+.note span,
+.note strong,
+.note b {
+  font-size: 10pt !important;
+  line-height: 1.42 !important;
+  color: #000000 !important;
+}
+
+.note p {
+  margin: 0 0 4pt 0 !important;
+  text-indent: 0 !important;
+  text-align: left !important;
+}
+
+.note p:last-child {
+  margin-bottom: 0 !important;
+}
+
+.note ul,
+.note ol {
+  font-size: 10pt !important;
+  line-height: 1.42 !important;
+  margin: 3pt 0 3pt 12pt !important;
+  padding-left: 6pt !important;
+}
+
+.inline-code,
+.content code:not(.line):not(pre code) {
+  font-family: var(--cd) !important;
+  font-size: 8.9pt !important;
+  line-height: 1.2 !important;
+  padding: 0.6pt 2.6pt !important;
+  color: #000000 !important;
+}
+
+.code-block {
+  margin: 7pt 0 9pt 0 !important;
+}
+
+.code-header {
+  min-height: 0 !important;
+}
+
+.code-lang-badge {
+  font-size: 6.8pt !important;
+  line-height: 1.15 !important;
+  padding: 2.6pt 5.5pt !important;
+}
+
+.code-filename,
+.code-linecount {
+  font-size: 6.9pt !important;
+  line-height: 1.15 !important;
+  padding: 2.6pt 5.5pt !important;
+}
+
+.code-block pre {
+  padding: 4.5pt 0 !important;
+}
+
+.code-block code,
+.line {
+  font-family: var(--cd) !important;
+  font-size: 7.8pt !important;
+  line-height: 1.32 !important;
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  color: #000000 !important;
+}
+
+.line {
+  min-height: 1.32em !important;
+  padding-left: 3.3em !important;
+  padding-right: 5.5pt !important;
+}
+
+.line::before {
+  font-size: 6.8pt !important;
+  line-height: 1.32 !important;
+  width: 2.75em !important;
+  padding-right: 0.45em !important;
+}
+
+.book-img figcaption {
+  font-size: 8.4pt !important;
+  line-height: 1.35 !important;
+  margin-top: 4pt !important;
+}
+
+.img-desc {
+  font-size: 8.8pt !important;
+  line-height: 1.3 !important;
+}
+
+.img-prompt {
+  font-size: 6.8pt !important;
+  line-height: 1.25 !important;
+}
+
+.content h1 {
+  font-size: 15.6pt !important;
+  line-height: 1.22 !important;
+  margin: 12.5pt 0 5.2pt 0 !important;
+  color: #000000 !important;
+}
+
+.content h2 {
+  font-size: 13.1pt !important;
+  line-height: 1.24 !important;
+  margin: 11.5pt 0 5.2pt 0 !important;
+  padding: 3.8pt 6.2pt 4.8pt 7.2pt !important;
+  color: #000000 !important;
+}
+
+.content h3 {
+  font-size: 11.6pt !important;
+  line-height: 1.25 !important;
+  margin: 9.5pt 0 4.2pt 0 !important;
+  padding: 3.2pt 6.5pt 3.8pt 6.5pt !important;
+  color: #000000 !important;
+  background: #F2F2F2 !important;
+}
+
+.content h4 {
+  font-size: 9.7pt !important;
+  line-height: 1.28 !important;
+  margin: 7.5pt 0 3.8pt 1.45em !important;
+  padding: 3.8pt 6.2pt !important;
+  color: #000000 !important;
+  border-left: none !important;
+}

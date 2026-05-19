@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>สร้าง PDF หนังสือ</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<main>
+  <header>
+    <h1>สร้าง PDF หนังสือ</h1>
+    <p class="subtitle">อัปโหลด ZIP (HTML + รูปภาพ) → เลือกขนาด/โปรไฟล์สี → กดสร้าง</p>
+  </header>
+
+  <form id="build-form">
+    <div class="field">
+      <label for="zipfile">1. ไฟล์ ZIP (ต้องมี HTML และรูปประกอบ)</label>
+      <input type="file" id="zipfile" name="zipfile" accept=".zip" required>
+      <p class="hint">ไฟล์ในนี้จะถูกแตกลง <code>input/</code> (ของเดิมจะถูกลบทิ้ง)</p>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="size">2. ขนาดหนังสือ</label>
+        <select id="size" name="size" required>
+          {% for key, info in sizes.items() %}
+          <option value="{{ key }}">{{ info.label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="profile">3. โปรไฟล์สี (ICC)</label>
+        <select id="profile" name="profile" required>
+          {% if profiles %}
+            {% for p in profiles %}
+            <option value="{{ p.name }}" {% if not p.supported %}disabled{% endif %}>
+              {{ p.name }} ({{ p.colorspace }}{% if not p.supported %} — ไม่รองรับ{% endif %})
+            </option>
+            {% endfor %}
+          {% else %}
+            <option value="" disabled selected>— ไม่พบไฟล์ใน profiles/ —</option>
+          {% endif %}
+        </select>
+      </div>
+    </div>
+
+    <fieldset>
+      <legend>4. กราฟิกขอบหน้า (ไม่บังคับ)</legend>
+      <p class="hint">
+        ขนาด 18 × 234 mm (300 dpi) — อัปโหลด <strong>ทั้งซ้ายและขวา</strong> ระบบจึงจะใช้
+        ถ้าไม่อัปโหลด PDF จะไม่มีลวดลายขอบหน้า
+      </p>
+      <div class="row">
+        <div class="field">
+          <label for="left_graphic">กราฟิกซ้าย (.png / .jpg)</label>
+          <input type="file" id="left_graphic" name="left_graphic" accept=".png,.jpg,.jpeg">
+        </div>
+        <div class="field">
+          <label for="right_graphic">กราฟิกขวา (.png / .jpg)</label>
+          <input type="file" id="right_graphic" name="right_graphic" accept=".png,.jpg,.jpeg">
+        </div>
+      </div>
+    </fieldset>
+
+    <button type="submit" id="submit-btn">เริ่มสร้าง PDF</button>
+  </form>
+
+  <section id="status" class="hidden">
+    <h2>สถานะการทำงาน</h2>
+    <pre id="logs"></pre>
+    <div id="result" class="hidden"></div>
+  </section>
+</main>
+
+<script>
+const form = document.getElementById('build-form');
+const submitBtn = document.getElementById('submit-btn');
+const statusEl = document.getElementById('status');
+const logsEl = document.getElementById('logs');
+const resultEl = document.getElementById('result');
+
+function showResult(html, isError) {
+  resultEl.classList.remove('hidden');
+  resultEl.className = 'result' + (isError ? ' error' : ' ok');
+  resultEl.innerHTML = html;
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'กำลังสร้าง... (อาจใช้เวลาหลายนาที)';
+  statusEl.classList.remove('hidden');
+  resultEl.classList.add('hidden');
+
+  const fd = new FormData(form);
+
+  // โชว์ค่าที่กำลังจะส่งให้ user ตรวจสอบ
+  const sel = (id) => document.getElementById(id);
+  const selOpt = (id) => { const e = sel(id); return e.options[e.selectedIndex]; };
+  logsEl.textContent =
+    '── ข้อมูลที่ส่ง ──────────────\n' +
+    `ขนาด     : ${selOpt('size').text}  (key=${sel('size').value})\n` +
+    `โปรไฟล์  : ${sel('profile').value}\n` +
+    `ZIP      : ${sel('zipfile').files[0]?.name || '(ไม่มี)'}\n` +
+    `ขอบซ้าย  : ${sel('left_graphic').files[0]?.name || '–'}\n` +
+    `ขอบขวา   : ${sel('right_graphic').files[0]?.name || '–'}\n` +
+    '──────────────────────────────\n\n';
+  let buffer = '';
+  let finished = false;
+
+  try {
+    const res = await fetch('/build', { method: 'POST', body: fd });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({ error: 'HTTP ' + res.status }));
+      showResult('<h3>✗ ล้มเหลว</h3><p>' + (data.error || '') + '</p>', true);
+      return;
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+
+      for (const line of lines) {
+        if (line.startsWith('{') && line.includes('__done__')) {
+          const data = JSON.parse(line);
+          finished = true;
+          showResult(`
+            <h3>✓ เสร็จสมบูรณ์</h3>
+            <p>
+              <a class="btn" href="${data.download}">⬇ ดาวน์โหลด PDF (final — DeviceGray + ICC)</a>
+              <a class="btn-secondary" href="${data.intermediate}">⬇ PDF กลาง (RGB)</a>
+            </p>
+          `, false);
+        } else if (line.startsWith('{') && line.includes('__error__')) {
+          const data = JSON.parse(line);
+          finished = true;
+          showResult('<h3>✗ ล้มเหลว</h3><p><code>' + data.__error__ + '</code></p>', true);
+        } else {
+          logsEl.textContent += line + '\n';
+          logsEl.scrollTop = logsEl.scrollHeight;
+        }
+      }
+    }
+
+    if (!finished) {
+      showResult('<h3>⚠ จบการทำงานโดยไม่มีผลลัพธ์</h3>', true);
+    }
+  } catch (err) {
+    showResult('<h3>✗ เกิดข้อผิดพลาด</h3><p>' + err.message + '</p>', true);
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'เริ่มสร้าง PDF';
+  }
+});
+</script>
+</body>
+</html>

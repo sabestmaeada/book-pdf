@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+.deps_installed
+
+# macOS
+.DS_Store
+
+# WeasyPrint cache
+.weasy-cache/
+
+# Auto-generated / runtime artifacts
+*.synced.html
+
+# Book source + outputs (ใหญ่ และเปลี่ยนทุก build — ไม่เก็บใน git)
+input/*
+output/*
+
+# คงโครงโฟลเดอร์ไว้ด้วย .gitkeep
+!input/.gitkeep
+!output/.gitkeep
+
+# IDE
+.idea/
+.vscode/
+*.swp

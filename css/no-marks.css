@@ -1,0 +1,22 @@
+/* =========================================================
+   Override CSS — ซ่อน crop marks
+   ใช้คู่กับ CSS หลัก โดยใส่ -s no-marks.css ไว้ "หลัง" CSS หลักในคำสั่ง weasyprint
+
+   ตัวอย่าง:
+   weasyprint -s weasyprint_print_bw_170x228.css -s no-marks.css ...
+
+   หมายเหตุ:
+   - bleed, margin, ขนาดหน้า คงเดิมทั้งหมด
+   - เปลี่ยนเฉพาะ marks: crop → marks: none
+   - ครอบคลุมทุก @page rule (default, :right, :left, inside-full,
+     frontmatter:right/left, body:right/left)
+   ========================================================= */
+
+@page { marks: none; }
+@page :right { marks: none; }
+@page :left { marks: none; }
+@page inside-full { marks: none; }
+@page frontmatter:right { marks: none; }
+@page frontmatter:left { marks: none; }
+@page body:right { marks: none; }
+@page body:left { marks: none; }
