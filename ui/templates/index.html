@@ -46,11 +46,19 @@
       </div>
     </div>
 
+    <div class="field checkbox-field">
+      <label for="crop_marks">
+        <input type="checkbox" id="crop_marks" name="crop_marks">
+        แสดงขอบตัด (crop marks) ใน PDF
+      </label>
+      <p class="hint">ค่าเริ่มต้นไม่แสดง — ติ๊กเมื่อต้องการส่งให้โรงพิมพ์ตัดเล่ม</p>
+    </div>
+
     <fieldset>
       <legend>4. กราฟิกขอบหน้า (ไม่บังคับ)</legend>
       <p class="hint">
-        ขนาด 18 × 234 mm (300 dpi) — อัปโหลด <strong>ทั้งซ้ายและขวา</strong> ระบบจึงจะใช้
-        ถ้าไม่อัปโหลด PDF จะไม่มีลวดลายขอบหน้า
+        ขนาด 18 × 234 mm (300 dpi) — อัปโหลด <strong>ซ้าย ขวา หรือทั้งสอง</strong> ก็ได้
+        ฝั่งที่ไม่อัปโหลดจะปล่อยว่าง
       </p>
       <div class="row">
         <div class="field">
@@ -106,6 +114,7 @@ form.addEventListener('submit', async (e) => {
     `ZIP      : ${sel('zipfile').files[0]?.name || '(ไม่มี)'}\n` +
     `ขอบซ้าย  : ${sel('left_graphic').files[0]?.name || '–'}\n` +
     `ขอบขวา   : ${sel('right_graphic').files[0]?.name || '–'}\n` +
+    `Crop marks: ${sel('crop_marks').checked ? 'แสดง' : 'ไม่แสดง'}\n` +
     '──────────────────────────────\n\n';
   let buffer = '';
   let finished = false;

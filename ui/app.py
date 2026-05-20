@@ -18,6 +18,7 @@ import zipfile
 from pathlib import Path
 from queue import Queue, Empty
 
+import pikepdf
 from flask import Flask, Response, abort, jsonify, render_template, request, send_file
 
 ROOT = Path(__file__).parent.parent.resolve()
@@ -74,10 +75,11 @@ app.config["MAX_CONTENT_LENGTH"] = 500 * 1024 * 1024  # 500 MB
 
 # ICC header — bytes 16..19 คือ color space signature (4 ASCII chars)
 # Reference: ICC.1:2010 — section 7.2.6
-_ICC_CS_TO_DEVICE = {
-    "GRAY": ("Gray", "DeviceGray"),
-    "CMYK": ("CMYK", "DeviceCMYK"),
-    "RGB ": ("RGB",  "DeviceRGB"),
+# tuple = (label, mutool -c arg, ICC stream /N, OutputCondition description)
+_ICC_CS_TABLE = {
+    "GRAY": ("Gray", "gray", 1, "Gray color space"),
+    "CMYK": ("CMYK", "cmyk", 4, "CMYK color space"),
+    "RGB ": ("RGB",  "rgb",  3, "RGB color space"),
 }
 
 
@@ -101,9 +103,57 @@ def list_profiles() -> list[dict]:
         out.append({
             "name": p.name,
             "colorspace": cs.strip() or "?",
-            "supported": cs in _ICC_CS_TO_DEVICE,
+            "supported": cs in _ICC_CS_TABLE,
         })
     return out
+
+
+def apply_color_pipeline(
+    rgb_pdf: Path,
+    profile: str,
+    profile_cs_raw: str,
+    output_dir: Path,
+    q: Queue,
+) -> Path:
+    """แปลง color space + ฝัง ICC โดยรักษา vector text/graphics ไว้
+
+    Pipeline:
+      1) mutool recolor -c <gray|rgb|cmyk>  → แปลง color space (preserve vector)
+      2) pikepdf inject ICC profile ลง /OutputIntents → ทำให้ไฟล์ valid PDF/X
+    """
+    label, mutool_arg, channels, condition = _ICC_CS_TABLE[profile_cs_raw]
+    final_pdf = output_dir / f"book_{label.lower()}_hq.pdf"
+    interim_pdf = output_dir / f".intermediate_{label.lower()}.pdf"
+
+    # 1) mutool recolor
+    cmd = ["mutool", "recolor", "-c", mutool_arg, "-o", str(interim_pdf), str(rgb_pdf)]
+    rc = stream_subprocess(cmd, cwd=output_dir.parent, output_queue=q)
+    if rc != 0:
+        if interim_pdf.exists():
+            interim_pdf.unlink()
+        raise RuntimeError(f"mutool recolor failed (exit {rc})")
+
+    # 2) pikepdf — embed ICC into OutputIntent
+    icc_path = PROFILES_DIR / profile
+    icc_data = icc_path.read_bytes()
+    q.put(f"$ pikepdf: ฝัง ICC {profile} ({channels}-channel) ลง /OutputIntents")
+    with pikepdf.open(interim_pdf) as pdf:
+        icc_stream = pdf.make_stream(icc_data, {"/N": channels})
+        intent = pikepdf.Dictionary({
+            "/Type": pikepdf.Name("/OutputIntent"),
+            "/S": pikepdf.Name("/GTS_PDFX"),
+            "/OutputCondition": pikepdf.String(profile),
+            "/OutputConditionIdentifier": pikepdf.String("Custom"),
+            "/RegistryName": pikepdf.String(""),
+            "/Info": pikepdf.String(condition),
+            "/DestOutputProfile": icc_stream,
+        })
+        pdf.Root["/OutputIntents"] = pikepdf.Array([intent])
+        pdf.save(final_pdf)
+
+    if interim_pdf.exists():
+        interim_pdf.unlink()
+    return final_pdf
 
 
 @app.route("/")
@@ -153,10 +203,13 @@ def find_html(input_dir: Path) -> Path:
 
 
 def clear_dir(p: Path) -> None:
+    """ลบเนื้อหาในโฟลเดอร์ — แต่เก็บไฟล์ที่ขึ้นต้นด้วย . (เช่น .gitkeep)"""
     if not p.exists():
         p.mkdir(parents=True, exist_ok=True)
         return
     for child in p.iterdir():
+        if child.name.startswith("."):
+            continue
         if child.is_dir():
             shutil.rmtree(child)
         else:
@@ -187,6 +240,7 @@ def build_pipeline(
     css_name: str,
     left_graphic: tuple[str, bytes] | None,
     right_graphic: tuple[str, bytes] | None,
+    crop_marks: bool,
     q: Queue,
 ) -> None:
     try:
@@ -200,15 +254,15 @@ def build_pipeline(
         html_path = find_html(INPUT_DIR)
         q.put(f"✓ พบไฟล์ HTML: {html_path.relative_to(ROOT)}")
 
-        # 2) บันทึก edge graphics ถ้ามี (ต้องครบทั้งซ้าย+ขวา)
-        use_edge_graphic = left_graphic is not None and right_graphic is not None
-        if use_edge_graphic:
+        # 2) บันทึก edge graphics — ซ้าย/ขวา/ทั้งคู่/ไม่มี ก็ได้
+        if left_graphic is not None:
             ASSETS_DIR.mkdir(parents=True, exist_ok=True)
             (ASSETS_DIR / LEFT_GRAPHIC_NAME).write_bytes(left_graphic[1])
+            q.put(f"✓ บันทึก edge graphic ซ้าย: {LEFT_GRAPHIC_NAME}")
+        if right_graphic is not None:
+            ASSETS_DIR.mkdir(parents=True, exist_ok=True)
             (ASSETS_DIR / RIGHT_GRAPHIC_NAME).write_bytes(right_graphic[1])
-            q.put(f"✓ บันทึก edge graphics: {LEFT_GRAPHIC_NAME}, {RIGHT_GRAPHIC_NAME}")
-        elif left_graphic or right_graphic:
-            q.put("⚠ ต้องอัปโหลด edge graphic ทั้งซ้ายและขวา → ข้ามการใช้กราฟิกขอบหน้า")
+            q.put(f"✓ บันทึก edge graphic ขวา: {RIGHT_GRAPHIC_NAME}")
 
         # 3) Step 1/3 — sync_toc
         # เขียน synced ไว้ข้างไฟล์ต้นฉบับ เพื่อให้ relative path (./images/...) resolve ถูก
@@ -226,10 +280,13 @@ def build_pipeline(
         q.put("\n[2/3] weasyprint")
         rgb_pdf = OUTPUT_DIR / "book_rgb_bw_nomarks.pdf"
         weasy_cmd: list[str] = ["weasyprint", "-s", f"css/{css_name}"]
-        if use_edge_graphic:
-            weasy_cmd += ["-s", "css/edge-graphic.css"]
+        if left_graphic is not None:
+            weasy_cmd += ["-s", "css/edge-graphic-left.css"]
+        if right_graphic is not None:
+            weasy_cmd += ["-s", "css/edge-graphic-right.css"]
+        if not crop_marks:
+            weasy_cmd += ["-s", "css/no-marks.css"]
         weasy_cmd += [
-            "-s", "css/no-marks.css",
             "--pdf-variant", "pdf/x-4",
             "--optimize-images", "-j", "90", "-D", "300",
             "-c", ".weasy-cache",
@@ -242,33 +299,15 @@ def build_pipeline(
             return
         q.put(f"✓ {rgb_pdf.relative_to(ROOT)}")
 
-        # 5) Step 3/3 — ghostscript
-        # เลือก strategy + process color model ให้ match กับ ICC profile
-        strategy, process_model = _ICC_CS_TO_DEVICE[profile_cs_raw]
-        # ตั้งชื่อไฟล์ output ตาม color space เพื่อไม่ทับกัน
-        final_pdf = OUTPUT_DIR / f"book_{strategy.lower()}_hq.pdf"
-        q.put(f"\n[3/3] ghostscript (ICC: {profile}, color space: {strategy})")
-        gs_cmd = [
-            "gs", "-dNOSAFER", "-dBATCH", "-dNOPAUSE",
-            "-sDEVICE=pdfwrite",
-            f"-sOutputFile={final_pdf}",
-            "-dPDFX", "-dCompatibilityLevel=1.6",
-            "-dPDFSETTINGS=/prepress",
-            f"-sColorConversionStrategy={strategy}",
-            f"-dProcessColorModel=/{process_model}",
-            "-dBlackText=true",
-            "-dDownsampleColorImages=false",
-            "-dDownsampleGrayImages=false",
-            "-dDownsampleMonoImages=false",
-            "-dPreserveAnnots=true",
-            "-dPreserveMarkedContent=true",
-            "-dPreserveEPSInfo=true",
-            f"-sOutputICCProfile=profiles/{profile}",
-            str(rgb_pdf),
-        ]
-        rc = stream_subprocess(gs_cmd, cwd=ROOT, output_queue=q)
-        if rc != 0:
-            q.put(json.dumps({"__error__": f"ghostscript failed (exit {rc})"}))
+        # 5) Step 3/3 — แปลง color space + ฝัง ICC (mutool + pikepdf)
+        label = _ICC_CS_TABLE[profile_cs_raw][0]
+        q.put(f"\n[3/3] mutool recolor + pikepdf (ICC: {profile}, color space: {label})")
+        try:
+            final_pdf = apply_color_pipeline(
+                rgb_pdf, profile, profile_cs_raw, OUTPUT_DIR, q,
+            )
+        except Exception as e:
+            q.put(json.dumps({"__error__": f"color pipeline failed: {e}"}))
             return
 
         q.put(f"\n✓ เสร็จสมบูรณ์ → {final_pdf.relative_to(ROOT)}")
@@ -292,7 +331,7 @@ def build():
         return jsonify(error=f"โปรไฟล์สีไม่ถูกต้อง: {profile}"), 400
     profile_cs = profiles_by_name[profile]["colorspace"]
     profile_cs_raw = profile_cs.ljust(4)  # คืน signature 4 ตัวอักษรสำหรับ lookup
-    if profile_cs_raw not in _ICC_CS_TO_DEVICE:
+    if profile_cs_raw not in _ICC_CS_TABLE:
         return jsonify(error=f"โปรไฟล์สี '{profile}' ใช้ color space ที่ไม่รองรับ: {profile_cs!r}"), 400
 
     sizes = list_book_sizes()
@@ -311,6 +350,7 @@ def build():
 
     left_graphic = read_optional("left_graphic")
     right_graphic = read_optional("right_graphic")
+    crop_marks = request.form.get("crop_marks") is not None
 
     # log สิ่งที่ได้รับจริง — เพื่อ debug
     print(
@@ -318,14 +358,15 @@ def build():
         f"profile={profile!r} ({profile_cs})  "
         f"zip={len(zip_bytes)} bytes  "
         f"left={'✓' if left_graphic else '–'}  "
-        f"right={'✓' if right_graphic else '–'}",
+        f"right={'✓' if right_graphic else '–'}  "
+        f"crop_marks={crop_marks}",
         flush=True,
     )
 
     q: Queue = Queue()
     worker = threading.Thread(
         target=build_pipeline,
-        args=(zip_bytes, profile, profile_cs_raw, css_name, left_graphic, right_graphic, q),
+        args=(zip_bytes, profile, profile_cs_raw, css_name, left_graphic, right_graphic, crop_marks, q),
         daemon=True,
     )
     worker.start()

@@ -1,0 +1,23 @@
+/* =========================================================
+   edge-graphic-right.css — กราฟิกขอบหน้าคี่ (RIGHT page)
+   ใช้คู่กับ CSS หลัก เมื่อมี asset:
+       assets/right-graphic-18x234mm-300dpi.png
+   ========================================================= */
+
+@page body:right {
+  @right-top {
+    content: "";
+    background-image: url("../assets/right-graphic-18x234mm-300dpi.png");
+    background-repeat: no-repeat;
+    background-size: 18mm 234mm;
+    background-position: right top;
+    width: 18mm;
+    height: 234mm;
+    margin: -21mm -3mm 0 0;
+    padding: 0;
+  }
+}
+
+@page :blank {
+  @right-top { content: none; }
+}

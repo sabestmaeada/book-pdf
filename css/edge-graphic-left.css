@@ -1,0 +1,23 @@
+/* =========================================================
+   edge-graphic-left.css — กราฟิกขอบหน้าคู่ (LEFT page)
+   ใช้คู่กับ CSS หลัก เมื่อมี asset:
+       assets/left-graphic-18x234mm-300dpi.png
+   ========================================================= */
+
+@page body:left {
+  @left-top {
+    content: "";
+    background-image: url("../assets/left-graphic-18x234mm-300dpi.png");
+    background-repeat: no-repeat;
+    background-size: 18mm 234mm;
+    background-position: left top;
+    width: 18mm;
+    height: 234mm;
+    margin: -21mm 0 0 -3mm;
+    padding: 0;
+  }
+}
+
+@page :blank {
+  @left-top { content: none; }
+}

@@ -35,8 +35,8 @@ if ! command -v weasyprint >/dev/null 2>&1; then
   echo "⚠ ไม่พบ weasyprint  → ติดตั้งด้วย: brew install weasyprint  หรือ  pip install weasyprint"
   missing=1
 fi
-if ! command -v gs >/dev/null 2>&1; then
-  echo "⚠ ไม่พบ ghostscript (gs)  → ติดตั้งด้วย: brew install ghostscript"
+if ! command -v mutool >/dev/null 2>&1; then
+  echo "⚠ ไม่พบ mutool (MuPDF)  → ติดตั้งด้วย: brew install mupdf-tools"
   missing=1
 fi
 if [ "$missing" -eq 1 ]; then

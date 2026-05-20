@@ -1,0 +1,542 @@
+@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap');
+
+/* =========================================================
+   WeasyPrint CSS - VIBRANT & COLORFUL EDITION
+   Book Interior Trim Size: 170mm x 228mm
+   Bleed: 3mm
+   Crop Marks: enabled
+
+   ปรับขนาดหัวข้อให้ใหญ่ขึ้นและใช้สีสันฉูดฉาด
+   - ข้อความหลัก (body): ดำ/เทาเข้มเพื่อให้อ่านง่าย
+   - หัวข้อ accent → สีม่วงเข้ม (Deep Purple) และ ชมพูบานเย็น (Hot Pink)
+   - พื้นหลังโน้ต/โค้ด → สีเหลืองสว่าง, ฟ้าอมเขียว (Cyan)
+   - เส้นขอบ → สีสันสดใส
+   ========================================================= */
+
+/* =========================================
+   1. CSS Variables & Base Setup
+   ========================================= */
+:root {
+  --bg: #FFFFFF;
+  --text: #1A1A1A;          /* สีข้อความหลักให้อ่านง่าย */
+  --muted: #666666;
+
+  /* โทนสีฉูดฉาด */
+  --accent: #FF007F;        /* Hot Pink */
+  --accent-lt: #00E5FF;     /* Cyan */
+  --accent-dk: #6200EA;     /* Deep Purple */
+  --accent-yellow: #FFEA00; /* Bright Yellow */
+
+  --border: #FF007F;        
+  --note-bg: #FFF9C4;       /* พื้นโน้ต สีเหลืองอ่อน */
+  --note-bd: #FF9100;       /* เส้นโน้ต สีส้ม */
+
+  --code-bg: #F4F4F9;
+  --code-tx: #282A36;
+  --ln-bg: #FF80AB;         /* เลขบรรทัด พื้นชมพู */
+  --ln-tx: #FFFFFF;         
+  --ln-border: #FF007F;
+
+  --hd: 'IBM Plex Sans Thai', sans-serif;
+  --bd: 'Sarabun', sans-serif;
+  --cd: 'JetBrains Mono', monospace;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--bd);
+  font-size: 10.8pt;
+  line-height: 1.48;
+  font-variant-ligatures: none;
+  font-feature-settings: "liga" 0, "calt" 0;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  counter-reset: ch-counter;
+}
+
+/* =========================================
+   2. Page Setup for WeasyPrint
+   ========================================= */
+@page {
+  size: 170mm 228mm;
+  margin: 18mm 15mm 20mm 22mm;
+  bleed: 3mm;
+  marks: crop;
+}
+
+@page :right {
+  size: 170mm 228mm;
+  margin: 18mm 15mm 20mm 22mm;
+  bleed: 3mm;
+  marks: crop;
+  @bottom-right {
+    content: counter(page);
+    font-family: 'IBM Plex Sans Thai', sans-serif;
+    font-size: 9pt;
+    color: var(--accent-dk);
+    font-weight: 700;
+  }
+  @bottom-left { content: none; }
+}
+
+@page :left {
+  size: 170mm 228mm;
+  margin: 18mm 22mm 20mm 15mm;
+  bleed: 3mm;
+  marks: crop;
+  @bottom-left {
+    content: counter(page);
+    font-family: 'IBM Plex Sans Thai', sans-serif;
+    font-size: 9pt;
+    color: var(--accent-dk);
+    font-weight: 700;
+  }
+  @bottom-right { content: none; }
+}
+
+@page inside-full {
+  size: 170mm 228mm;
+  margin: 0;
+  bleed: 3mm;
+  marks: crop;
+  @top-left { content: none; }
+  @top-center { content: none; }
+  @top-right { content: none; }
+  @bottom-left { content: none; }
+  @bottom-center { content: none; }
+  @bottom-right { content: none; }
+}
+
+@page frontmatter:right {
+  size: 170mm 228mm;
+  margin: 18mm 15mm 20mm 22mm;
+  bleed: 3mm;
+  marks: crop;
+  @bottom-left { content: none; }
+  @bottom-center { content: none; }
+  @bottom-right { content: none; }
+}
+
+@page frontmatter:left {
+  size: 170mm 228mm;
+  margin: 18mm 22mm 20mm 15mm;
+  bleed: 3mm;
+  marks: crop;
+  @bottom-left { content: none; }
+  @bottom-center { content: none; }
+  @bottom-right { content: none; }
+}
+
+@page body:right {
+  size: 170mm 228mm;
+  margin: 18mm 15mm 20mm 22mm;
+  bleed: 3mm;
+  marks: crop;
+  @top-left { content: none; }
+  @top-right { content: none; }
+  @bottom-right {
+    content: counter(page);
+    font-family: 'IBM Plex Sans Thai', sans-serif;
+    font-size: 9pt;
+    color: var(--accent-dk);
+    font-weight: 700;
+  }
+  @bottom-left { content: none; }
+}
+
+@page body:left {
+  size: 170mm 228mm;
+  margin: 18mm 22mm 20mm 15mm;
+  bleed: 3mm;
+  marks: crop;
+  @top-left {
+    content: string(chapter-title);
+    font-family: 'Prompt', 'IBM Plex Sans Thai', sans-serif;
+    font-size: 8.5pt;
+    font-weight: 700;
+    color: var(--accent);
+    vertical-align: bottom;
+    padding-bottom: 6mm;
+  }
+  @top-right { content: none; }
+  @bottom-left {
+    content: counter(page);
+    font-family: 'IBM Plex Sans Thai', sans-serif;
+    font-size: 9pt;
+    color: var(--accent-dk);
+    font-weight: 700;
+  }
+  @bottom-right { content: none; }
+}
+
+@page body:first {
+  @top-left { content: none; }
+  @top-center { content: none; }
+  @top-right { content: none; }
+}
+
+@page :blank {
+  @top-left { content: none; }
+  @top-center { content: none; }
+  @top-right { content: none; }
+  @bottom-left { content: none; }
+  @bottom-center { content: none; }
+  @bottom-right { content: none; }
+}
+
+/* =========================================
+   3. Page Assignment
+   ========================================= */
+.cover, .cover.cover-has-image { page: inside-full; }
+.copyright-page, .preface, .toc { page: frontmatter; }
+.chapter { page: body; }
+.back-cover { page: inside-full; }
+
+/* =========================================
+   4. Full Page: Inside Cover / Opening Page
+   ========================================= */
+.cover {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 170mm;
+  height: 228mm;
+  min-height: 228mm;
+  text-align: center;
+  padding: 22mm 18mm;
+  background: var(--accent-lt); /* สดใสตั้งแต่หน้าปก */
+  break-after: page;
+  page-break-after: always;
+  overflow: visible;
+}
+
+.cover.cover-has-image {
+  width: 170mm; height: 228mm; min-height: 228mm;
+  padding: 0; margin: 0; overflow: visible; background: #FFF;
+}
+
+.cover-image {
+  display: block; width: 176mm; height: 234mm;
+  margin: -3mm; max-width: none; max-height: none;
+  object-fit: cover; object-position: center center;
+}
+
+.cover-title {
+  font-family: var(--hd);
+  font-size: 32pt;
+  font-weight: 800;
+  color: var(--accent-dk);
+  line-height: 1.2;
+  margin-bottom: 18pt;
+  text-shadow: 2px 2px 0px var(--accent-yellow);
+}
+
+.cover-subtitle {
+  font-family: var(--hd);
+  font-size: 16pt;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 28pt;
+}
+
+.cover-meta {
+  font-size: 11pt; color: var(--accent-dk); line-height: 1.8; font-weight: 600;
+}
+
+.cover-line {
+  width: 40mm; height: 3mm;
+  background: var(--accent);
+  margin: 22pt auto; border-radius: 2mm;
+}
+
+/* =========================================
+   5. Book Wrap & Sections
+   ========================================= */
+.book-wrap { width: auto; max-width: none; margin: 0; padding: 0; }
+
+.copyright-page {
+  break-before: page; page-break-before: always; break-after: page; page-break-after: always; padding-top: 26mm;
+}
+.copyright-inner { width: 100%; max-width: 120mm; margin: 0 auto; text-align: left; color: var(--text); }
+.copyright-label { font-family: var(--hd); font-size: 16pt; font-weight: 700; color: var(--accent-dk); margin: 0 0 12pt 0; }
+.copyright-detail { font-family: var(--hd); font-size: 10pt; color: var(--text); margin: 0 0 3pt 0; }
+.copyright-detail-label { font-weight: 700; color: var(--accent); }
+.copyright-legal, .copyright-restriction { font-family: var(--bd); font-size: 9.8pt; color: var(--text); }
+.copyright-note { font-family: var(--bd); font-size: 9.5pt; color: var(--muted); }
+.copyright-info-grid { border-top: 2pt solid var(--accent-lt); padding-top: 9pt; margin-top: 6pt; }
+.copyright-info-item { font-family: var(--bd); font-size: 9.5pt; color: var(--text); }
+.copyright-info-label { font-family: var(--hd); font-weight: 700; color: var(--accent-dk); display: inline-block; min-width: 28mm; }
+
+.preface { break-before: page; page-break-before: always; padding: 0; }
+.preface-title {
+  font-family: var(--hd); font-size: 24pt; font-weight: 800;
+  text-align: center; margin: 0 0 24pt 0; color: var(--accent);
+  text-shadow: 1px 1px 0px var(--accent-yellow);
+}
+.preface-content p { margin-bottom: 7pt; text-align: justify; text-indent: 1.6em; color: var(--text); }
+
+.toc { break-before: page; page-break-before: always; padding: 0; }
+.toc-title {
+  font-family: var(--hd); font-size: 24pt; font-weight: 800;
+  text-align: center; margin: 0 0 24pt 0; color: var(--accent-dk);
+}
+.toc-list { max-width: none; margin: 0; }
+.toc-item {
+  display: flex; align-items: baseline; text-decoration: none;
+  padding: 5pt 0; border-bottom: 1pt dashed var(--accent-lt);
+}
+.toc-num {
+  font-family: var(--hd); font-weight: 700; font-size: 11pt; color: var(--accent);
+  display: inline-block; min-width: 18mm; flex-shrink: 0;
+}
+.toc-name { font-family: var(--hd); font-weight: 600; font-size: 11.5pt; color: var(--text); flex-shrink: 1; }
+.toc-leader { flex: 1 1 auto; border-bottom: 1.5pt dotted var(--border); margin: 0 4pt; min-width: 4mm; position: relative; top: -2pt; }
+.toc-page { font-family: var(--hd); font-weight: 700; font-size: 11pt; color: var(--accent-dk); min-width: 8mm; text-align: right; flex-shrink: 0; }
+a.toc-item::after {
+  content: target-counter(attr(href), page); font-family: 'Prompt', sans-serif; font-weight: 700;
+  font-size: 11pt; color: var(--accent-dk); min-width: 10mm; text-align: right; flex-shrink: 0; margin-left: auto;
+}
+
+.chapter { break-before: page; page-break-before: always; padding: 0 0 12mm 0; counter-increment: ch-counter; }
+
+/* ----- Chapter Header — Flashy Layout ----- */
+.ch-hdr {
+  display: flex; align-items: stretch; margin-bottom: 24pt;
+  padding-bottom: 12pt; border-bottom: 3pt solid var(--accent-lt);
+  break-inside: avoid; string-set: chapter-title ""; min-height: 22mm;
+}
+.ch-num {
+  font-family: 'Prompt', sans-serif; font-size: 0; line-height: 1;
+  padding: 0 16pt 0 0; min-width: 26mm; margin: 0;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+}
+.ch-num::before {
+  content: "บทที่"; display: block; font-size: 18pt; font-weight: 700;
+  color: var(--accent-dk); line-height: 1;
+}
+.ch-num::after {
+  content: counter(ch-counter, decimal-leading-zero); display: block;
+  font-size: 50pt; font-weight: 800; color: var(--accent);
+  line-height: 1; letter-spacing: -2pt; margin-top: 2pt;
+  text-shadow: 2px 2px 0px var(--accent-yellow);
+}
+.ch-title {
+  font-family: 'Prompt', sans-serif; font-size: 24pt; font-weight: 800;
+  color: var(--text); line-height: 1.25; padding-left: 16pt;
+  border-left: 4pt solid var(--accent); display: flex; align-items: center;
+  flex: 1; margin: 0; break-after: avoid; string-set: chapter-title content();
+}
+.ch-meta { display: none; }
+
+.back-cover {
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  width: 170mm; height: 228mm; min-height: 228mm; margin: 0; padding: 0; background: #FFF;
+  break-before: page; page-break-before: always; break-after: avoid;
+}
+.back-cover-image {
+  display: block; width: 176mm; height: 234mm; margin: -3mm; object-fit: cover;
+}
+
+/* =========================================
+   7. Content Typography (Vibrant Headings)
+   ========================================= */
+.content h1, .content h2, .content h3, .content h4 {
+  font-family: var(--hd); break-after: avoid; break-inside: avoid;
+}
+
+.content h1 {
+  font-size: 22pt; font-weight: 800; margin: 20pt 0 10pt 0;
+  line-height: 1.3; color: var(--accent-dk);
+  border-bottom: 3pt solid var(--accent);
+  display: inline-block; padding-bottom: 2pt;
+}
+
+.content h2 {
+  font-size: 18pt; font-weight: 700; color: var(--accent);
+  margin: 18pt 0 8pt 0; padding: 6pt 10pt; line-height: 1.3;
+  border-left: 5pt solid var(--accent-lt);
+  border-bottom: 2pt solid var(--accent-dk);
+  background: #FAFAFA;
+}
+
+.content h3 {
+  font-size: 14pt; font-weight: 700; margin: 14pt 0 6pt 0;
+  padding: 5pt 10pt; line-height: 1.3;
+  color: #FFFFFF; background: var(--accent-dk);
+  border-radius: 4px;
+}
+
+.content h4 {
+  font-size: 12pt; font-weight: 700; color: var(--accent-dk);
+  background: var(--accent-yellow); padding: 5pt 10pt;
+  margin: 12pt 0 6pt 1.45em; display: inline-block; border-radius: 3px;
+}
+
+.content h1+*, .content h2+*, .content h3+*, .content h4+* { break-before: avoid; }
+
+.content p {
+  margin: 0 0 6.5pt 0; text-align: justify; text-indent: 1.6em; line-height: 1.48; color: var(--text);
+}
+.content strong, .content b { font-weight: 700; color: var(--accent-dk); }
+.content ul, .content ol { margin: 5pt 0 8pt 15pt; padding-left: 7pt; color: var(--text); }
+.content li { margin-bottom: 3pt; padding-left: 1.5pt; }
+.content ul li::marker { color: var(--accent); font-weight: bold; }
+
+.drop-cap::first-letter {
+  font-family: var(--hd); font-size: 36pt; font-weight: 800;
+  color: var(--accent); float: left; line-height: 0.9; margin: 2pt 6pt 0 0;
+}
+
+/* =========================================
+   8. Components: Code, Note, Quote, Table, Image
+   ========================================= */
+.code-block {
+  background: var(--code-bg); border-radius: 6px;
+  border: 2pt solid var(--accent-lt);
+  margin: 12pt 0; overflow: hidden; break-inside: avoid;
+}
+.code-header {
+  display: flex; align-items: center; background: var(--accent-dk);
+  border-bottom: 2pt solid var(--accent);
+}
+.code-lang-badge {
+  font-family: var(--cd); font-size: 8pt; font-weight: 700; color: var(--accent-dk);
+  background: var(--accent-yellow); padding: 4pt 8pt; text-transform: uppercase;
+}
+.code-filename {
+  font-family: var(--cd); font-size: 8pt; color: #FFFFFF; padding: 4pt 8pt; font-weight: 600;
+}
+.code-linecount {
+  font-family: var(--cd); font-size: 8pt; color: var(--accent-lt); margin-left: auto; padding: 4pt 8pt;
+}
+.code-block pre { padding: 8pt 0; margin: 0; background: var(--code-bg); }
+.code-block code {
+  font-family: var(--cd); font-size: 8.5pt; color: var(--code-tx); display: block;
+}
+.line {
+  display: block; counter-increment: line-num; padding-left: 3.4em; padding-right: 6pt;
+  position: relative; min-height: 1.35em; color: var(--code-tx); font-size: 8.5pt;
+}
+.line::before {
+  content: counter(line-num); position: absolute; left: 0; top: 0; width: 2.8em; text-align: right;
+  padding-right: 0.5em; color: var(--ln-tx); font-size: 7.5pt; font-weight: bold;
+  border-right: 2pt solid var(--ln-border); background: var(--ln-bg);
+}
+
+.inline-code {
+  font-family: var(--cd); font-size: 9.5pt; font-weight: 600;
+  background: var(--accent-yellow); color: var(--accent-dk);
+  padding: 1pt 4pt; border-radius: 3px;
+}
+
+.note {
+  background: var(--note-bg); border: 2pt solid var(--note-bd);
+  border-left: 6pt solid var(--accent); border-radius: 4px;
+  padding: 10pt 12pt; margin: 12pt 0; break-inside: avoid; color: var(--text);
+}
+.note-label {
+  font-family: var(--hd); font-weight: 800; font-size: 11pt; color: var(--accent);
+  margin-bottom: 4pt; display: block; text-transform: uppercase;
+}
+.note p { font-size: 10pt; font-weight: 500; }
+
+blockquote {
+  border-left: 6pt solid var(--accent-dk); background: var(--accent-lt);
+  padding: 10pt 12pt; margin: 12pt 0; border-radius: 0 8px 8px 0;
+  color: var(--accent-dk); font-style: italic; font-weight: 600; font-size: 11pt; break-inside: avoid;
+}
+
+hr { border: none; height: 2pt; background: var(--accent-lt); margin: 16pt 0; }
+
+.table-wrap { margin: 12pt 0; border: 2pt solid var(--accent-dk); border-radius: 4px; overflow: hidden; }
+table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+thead { display: table-header-group; background: var(--accent-dk); }
+th {
+  font-family: var(--hd); font-weight: 700; font-size: 10pt; text-align: left;
+  padding: 6pt 8pt; border-bottom: 2pt solid var(--accent); color: #FFFFFF;
+}
+td { padding: 5pt 8pt; border-bottom: 1pt solid var(--accent-lt); color: var(--text); }
+tr:nth-child(even) td { background: #FAFAFA; }
+tr:last-child td { border-bottom: none; }
+
+.book-img { margin: 14pt 0; text-align: center; break-inside: avoid; display: block; }
+.book-img img {
+  max-width: 65%; max-height: 105mm; display: block; margin: 0 auto;
+  border: 3pt solid var(--accent); border-radius: 8px; box-shadow: 4px 4px 0px var(--accent-lt);
+}
+.book-img figcaption { font-family: var(--hd); font-size: 9pt; color: var(--accent-dk); font-weight: 600; margin-top: 6pt; }
+
+.img-placeholder {
+  background: var(--note-bg); border: 2pt dashed var(--accent); border-radius: 8px;
+  padding: 16pt; margin: 12pt 0; text-align: center; break-inside: avoid;
+}
+.img-icon { font-size: 20pt; margin-bottom: 6pt; color: var(--accent); }
+.img-desc { font-family: var(--hd); font-size: 10pt; font-weight: 700; color: var(--accent-dk); margin-bottom: 4pt; }
+.img-prompt { font-family: var(--cd); font-size: 8pt; color: #FFF; background: var(--accent-dk); padding: 4pt 6pt; border-radius: 4px; }
+
+/* =========================================
+   9. WeasyPrint Print Safeguards
+   ========================================= */
+.cover-meta, .book-footer { display: none; }
+img { image-rendering: auto; }
+.content h4::before, .code-filename::before { content: none; }
+.page-break, .break-page { break-after: page; }
+.keep-together { break-inside: avoid; }
+
+/* =========================================================
+   Prompt Headings Override & Formatting Patch
+   ========================================================= */
+.content h1, .content h2, .content h3, .content h4 {
+  font-family: 'Prompt', 'IBM Plex Sans Thai', 'Sarabun', sans-serif !important;
+}
+
+.table-wrap { margin: 12pt 0 !important; border-radius: 4px !important; }
+table { width: 100% !important; border-collapse: collapse !important; table-layout: fixed !important; font-size: 9pt !important; }
+th {
+  font-family: 'Prompt', sans-serif !important; font-size: 9.5pt !important;
+  font-weight: 700 !important; padding: 5pt 6pt !important; color: #FFFFFF !important;
+}
+td { font-size: 9pt !important; padding: 4pt 6pt !important; color: var(--text) !important; }
+
+/* ---------- Heading keep-with-next improvements ---------- */
+.content h1, .content h2, .content h3, .content h4, .ch-hdr, .ch-title, .preface-title, .toc-title {
+  break-after: avoid-page !important; break-inside: avoid-page !important;
+}
+.content h1+*, .content h2+*, .content h3+*, .content h4+*, .ch-hdr+*, .preface-title+*, .toc-title+* {
+  break-before: avoid-page !important;
+}
+
+.content h1 { font-size: 22pt !important; margin: 20pt 0 8pt 0 !important; color: var(--accent-dk) !important; border-bottom: 3pt solid var(--accent) !important; display: inline-block !important; padding-bottom: 2pt !important; }
+.content h2 { font-size: 18pt !important; margin: 16pt 0 8pt 0 !important; padding: 6pt 10pt !important; color: var(--accent) !important; border-left: 5pt solid var(--accent-lt) !important; border-bottom: 2pt solid var(--accent-dk) !important; background: #FAFAFA !important; }
+.content h3 { font-size: 14pt !important; margin: 12pt 0 6pt 0 !important; padding: 5pt 10pt !important; color: #FFFFFF !important; background: var(--accent-dk) !important; border-radius: 4px !important; }
+.content h4 { font-size: 12pt !important; margin: 10pt 0 6pt 1.45em !important; padding: 4pt 8pt !important; color: var(--accent-dk) !important; background: var(--accent-yellow) !important; border-radius: 3px !important; display: inline-block !important; }
+
+/* =========================================================
+   TYPOGRAPHY NORMALIZATION PATCH
+   ========================================================= */
+html, body { font-size: 11pt !important; line-height: 1.5 !important; color: var(--text) !important; }
+.content p, .preface-content p { font-size: 11pt !important; margin: 0 0 8pt 0 !important; color: var(--text) !important; }
+.content ul, .content ol { font-size: 10.5pt !important; margin: 6pt 0 8pt 16pt !important; }
+.content li { font-size: 10.5pt !important; margin: 0 0 3pt 0 !important; color: var(--text) !important; }
+
+.note { font-size: 10.5pt !important; padding: 10pt 12pt !important; margin: 12pt 0 !important; border-width: 2pt !important; border-left-width: 6pt !important; border-radius: 6px !important; }
+.note-label { font-size: 11pt !important; color: var(--accent) !important; font-weight: 800 !important; }
+.note p { font-size: 10.5pt !important; color: var(--text) !important; }
+
+.inline-code { font-size: 9.5pt !important; padding: 1.5pt 4pt !important; background: var(--accent-yellow) !important; color: var(--accent-dk) !important; font-weight: bold !important; border: none !important; }
+.code-block { margin: 12pt 0 !important; border: 2pt solid var(--accent-lt) !important; border-radius: 6px !important; }
+.code-lang-badge { font-size: 8pt !important; background: var(--accent-yellow) !important; color: var(--accent-dk) !important; }
+.code-block code, .line { font-size: 8.5pt !important; color: var(--code-tx) !important; }
+.line::before { font-size: 7.5pt !important; background: var(--ln-bg) !important; color: var(--ln-tx) !important; border-right: 2pt solid var(--ln-border) !important; font-weight: bold !important; }
