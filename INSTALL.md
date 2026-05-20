@@ -1,6 +1,8 @@
 # การติดตั้ง Prerequisites บน macOS
 
-คู่มือติดตั้งเครื่องมือที่จำเป็นสำหรับ pipeline สร้าง PDF — **Homebrew + WeasyPrint + Ghostscript**
+คู่มือติดตั้งเครื่องมือที่จำเป็นสำหรับ pipeline สร้าง PDF — **Homebrew + WeasyPrint + MuPDF**
+
+(Python libs เช่น Flask, beautifulsoup4, pikepdf ติดตั้งให้อัตโนมัติโดย `./start_ui.sh` ครั้งแรก)
 
 ใช้เวลาประมาณ 10–15 นาที (ขึ้นกับความเร็วเน็ต)
 
@@ -142,7 +144,7 @@ cd /path/to/book-dev
 ./start_ui.sh
 ```
 
-ครั้งแรก: launcher จะสร้าง Python virtualenv และติดตั้ง Flask + beautifulsoup4 ให้อัตโนมัติ → เปิดเบราว์เซอร์ที่ <http://localhost:5050>
+ครั้งแรก: launcher จะสร้าง Python virtualenv และติดตั้ง Flask + beautifulsoup4 + pikepdf ให้อัตโนมัติ → เปิดเบราว์เซอร์ที่ <http://localhost:5050>
 
 ---
 
