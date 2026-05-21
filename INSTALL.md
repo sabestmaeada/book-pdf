@@ -1,10 +1,25 @@
 # การติดตั้ง Prerequisites บน macOS
 
-คู่มือติดตั้งเครื่องมือที่จำเป็นสำหรับ pipeline สร้าง PDF — **Homebrew + WeasyPrint + MuPDF**
-
-(Python libs เช่น Flask, beautifulsoup4, pikepdf ติดตั้งให้อัตโนมัติโดย `./start_ui.sh` ครั้งแรก)
+คู่มือติดตั้งเครื่องมือที่จำเป็นสำหรับ pipeline สร้าง PDF
 
 ใช้เวลาประมาณ 10–15 นาที (ขึ้นกับความเร็วเน็ต)
+
+---
+
+## ภาพรวม — ต้องลงอะไรบ้าง
+
+| # | แพ็กเกจ | ติดตั้งด้วย | บทบาท | จำเป็น? |
+|---|---|---|---|---|
+| 1 | Xcode Command Line Tools | `xcode-select --install` | compiler ของ Apple ใช้โดย brew | ✓ บังคับ |
+| 2 | **Homebrew** (`brew`) | script จาก brew.sh | package manager หลัก | ✓ บังคับ |
+| 3 | **WeasyPrint** | `brew install weasyprint` | HTML/CSS → PDF (vector) | ✓ บังคับ |
+| 4 | **mupdf-tools** (`mutool`) | `brew install mupdf-tools` | แปลง color space (RGB → Gray/CMYK) preserve vector | ✓ บังคับ |
+| 5 | Python 3 | มาพร้อม macOS | runtime ของ UI + scripts | ✓ มีอยู่แล้ว |
+| 6 | Python libs (Flask, beautifulsoup4, pikepdf) | `./start_ui.sh` (auto) | backend UI + sync TOC + ฝัง ICC | ✓ auto |
+
+**สรุป**: user ติดตั้งเอง **4 ตัว** (Xcode CLT, brew, weasyprint, mupdf-tools) — ที่เหลือทำให้อัตโนมัติ
+
+> Python libs ที่ติดตั้งอัตโนมัติอยู่ใน [requirements.txt](requirements.txt) — `start_ui.sh` จะสร้าง virtualenv (`.venv/`) แล้ว `pip install -r requirements.txt` ครั้งแรก
 
 ---
 
@@ -177,6 +192,20 @@ brew reinstall weasyprint pango
 ### ICC profile ไม่ตรงกับ output color space
 
 UI จะกรองให้อัตโนมัติ — โปรไฟล์ `(GRAY)` ต้องใช้กับ workflow ขาวดำ, `(CMYK)` กับงาน CMYK เท่านั้น ดูใน dropdown ว่า tag color space ตรงกับงานหรือไม่
+
+### ก็อปโปรเจกต์ไปอีกเครื่อง แล้วเจอ `No module named 'pikepdf'` (หรือ Flask / bs4)
+
+เกิดจากโฟลเดอร์ `.venv/` ถูก copy ไปด้วย — venv ของ Python **ย้ายเครื่องไม่ได้** (symlink ภายในชี้ไป Python ของเครื่องเดิม)
+
+แก้:
+```bash
+rm -rf .venv
+./start_ui.sh
+```
+
+`start_ui.sh` เวอร์ชันใหม่จะตรวจเองและสร้าง venv ใหม่อัตโนมัติ — ถ้าเจอปัญหานี้แสดงว่าใช้สคริปต์เก่า ให้ pull โค้ดล่าสุดด้วย
+
+**ทางที่ดีที่สุดเวลา copy ข้ามเครื่อง** — exclude `.venv/`, `.weasy-cache/`, `__pycache__/`, `input/`, `output/` ออกก่อน (หรือใช้ git clone แทน copy ทั้งโฟลเดอร์)
 
 ### M1/M2 — `bad CPU type in executable`
 
