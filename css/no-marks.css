@@ -20,3 +20,6 @@
 @page frontmatter:left { marks: none; }
 @page body:right { marks: none; }
 @page body:left { marks: none; }
+@page credits { marks: none; }
+@page credits:right { marks: none; }
+@page credits:left  { marks: none; }
