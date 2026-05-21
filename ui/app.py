@@ -21,6 +21,110 @@ from queue import Queue, Empty
 import pikepdf
 from flask import Flask, Response, abort, jsonify, render_template, request, send_file
 
+
+# ---------- Regex สำหรับหา CMYK / RGB color operators ใน content stream ----------
+# CMYK: "<c> <m> <y> <k> k" (fill) หรือ "K" (stroke)
+_CMYK_OP_RE = re.compile(
+    rb'(?<![\d.])(\d*\.?\d+)\s+(\d*\.?\d+)\s+(\d*\.?\d+)\s+(\d*\.?\d+)\s+([kK])(?=\s|$)'
+)
+# RGB: "<r> <g> <b> rg" (fill) หรือ "RG" (stroke)
+_RGB_OP_RE = re.compile(
+    rb'(?<![\d.])(\d*\.?\d+)\s+(\d*\.?\d+)\s+(\d*\.?\d+)\s+(rg|RG)(?=\s|$)'
+)
+
+
+def _format_k(v: float) -> bytes:
+    """format K value as compact bytes — 0, 1, หรือ 0.xxx"""
+    if v >= 0.999: return b'1'
+    if v <= 0.001: return b'0'
+    s = f'{v:.3f}'.rstrip('0').rstrip('.')
+    return s.encode() if s else b'0'
+
+
+def _force_k100_in_stream(data: bytes) -> tuple[bytes, int]:
+    """แทน CMYK/RGB color operators ที่เป็น "near-neutral" → K-only equivalent
+       เกณฑ์ neutral: CMY (หรือ RGB) ใกล้เคียงกัน (max - min < threshold)
+       เช่น CMYK(0.63, 0.56, 0.56, 0) → K0.58 หรือ RGB(0.5, 0.5, 0.5) → K0.5
+       ถ้า K_new > 0.95 → snap เป็น K100
+       คืน (new_bytes, replacement_count)
+    """
+    count = 0
+
+    def cmyk_sub(m):
+        nonlocal count
+        c, mm, y, k = float(m.group(1)), float(m.group(2)), float(m.group(3)), float(m.group(4))
+        op = m.group(5)
+        cmy_max = max(c, mm, y)
+        cmy_min = min(c, mm, y)
+        # ไม่ neutral → เป็นสีจริง ไม่แตะ
+        if cmy_max - cmy_min >= 0.15:
+            return m.group(0)
+        # white-ish: ทุก channel ใกล้ 0 → ไม่ต้องแตะ
+        if k < 0.01 and cmy_max < 0.01:
+            return m.group(0)
+        # K100 อยู่แล้ว (K=1, CMY=0) → ไม่ต้องแตะ
+        if k > 0.99 and cmy_max < 0.05:
+            return m.group(0)
+        # คำนวณ K-only equivalent (subtractive blend approx)
+        cmy_avg = (c + mm + y) / 3
+        k_new = min(1.0, k + (1.0 - k) * cmy_avg)
+        if k_new > 0.95:
+            k_new = 1.0
+        count += 1
+        return b'0 0 0 ' + _format_k(k_new) + b' ' + op
+
+    def rgb_sub(m):
+        nonlocal count
+        r, g, b = float(m.group(1)), float(m.group(2)), float(m.group(3))
+        op = m.group(4)
+        rgb_max = max(r, g, b)
+        rgb_min = min(r, g, b)
+        # ไม่ neutral → สีจริง ไม่แตะ
+        if rgb_max - rgb_min >= 0.05:
+            return m.group(0)
+        # invert: RGB 1=white → K=0, RGB 0=black → K=1
+        rgb_avg = (r + g + b) / 3
+        k_new = 1.0 - rgb_avg
+        # white → ไม่ต้องแตะ (ทำให้มี 0 0 0 0 k ก็ไม่มีประโยชน์)
+        if k_new < 0.01:
+            return m.group(0)
+        if k_new > 0.95:
+            k_new = 1.0
+        count += 1
+        new_op = b'k' if op == b'rg' else b'K'
+        return b'0 0 0 ' + _format_k(k_new) + b' ' + new_op
+
+    data = _CMYK_OP_RE.sub(cmyk_sub, data)
+    data = _RGB_OP_RE.sub(rgb_sub, data)
+    return data, count
+
+
+def enforce_k100_text(pdf_path: Path, q: Queue) -> None:
+    """Post-process PDF: บังคับ text/vector ดำใน content streams เป็น K100"""
+    total = 0
+    pages_modified = 0
+    with pikepdf.open(pdf_path, allow_overwriting_input=True) as pdf:
+        for page in pdf.pages:
+            contents = page.get('/Contents')
+            if contents is None:
+                continue
+            streams = list(contents) if isinstance(contents, pikepdf.Array) else [contents]
+            page_count = 0
+            for stream in streams:
+                try:
+                    data = stream.read_bytes()
+                except Exception:
+                    continue
+                new_data, n = _force_k100_in_stream(data)
+                if n > 0:
+                    stream.write(new_data)
+                    page_count += n
+            if page_count:
+                total += page_count
+                pages_modified += 1
+        pdf.save(pdf_path)
+    q.put(f"  K100 enforce: replaced {total} near-black color ops ใน {pages_modified} pages")
+
 ROOT = Path(__file__).parent.parent.resolve()
 INPUT_DIR = ROOT / "input"
 OUTPUT_DIR = ROOT / "output"
@@ -152,6 +256,12 @@ def apply_color_pipeline(
         })
         pdf.Root["/OutputIntents"] = pikepdf.Array([intent])
         pdf.save(final_pdf)
+
+    # 3) Post-process — สำหรับ CMYK ต้องบังคับ text สีดำเป็น K100
+    #    (มิเช่นนั้นจะกลายเป็น rich black: C+M+Y+K ปนกัน — ไม่ดีต่อ registration ของโรงพิมพ์)
+    if profile_cs_raw == "CMYK":
+        q.put(f"$ post-process: บังคับ near-black → K100 (สำหรับ CMYK output)")
+        enforce_k100_text(final_pdf, q)
 
     if interim_pdf.exists():
         interim_pdf.unlink()
