@@ -9,6 +9,15 @@ set -e
 
 cd "$(dirname "$0")"
 
+# --- 0) Add Homebrew to PATH (สำคัญเมื่อรันผ่าน .app / Finder ที่ไม่โหลด .zprofile) ---
+# Apple Silicon: /opt/homebrew/bin  |  Intel: /usr/local/bin
+for brew_prefix in /opt/homebrew /usr/local; do
+  if [ -x "$brew_prefix/bin/brew" ]; then
+    eval "$($brew_prefix/bin/brew shellenv)"
+    break
+  fi
+done
+
 PORT="${PORT:-5050}"
 VENV=".venv"
 
