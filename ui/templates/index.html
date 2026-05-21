@@ -72,7 +72,13 @@
       </div>
     </fieldset>
 
-    <button type="submit" id="submit-btn">เริ่มสร้าง PDF</button>
+    <div class="actions">
+      <button type="submit" id="submit-btn">เริ่มสร้าง PDF</button>
+      <button type="button" id="clear-cache-btn" class="btn-ghost" title="ลบ .weasy-cache/ — ใช้เมื่อสงสัยว่า cache เสียทำให้ build ผลแปลก">
+        ล้าง cache
+      </button>
+      <span id="cache-msg" class="cache-msg"></span>
+    </div>
   </form>
 
   <section id="status" class="hidden">
@@ -85,9 +91,35 @@
 <script>
 const form = document.getElementById('build-form');
 const submitBtn = document.getElementById('submit-btn');
+const clearCacheBtn = document.getElementById('clear-cache-btn');
+const cacheMsg = document.getElementById('cache-msg');
 const statusEl = document.getElementById('status');
 const logsEl = document.getElementById('logs');
 const resultEl = document.getElementById('result');
+
+clearCacheBtn.addEventListener('click', async () => {
+  if (!confirm('ลบ .weasy-cache/ ทั้งหมด?\n(build ครั้งถัดไปจะช้ากว่าปกติ เพราะต้อง re-encode รูป)')) return;
+  clearCacheBtn.disabled = true;
+  cacheMsg.textContent = 'กำลังลบ...';
+  cacheMsg.className = 'cache-msg';
+  try {
+    const res = await fetch('/clear-cache', { method: 'POST' });
+    const data = await res.json();
+    if (data.ok) {
+      cacheMsg.textContent = '✓ ' + data.message;
+      cacheMsg.classList.add('ok');
+    } else {
+      cacheMsg.textContent = '✗ ' + (data.error || 'ล้มเหลว');
+      cacheMsg.classList.add('error');
+    }
+  } catch (err) {
+    cacheMsg.textContent = '✗ ' + err.message;
+    cacheMsg.classList.add('error');
+  } finally {
+    clearCacheBtn.disabled = false;
+    setTimeout(() => { cacheMsg.textContent = ''; cacheMsg.className = 'cache-msg'; }, 6000);
+  }
+});
 
 function showResult(html, isError) {
   resultEl.classList.remove('hidden');

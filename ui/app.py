@@ -391,6 +391,7 @@ def build_pipeline(
         # 4) Step 2/3 — weasyprint
         q.put("\n[2/3] weasyprint")
         rgb_pdf = OUTPUT_DIR / "book_rgb_bw_nomarks.pdf"
+        (ROOT / ".weasy-cache").mkdir(parents=True, exist_ok=True)
         weasy_cmd: list[str] = ["weasyprint", "-s", f"css/{css_name}"]
         if left_graphic is not None:
             weasy_cmd += ["-s", "css/edge-graphic-left.css"]
@@ -502,6 +503,34 @@ def download(name: str):
     if not str(safe).startswith(str(OUTPUT_DIR.resolve()) + "/") or not safe.is_file():
         abort(404)
     return send_file(safe, as_attachment=True)
+
+
+@app.route("/clear-cache", methods=["POST"])
+def clear_cache():
+    """ลบ .weasy-cache/ ทิ้ง — ใช้เมื่อสงสัยว่า cache เสียทำให้ build ผลแปลก"""
+    cache_dir = ROOT / ".weasy-cache"
+    if not cache_dir.exists():
+        return jsonify({"ok": True, "files": 0, "bytes": 0, "message": "ไม่มี cache อยู่แล้ว"})
+    files = 0
+    total_bytes = 0
+    for p in cache_dir.rglob("*"):
+        if p.is_file():
+            files += 1
+            try:
+                total_bytes += p.stat().st_size
+            except OSError:
+                pass
+    try:
+        shutil.rmtree(cache_dir)
+    except OSError as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+    mb = total_bytes / (1024 * 1024)
+    return jsonify({
+        "ok": True,
+        "files": files,
+        "bytes": total_bytes,
+        "message": f"ลบ cache แล้ว: {files} ไฟล์ ({mb:.1f} MB)",
+    })
 
 
 if __name__ == "__main__":
