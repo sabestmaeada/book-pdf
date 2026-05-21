@@ -136,16 +136,18 @@ def apply_color_pipeline(
     # 2) pikepdf — embed ICC into OutputIntent
     icc_path = PROFILES_DIR / profile
     icc_data = icc_path.read_bytes()
+    # ทำชื่อแสดงผลใน Acrobat ให้สวย (เช่น "Dot_Gain_15%.icc" → "Dot Gain 15%")
+    display_name = Path(profile).stem.replace("_", " ")
     q.put(f"$ pikepdf: ฝัง ICC {profile} ({channels}-channel) ลง /OutputIntents")
     with pikepdf.open(interim_pdf) as pdf:
         icc_stream = pdf.make_stream(icc_data, {"/N": channels})
         intent = pikepdf.Dictionary({
             "/Type": pikepdf.Name("/OutputIntent"),
             "/S": pikepdf.Name("/GTS_PDFX"),
-            "/OutputCondition": pikepdf.String(profile),
-            "/OutputConditionIdentifier": pikepdf.String("Custom"),
+            "/OutputCondition": pikepdf.String(display_name),
+            "/OutputConditionIdentifier": pikepdf.String(display_name),
             "/RegistryName": pikepdf.String(""),
-            "/Info": pikepdf.String(condition),
+            "/Info": pikepdf.String(display_name),
             "/DestOutputProfile": icc_stream,
         })
         pdf.Root["/OutputIntents"] = pikepdf.Array([intent])
