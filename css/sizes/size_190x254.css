@@ -1,0 +1,100 @@
+/* =========================================================
+   Size — 190mm × 254mm (trim) + 3mm bleed
+   ใช้คู่กับ style_*.css ตัวใดก็ได้
+   ========================================================= */
+
+/* --- @page geometry (size / margin / bleed / marks) --- */
+@page {
+  size: 190mm 254mm;
+  margin: 18mm 15mm 20mm 22mm;
+  bleed: 3mm;
+  marks: crop;
+}
+
+@page :right {
+  size: 190mm 254mm;
+  margin: 18mm 15mm 20mm 22mm;
+  bleed: 3mm;
+  marks: crop;
+}
+
+@page :left {
+  size: 190mm 254mm;
+  margin: 18mm 22mm 20mm 15mm;
+  bleed: 3mm;
+  marks: crop;
+}
+
+@page inside-full {
+  size: 190mm 254mm;
+  margin: 0;
+  bleed: 3mm;
+  marks: crop;
+}
+
+@page frontmatter:right {
+  size: 190mm 254mm;
+  margin: 18mm 15mm 20mm 22mm;
+  bleed: 3mm;
+  marks: crop;
+}
+
+@page frontmatter:left {
+  size: 190mm 254mm;
+  margin: 18mm 22mm 20mm 15mm;
+  bleed: 3mm;
+  marks: crop;
+}
+
+@page body:right {
+  size: 190mm 254mm;
+  margin: 18mm 15mm 20mm 22mm;
+  bleed: 3mm;
+  marks: crop;
+}
+
+@page body:left {
+  size: 190mm 254mm;
+  margin: 18mm 22mm 20mm 15mm;
+  bleed: 3mm;
+  marks: crop;
+}
+
+@page credits {
+  size: 190mm 254mm;
+  margin: 10mm 12mm;
+  bleed: 3mm;
+  marks: crop;
+}
+/* Gutter: ฝั่งสัน (binding) เผื่อ 22mm, ฝั่งนอก 12mm */
+@page credits:right { margin: 10mm 12mm 10mm 22mm; }  /* spine ซ้าย */
+@page credits:left  { margin: 10mm 22mm 10mm 12mm; }  /* spine ขวา */
+
+/* --- Cover / back-cover dimensions (trim + 6mm bleed สำหรับ image) --- */
+.cover,
+.cover.cover-has-image {
+  width: 190mm;
+  height: 254mm;
+  min-height: 254mm;
+}
+
+.cover-image {
+  width: 196mm;   /* trim + 3mm × 2 bleed */
+  height: 260mm;
+}
+
+.back-cover {
+  width: 190mm;
+  height: 254mm;
+  min-height: 254mm;
+}
+
+.back-cover-image {
+  width: 196mm;
+  height: 260mm;
+}
+
+/* --- Credits page min-height = trim_h − margin_top × 2 --- */
+.credits-page {
+  min-height: 234mm;  /* = 254mm − 10mm × 2 */
+}

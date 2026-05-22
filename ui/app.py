@@ -130,44 +130,86 @@ INPUT_DIR = ROOT / "input"
 OUTPUT_DIR = ROOT / "output"
 ASSETS_DIR = ROOT / "assets"
 CSS_DIR = ROOT / "css"
+SIZES_DIR = CSS_DIR / "sizes"
+STYLES_DIR = CSS_DIR / "styles"
 PROFILES_DIR = ROOT / "profiles"
 SYNC_SCRIPT = ROOT / "sync_toc.py"
 
-# Auto-detect ขนาดหนังสือจากชื่อไฟล์ใน css/
-# Pattern: weasyprint_print_<variant>_<W>x<H>.css
-_SIZE_PATTERN = re.compile(r"^weasyprint_print_([a-z0-9]+)_(\d+)x(\d+)\.css$", re.IGNORECASE)
-# variants ที่ "ไม่ต้องโชว์ในวงเล็บ" (default — ไม่มี suffix)
-_DEFAULT_VARIANTS = {"bw", "mono"}
-_VARIANT_LABELS = {
-    "color": "สี",
-    "cmyk": "CMYK",
+# Auto-detect ขนาด + สไตล์ จากชื่อไฟล์ใน subfolder
+# Path layout:
+#   css/sizes/size_<W>x<H>.css             — กำหนดขนาดหน้า + bleed (geometry)
+#   css/styles/style_<variant>[_<sub>].css — กำหนด typography + colors + layout
+_SIZE_PATTERN = re.compile(r"^size_(\d+)x(\d+)\.css$", re.IGNORECASE)
+_STYLE_PATTERN = re.compile(r"^style_([a-z][a-z0-9]*)(?:_([a-z0-9_]+))?\.css$", re.IGNORECASE)
+
+# Style variant → ICC color space signatures ที่เข้ากันได้
+# (signature ขนาด 4 ตัวอักษร ตาม ICC.1:2010 — RGB มี space ต่อท้าย)
+_STYLE_ICC_MAP = {
+    "bw":    ["GRAY"],
+    "gray":  ["GRAY"],
+    "mono":  ["GRAY"],
+    "cmyk":  ["CMYK"],
+    "rgb":   ["RGB "],
+    "color": ["RGB "],
+}
+
+# Style variant → label ที่แสดงใน dropdown
+_STYLE_LABELS = {
+    "bw":    "ขาวดำ (B&W)",
+    "gray":  "ขาวดำ (Grayscale)",
+    "mono":  "ขาวดำ (Mono)",
+    "cmyk":  "CMYK (สี่สี)",
+    "rgb":   "สี (RGB)",
+    "color": "สี (Color)",
 }
 
 
 def list_book_sizes() -> dict[str, dict]:
-    """อ่านขนาดหนังสือจากชื่อไฟล์ CSS — เรียงจากเล็กไปใหญ่ตามพื้นที่กระดาษ"""
-    if not CSS_DIR.is_dir():
+    """อ่านขนาดหนังสือจาก css/sizes/size_<W>x<H>.css — เรียงจากเล็กไปใหญ่
+       field `css` = path relative to CSS_DIR (เช่น "sizes/size_170x228.css")
+    """
+    if not SIZES_DIR.is_dir():
         return {}
 
     entries: list[tuple[int, str, dict]] = []
-    for css in CSS_DIR.glob("weasyprint_print_*.css"):
+    for css in SIZES_DIR.glob("size_*.css"):
         m = _SIZE_PATTERN.match(css.name)
         if not m:
             continue
-        variant, w, h = m.group(1).lower(), int(m.group(2)), int(m.group(3))
-        key = f"{variant}_{w}x{h}mm"
-        if variant in _DEFAULT_VARIANTS:
-            label = f"{w} × {h} mm"
-        else:
-            suffix = _VARIANT_LABELS.get(variant, variant)
-            label = f"{w} × {h} mm ({suffix})"
+        w, h = int(m.group(1)), int(m.group(2))
+        key = f"{w}x{h}mm"
         entries.append((w * h, key, {
-            "label": label,
-            "css": css.name,
+            "label": f"{w} × {h} mm",
+            "css": f"sizes/{css.name}",
         }))
 
     entries.sort(key=lambda t: (t[0], t[1]))
     return {key: info for _, key, info in entries}
+
+
+def list_styles() -> list[dict]:
+    """อ่านสไตล์จาก css/styles/style_<variant>[_<sub>].css — เรียงตามชื่อ
+       field `css` = path relative to CSS_DIR (เช่น "styles/style_bw.css")
+       คืน [{key, label, css, allowed_icc}, ...] โดย key = ชื่อไฟล์ไม่รวม .css
+    """
+    if not STYLES_DIR.is_dir():
+        return []
+    out = []
+    for css in sorted(STYLES_DIR.glob("style_*.css")):
+        m = _STYLE_PATTERN.match(css.name)
+        if not m:
+            continue
+        variant = m.group(1).lower()
+        suffix = m.group(2)  # อาจเป็น None
+        base = _STYLE_LABELS.get(variant, variant.upper())
+        label = base if not suffix else f"{base} — {suffix.replace('_', ' ')}"
+        out.append({
+            "key": css.stem,                            # เช่น "style_bw"
+            "label": label,
+            "css": f"styles/{css.name}",
+            "allowed_icc": _STYLE_ICC_MAP.get(variant, []),
+        })
+    return out
 
 # ชื่อไฟล์มาตรฐานสำหรับ edge graphics (ตรงกับที่อ้างใน css/edge-graphic.css)
 LEFT_GRAPHIC_NAME = "left-graphic-18x234mm-300dpi.png"
@@ -274,6 +316,7 @@ def index():
         "index.html",
         profiles=list_profiles(),
         sizes=list_book_sizes(),
+        styles=list_styles(),
     )
 
 
@@ -349,7 +392,8 @@ def build_pipeline(
     zip_bytes: bytes,
     profile: str,
     profile_cs_raw: str,
-    css_name: str,
+    size_css: str,
+    style_css: str,
     left_graphic: tuple[str, bytes] | None,
     right_graphic: tuple[str, bytes] | None,
     crop_marks: bool,
@@ -392,7 +436,12 @@ def build_pipeline(
         q.put("\n[2/3] weasyprint")
         rgb_pdf = OUTPUT_DIR / "book_rgb_bw_nomarks.pdf"
         (ROOT / ".weasy-cache").mkdir(parents=True, exist_ok=True)
-        weasy_cmd: list[str] = ["weasyprint", "-s", f"css/{css_name}"]
+        # Order: size (geometry) → style (typography) → graphics → no-marks override
+        weasy_cmd: list[str] = [
+            "weasyprint",
+            "-s", f"css/{size_css}",
+            "-s", f"css/{style_css}",
+        ]
         if left_graphic is not None:
             weasy_cmd += ["-s", "css/edge-graphic-left.css"]
         if right_graphic is not None:
@@ -428,6 +477,7 @@ def build_pipeline(
             "__done__": True,
             "download": f"/download/{final_pdf.name}",
             "intermediate": f"/download/{rgb_pdf.name}",
+            "colorspace": _ICC_CS_TABLE[profile_cs_raw][0],  # "Gray" / "CMYK" / "RGB"
         }))
     except Exception as e:
         q.put(json.dumps({"__error__": f"{type(e).__name__}: {e}"}))
@@ -451,7 +501,24 @@ def build():
     size_key = request.form.get("size", "")
     if size_key not in sizes:
         return jsonify(error=f"ขนาดหนังสือไม่ถูกต้อง: {size_key}"), 400
-    css_name = sizes[size_key]["css"]
+    size_css = sizes[size_key]["css"]
+
+    styles_by_key = {s["key"]: s for s in list_styles()}
+    style_key = request.form.get("style", "")
+    if style_key not in styles_by_key:
+        return jsonify(error=f"สไตล์ไม่ถูกต้อง: {style_key}"), 400
+    style_info = styles_by_key[style_key]
+    style_css = style_info["css"]
+
+    # ตรวจ ICC ↔ style compatibility (allowed_icc ว่าง = ไม่จำกัด)
+    allowed_icc = style_info["allowed_icc"]
+    if allowed_icc and profile_cs_raw not in allowed_icc:
+        cs_label = profile_cs_raw.strip() or "?"
+        allowed_label = ", ".join(s.strip() for s in allowed_icc)
+        return jsonify(
+            error=f"สไตล์ '{style_info['label']}' ใช้ได้กับ ICC color space: {allowed_label} "
+                  f"แต่ ICC ที่เลือกเป็น {cs_label}"
+        ), 400
 
     zip_bytes = request.files["zipfile"].read()
 
@@ -467,7 +534,8 @@ def build():
 
     # log สิ่งที่ได้รับจริง — เพื่อ debug
     print(
-        f"[build] size={size_key!r} → css={css_name!r}  "
+        f"[build] size={size_key!r} → {size_css!r}  "
+        f"style={style_key!r} → {style_css!r}  "
         f"profile={profile!r} ({profile_cs})  "
         f"zip={len(zip_bytes)} bytes  "
         f"left={'✓' if left_graphic else '–'}  "
@@ -479,7 +547,8 @@ def build():
     q: Queue = Queue()
     worker = threading.Thread(
         target=build_pipeline,
-        args=(zip_bytes, profile, profile_cs_raw, css_name, left_graphic, right_graphic, crop_marks, q),
+        args=(zip_bytes, profile, profile_cs_raw, size_css, style_css,
+              left_graphic, right_graphic, crop_marks, q),
         daemon=True,
     )
     worker.start()

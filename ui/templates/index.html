@@ -10,7 +10,7 @@
 <main>
   <header>
     <h1>สร้าง PDF หนังสือ</h1>
-    <p class="subtitle">อัปโหลด ZIP (HTML + รูปภาพ) → เลือกขนาด/โปรไฟล์สี → กดสร้าง</p>
+    <p class="subtitle">อัปโหลด ZIP (HTML + รูปภาพ) → เลือกขนาด / สไตล์ / โปรไฟล์สี → กดสร้าง</p>
   </header>
 
   <form id="build-form">
@@ -31,7 +31,20 @@
       </div>
 
       <div class="field">
-        <label for="profile">3. โปรไฟล์สี (ICC)</label>
+        <label for="style">3. สไตล์</label>
+        <select id="style" name="style" required>
+          {% if styles %}
+            {% for s in styles %}
+            <option value="{{ s.key }}">{{ s.label }}</option>
+            {% endfor %}
+          {% else %}
+            <option value="" disabled selected>— ไม่พบไฟล์ style_*.css ใน css/ —</option>
+          {% endif %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="profile">4. โปรไฟล์สี (ICC)</label>
         <select id="profile" name="profile" required>
           {% if profiles %}
             {% for p in profiles %}
@@ -46,6 +59,8 @@
       </div>
     </div>
 
+    <p id="filter-msg" class="filter-msg" aria-live="polite"></p>
+
     <div class="field checkbox-field">
       <label for="crop_marks">
         <input type="checkbox" id="crop_marks" name="crop_marks">
@@ -55,7 +70,7 @@
     </div>
 
     <fieldset>
-      <legend>4. กราฟิกขอบหน้า (ไม่บังคับ)</legend>
+      <legend>5. กราฟิกขอบหน้า (ไม่บังคับ)</legend>
       <p class="hint">
         ขนาด 18 × 234 mm (300 dpi) — อัปโหลด <strong>ซ้าย ขวา หรือทั้งสอง</strong> ก็ได้
         ฝั่งที่ไม่อัปโหลดจะปล่อยว่าง
@@ -88,6 +103,13 @@
   </section>
 </main>
 
+<script id="styles-data" type="application/json">
+{{ styles | tojson }}
+</script>
+<script id="profiles-data" type="application/json">
+{{ profiles | tojson }}
+</script>
+
 <script>
 const form = document.getElementById('build-form');
 const submitBtn = document.getElementById('submit-btn');
@@ -96,6 +118,79 @@ const cacheMsg = document.getElementById('cache-msg');
 const statusEl = document.getElementById('status');
 const logsEl = document.getElementById('logs');
 const resultEl = document.getElementById('result');
+const styleSel = document.getElementById('style');
+const profileSel = document.getElementById('profile');
+const filterMsg = document.getElementById('filter-msg');
+
+const STYLES = JSON.parse(document.getElementById('styles-data').textContent);
+const PROFILES = JSON.parse(document.getElementById('profiles-data').textContent);
+
+// pad colorspace to 4 chars เพื่อเทียบกับ allowed_icc (เช่น "RGB" → "RGB ")
+const csKey = (cs) => (cs || '').padEnd(4, ' ');
+
+const styleByKey   = Object.fromEntries(STYLES.map(s => [s.key, s]));
+const profileByName = Object.fromEntries(PROFILES.map(p => [p.name, p]));
+
+// อัปเดตสถานะข้อความใต้ dropdowns
+function updateStatusMsg() {
+  const s = styleByKey[styleSel.value];
+  const p = profileByName[profileSel.value];
+  if (!s || !p || !p.supported) {
+    filterMsg.textContent = '';
+    filterMsg.className = 'filter-msg';
+    return;
+  }
+  const compat = s.allowed_icc.length === 0 || s.allowed_icc.includes(csKey(p.colorspace));
+  if (compat) {
+    filterMsg.textContent = `✓ คู่ที่เลือก: ${s.label} + ${p.name} (${p.colorspace})`;
+    filterMsg.className = 'filter-msg ok';
+  } else {
+    filterMsg.textContent = `⚠ ${s.label} ไม่เข้ากันกับ ICC ${p.colorspace}`;
+    filterMsg.className = 'filter-msg warn';
+  }
+}
+
+// เมื่อ user เปลี่ยน style → ถ้า ICC ที่เลือกอยู่ไม่เข้ากัน → auto-pick ICC ตัวแรกที่เข้ากัน
+function onStyleChange() {
+  const style = styleByKey[styleSel.value];
+  if (!style || !style.allowed_icc.length) { updateStatusMsg(); return; }
+  const profile = profileByName[profileSel.value];
+  const cs = profile ? csKey(profile.colorspace) : null;
+  if (profile && profile.supported && style.allowed_icc.includes(cs)) {
+    updateStatusMsg(); return;  // เข้ากันอยู่แล้ว — ไม่ต้องเปลี่ยน
+  }
+  for (const opt of profileSel.options) {
+    const p = profileByName[opt.value];
+    if (p && p.supported && style.allowed_icc.includes(csKey(p.colorspace))) {
+      profileSel.value = opt.value;
+      break;
+    }
+  }
+  updateStatusMsg();
+}
+
+// เมื่อ user เปลี่ยน ICC → ถ้า style ที่เลือกอยู่ไม่เข้ากัน → auto-pick style ตัวแรกที่เข้ากัน
+function onProfileChange() {
+  const profile = profileByName[profileSel.value];
+  if (!profile || !profile.supported) { updateStatusMsg(); return; }
+  const cs = csKey(profile.colorspace);
+  const style = styleByKey[styleSel.value];
+  if (style && (style.allowed_icc.length === 0 || style.allowed_icc.includes(cs))) {
+    updateStatusMsg(); return;
+  }
+  for (const opt of styleSel.options) {
+    const s = styleByKey[opt.value];
+    if (s && (s.allowed_icc.length === 0 || s.allowed_icc.includes(cs))) {
+      styleSel.value = opt.value;
+      break;
+    }
+  }
+  updateStatusMsg();
+}
+
+styleSel.addEventListener('change', onStyleChange);
+profileSel.addEventListener('change', onProfileChange);
+updateStatusMsg();  // แสดงสถานะเริ่มต้น (ไม่แก้ค่า)
 
 clearCacheBtn.addEventListener('click', async () => {
   if (!confirm('ลบ .weasy-cache/ ทั้งหมด?\n(build ครั้งถัดไปจะช้ากว่าปกติ เพราะต้อง re-encode รูป)')) return;
@@ -142,6 +237,7 @@ form.addEventListener('submit', async (e) => {
   logsEl.textContent =
     '── ข้อมูลที่ส่ง ──────────────\n' +
     `ขนาด     : ${selOpt('size').text}  (key=${sel('size').value})\n` +
+    `สไตล์    : ${selOpt('style').text}  (key=${sel('style').value})\n` +
     `โปรไฟล์  : ${sel('profile').value}\n` +
     `ZIP      : ${sel('zipfile').files[0]?.name || '(ไม่มี)'}\n` +
     `ขอบซ้าย  : ${sel('left_graphic').files[0]?.name || '–'}\n` +
@@ -175,10 +271,11 @@ form.addEventListener('submit', async (e) => {
         if (line.startsWith('{') && line.includes('__done__')) {
           const data = JSON.parse(line);
           finished = true;
+          const cs = data.colorspace || 'Gray';
           showResult(`
             <h3>✓ เสร็จสมบูรณ์</h3>
             <p>
-              <a class="btn" href="${data.download}">⬇ ดาวน์โหลด PDF (final — DeviceGray + ICC)</a>
+              <a class="btn" href="${data.download}">⬇ ดาวน์โหลด PDF (final — Device${cs} + ICC)</a>
               <a class="btn-secondary" href="${data.intermediate}">⬇ PDF กลาง (RGB)</a>
             </p>
           `, false);

@@ -139,6 +139,19 @@ button[type="submit"]:disabled { background: #9a9a9a; cursor: wait; }
 .cache-msg.ok { color: #1f7a3a; }
 .cache-msg.error { color: #b03a2e; }
 
+.filter-msg {
+  font-size: 12px;
+  margin: -8px 0 14px;
+  min-height: 16px;
+  color: #6a6a6a;
+}
+.filter-msg.ok { color: #1f7a3a; }
+.filter-msg.warn { color: #b07f17; }
+
+select option:disabled {
+  color: #b5b8bc;
+}
+
 #status {
   margin-top: 28px;
   padding-top: 24px;
