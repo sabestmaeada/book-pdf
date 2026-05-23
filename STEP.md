@@ -275,6 +275,59 @@ weasyprint -s css/sizes/size_170x228.css -s css/styles/style_bw.css \
 
 ---
 
+## เพิ่มสไตล์หนังสือส่วนตัว (custom style)
+
+UI auto-detect ไฟล์ใน `css/styles/` ทุกครั้งที่ refresh — แค่ก็อปไฟล์ `.css` ของคุณเข้าไป จะโผล่ใน dropdown "สไตล์" ทันที (ไม่ต้อง restart server)
+
+### ข้อกำหนดการตั้งชื่อไฟล์
+
+ต้อง match รูปแบบ `style_<variant>[_<sub>].css` โดย:
+- เริ่มต้นด้วย `style_` (case-insensitive)
+- `<variant>` = token ที่บอกประเภทสี (กำหนด ICC ที่ใช้ได้)
+- `<sub>` (ไม่บังคับ) = ชื่อย่อย ใช้แยกแต่ละ template
+
+### Token `<variant>` ที่รู้จัก (ผูกกับ ICC อัตโนมัติ)
+
+| Token | ใช้กับ ICC | Label ที่โชว์ |
+|---|---|---|
+| `bw` | GRAY | ขาวดำ (B&W) |
+| `gray` / `mono` | GRAY | ขาวดำ (Grayscale / Mono) |
+| `cmyk` | CMYK | CMYK (สี่สี) |
+| `rgb` / `color` | RGB | สี (RGB / Color) |
+
+ถ้าใช้ token นอกตารางนี้ (เช่น `style_duotone.css`) → จะใช้กับ ICC อะไรก็ได้ + label เป็นตัว UPPERCASE ของ token เอง — ถ้าต้องการ map ใหม่ ต้องแก้ `_STYLE_ICC_MAP` + `_STYLE_LABELS` ใน [ui/app.py](ui/app.py)
+
+### Sub-variant `_<sub>`
+
+ใส่ `_<ชื่อ>` ต่อท้าย token เพื่อแยก template หลายแบบใน variant เดียวกัน — backend จะแปลง `_` ใน sub เป็น space แสดงใน dropdown
+
+| ชื่อไฟล์ | Label ที่โชว์ |
+|---|---|
+| `style_cmyk_template_01.css` | CMYK (สี่สี) — template 01 |
+| `style_cmyk_template01.css` | CMYK (สี่สี) — template01 *(ติดกัน)* |
+| `style_bw_classic.css` | ขาวดำ (B&W) — classic |
+| `style_bw_compact.css` | ขาวดำ (B&W) — compact |
+
+**แนะนำ**: ใช้ `_` คั่นเลขกับคำเสมอเพื่อให้ label อ่านง่าย (`template_01` ดีกว่า `template01`)
+
+### ตัวอย่างการใช้
+
+```bash
+# ก็อปไฟล์เข้าไป
+cp ~/my-styles/style_cmyk_premium.css css/styles/
+
+# รีเฟรช browser → dropdown "สไตล์" จะเห็น "CMYK (สี่สี) — premium" ทันที
+```
+
+### ⚠ ข้อควรระวัง
+
+- ไฟล์ต้อง **self-contained** — รวม typography, colors, components, layout ทั้งหมด (ไม่ต้องใส่ `@page` geometry — อันนั้นอยู่ใน `size_*.css`)
+- ลำดับ load: `size_<W>x<H>.css` → `style_<variant>.css` → edge-graphic → no-marks → ดังนั้น style ของคุณจะ override geometry ของ size ได้ (แต่ไม่ควรแตะ)
+- ถ้าจะทำสไตล์ใหม่ตั้งแต่ศูนย์ → copy ไฟล์ที่มีอยู่เป็น template (เช่น `cp css/styles/style_bw.css css/styles/style_cmyk_premium.css`) แล้วแก้ตามต้องการ
+- variant token ต้อง **ตรงกับ ICC ที่จะใช้** — เช่น `style_cmyk_xxx.css` ใช้กับ ICC GRAY ไม่ได้ (backend จะ block + UI auto-switch ให้)
+
+---
+
 ## การแก้ไขชื่อบท
 
 1. แก้ใน `<h1 class="ch-title">` ของบทที่ต้องการ ใน `input/book.html` (source of truth)

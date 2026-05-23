@@ -618,13 +618,13 @@ a.toc-item::after {
 }
 
 .content h4 {
-  font-size: 10pt;
+  font-size: 11pt;
   font-weight: 700;
   color: var(--accent-dk);
-  background: var(--accent-lt);
+  background: transparent;
   border-radius: 0;
-  padding: 4.5pt 7pt;
-  margin: 10pt 0 5pt 1.45em;
+  padding: 0;
+  margin: 10pt 0 5pt 15.4pt;   /* = p text-indent (1.45em × 10.6pt p font-size) */
   display: block;
   line-height: 1.35;
 }
@@ -1206,10 +1206,11 @@ tr {
 }
 
 .content h4 {
-  font-size: 9.7pt !important;
+  font-size: 11pt !important;
   line-height: 1.28 !important;
-  margin: 8pt 0 4pt 1.45em !important;
-  padding: 4pt 6.5pt !important;
+  margin: 8pt 0 4pt 15.4pt !important;
+  padding: 0 !important;
+  background: transparent !important;
   color: var(--accent-dk) !important;
   border-left: none !important;
 }
@@ -1456,10 +1457,11 @@ body {
 }
 
 .content h4 {
-  font-size: 9.7pt !important;
+  font-size: 11pt !important;
   line-height: 1.28 !important;
-  margin: 7.5pt 0 3.8pt 1.45em !important;
-  padding: 3.8pt 6.2pt !important;
+  margin: 7.5pt 0 3.8pt 15.4pt !important;
+  padding: 0 !important;
+  background: transparent !important;
   color: var(--accent-dk) !important;
   border-left: none !important;
 }
