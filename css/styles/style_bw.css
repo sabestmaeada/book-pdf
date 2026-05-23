@@ -852,7 +852,7 @@ hr {
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 9.2pt;
+  font-size: 10pt;
 }
 
 thead {
@@ -1014,12 +1014,12 @@ table {
   width: 100% !important;
   border-collapse: collapse !important;
   table-layout: fixed !important;
-  font-size: 8pt !important;
+  font-size: 9.5pt !important;
   line-height: 1.28 !important;
 }
 
 table * {
-  font-size: 8pt !important;
+  font-size: 9.5pt !important;
   line-height: 1.28 !important;
   box-sizing: border-box !important;
 }
@@ -1034,7 +1034,7 @@ tfoot {
 
 th {
   font-family: 'Prompt', 'IBM Plex Sans Thai', 'Sarabun', sans-serif !important;
-  font-size: 8.2pt !important;
+  font-size: 9.5pt !important;
   font-weight: 600 !important;
   line-height: 1.25 !important;
   padding: 3.2pt 4.5pt !important;
@@ -1047,7 +1047,7 @@ th {
 
 td {
   font-family: var(--bd) !important;
-  font-size: 8pt !important;
+  font-size: 9.5pt !important;
   line-height: 1.28 !important;
   padding: 3pt 4.5pt !important;
   vertical-align: top !important;
@@ -1063,7 +1063,7 @@ th .content p,
 td .content p,
 .content th p,
 .content td p {
-  font-size: 8pt !important;
+  font-size: 9.5pt !important;
   line-height: 1.28 !important;
   margin: 0 0 2pt 0 !important;
   padding: 0 !important;
@@ -1090,7 +1090,7 @@ td ol,
 .content th ol,
 .content td ul,
 .content td ol {
-  font-size: 8pt !important;
+  font-size: 9.5pt !important;
   line-height: 1.28 !important;
   margin: 1.5pt 0 1.5pt 8pt !important;
   padding-left: 5pt !important;
@@ -1100,7 +1100,7 @@ th li,
 td li,
 .content th li,
 .content td li {
-  font-size: 8pt !important;
+  font-size: 9.5pt !important;
   line-height: 1.28 !important;
   margin: 0 0 1pt 0 !important;
   padding-left: 0 !important;
@@ -1120,7 +1120,7 @@ td .inline-code,
 .content th .inline-code,
 .content td .inline-code {
   font-family: var(--cd) !important;
-  font-size: 7.2pt !important;
+  font-size: 9.5pt !important;
   line-height: 1.22 !important;
   white-space: pre-wrap !important;
   overflow-wrap: anywhere !important;
@@ -1359,7 +1359,7 @@ body {
 .inline-code,
 .content code:not(.line):not(pre code) {
   font-family: var(--cd) !important;
-  font-size: 8.9pt !important;
+  font-size: 9.5pt !important;
   line-height: 1.2 !important;
   padding: 0.6pt 2.6pt !important;
   color: #000000 !important;
@@ -1374,14 +1374,14 @@ body {
 }
 
 .code-lang-badge {
-  font-size: 6.8pt !important;
+  font-size: 8pt !important;
   line-height: 1.15 !important;
   padding: 2.6pt 5.5pt !important;
 }
 
 .code-filename,
 .code-linecount {
-  font-size: 6.9pt !important;
+  font-size: 8pt !important;
   line-height: 1.15 !important;
   padding: 2.6pt 5.5pt !important;
 }
@@ -1393,7 +1393,7 @@ body {
 .code-block code,
 .line {
   font-family: var(--cd) !important;
-  font-size: 7.8pt !important;
+  font-size: 9.5pt !important;
   line-height: 1.32 !important;
   white-space: pre-wrap !important;
   word-wrap: break-word !important;
@@ -1408,7 +1408,7 @@ body {
 }
 
 .line::before {
-  font-size: 6.8pt !important;
+  font-size: 8pt !important;
   line-height: 1.32 !important;
   width: 2.75em !important;
   padding-right: 0.45em !important;
