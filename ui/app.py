@@ -142,6 +142,9 @@ SYNC_SCRIPT = ROOT / "sync_toc.py"
 _SIZE_PATTERN = re.compile(r"^size_(\d+)x(\d+)\.css$", re.IGNORECASE)
 _STYLE_PATTERN = re.compile(r"^style_([a-z][a-z0-9]*)(?:_([a-z0-9_]+))?\.css$", re.IGNORECASE)
 
+# Pattern สำหรับ "หน้าที่ต้องการ" — รองรับ 1 หรือ 4-20 หรือ 1,4-8,12 (มีเว้นวรรคได้)
+_PAGES_PATTERN = re.compile(r"^\s*\d+(?:\s*-\s*\d+)?(?:\s*,\s*\d+(?:\s*-\s*\d+)?)*\s*$")
+
 # Style variant → ICC color space signatures ที่เข้ากันได้
 # (signature ขนาด 4 ตัวอักษร ตาม ICC.1:2010 — RGB มี space ต่อท้าย)
 _STYLE_ICC_MAP = {
@@ -397,6 +400,7 @@ def build_pipeline(
     left_graphic: tuple[str, bytes] | None,
     right_graphic: tuple[str, bytes] | None,
     crop_marks: bool,
+    pages: str,
     q: Queue,
 ) -> None:
     try:
@@ -472,12 +476,31 @@ def build_pipeline(
             q.put(json.dumps({"__error__": f"color pipeline failed: {e}"}))
             return
 
+        # 6) Optional — ตัดหน้าตามที่ user ระบุด้วย mutool clean
+        if pages:
+            q.put(f"\n[+] ตัดหน้าตามที่ระบุ: {pages}")
+            extracted = OUTPUT_DIR / f"_extracted_{final_pdf.name}"
+            rc = stream_subprocess(
+                ["mutool", "clean", str(final_pdf), str(extracted), pages],
+                cwd=ROOT, output_queue=q,
+            )
+            if rc != 0:
+                if extracted.exists():
+                    extracted.unlink()
+                q.put(json.dumps({"__error__": f"mutool clean (extract pages) failed (exit {rc})"}))
+                return
+            # แทน final_pdf ด้วยไฟล์ที่ตัดหน้าแล้ว
+            final_pdf.unlink()
+            extracted.rename(final_pdf)
+            q.put(f"✓ ตัดหน้า '{pages}' เสร็จ → {final_pdf.relative_to(ROOT)}")
+
         q.put(f"\n✓ เสร็จสมบูรณ์ → {final_pdf.relative_to(ROOT)}")
         q.put(json.dumps({
             "__done__": True,
             "download": f"/download/{final_pdf.name}",
             "intermediate": f"/download/{rgb_pdf.name}",
             "colorspace": _ICC_CS_TABLE[profile_cs_raw][0],  # "Gray" / "CMYK" / "RGB"
+            "pages": pages or None,
         }))
     except Exception as e:
         q.put(json.dumps({"__error__": f"{type(e).__name__}: {e}"}))
@@ -532,6 +555,17 @@ def build():
     right_graphic = read_optional("right_graphic")
     crop_marks = request.form.get("crop_marks") is not None
 
+    # หน้าที่ต้องการ — ไม่บังคับ ถ้าไม่ใส่ = ทั้งเล่ม
+    pages_input = (request.form.get("pages") or "").strip()
+    if pages_input:
+        if not _PAGES_PATTERN.match(pages_input):
+            return jsonify(
+                error=f"รูปแบบหน้าไม่ถูกต้อง: '{pages_input}' — ตัวอย่าง: 1,4-8,12 หรือ 4-20"
+            ), 400
+        pages_clean = re.sub(r"\s+", "", pages_input)
+    else:
+        pages_clean = ""
+
     # log สิ่งที่ได้รับจริง — เพื่อ debug
     print(
         f"[build] size={size_key!r} → {size_css!r}  "
@@ -540,7 +574,8 @@ def build():
         f"zip={len(zip_bytes)} bytes  "
         f"left={'✓' if left_graphic else '–'}  "
         f"right={'✓' if right_graphic else '–'}  "
-        f"crop_marks={crop_marks}",
+        f"crop_marks={crop_marks}  "
+        f"pages={pages_clean!r}",
         flush=True,
     )
 
@@ -548,7 +583,7 @@ def build():
     worker = threading.Thread(
         target=build_pipeline,
         args=(zip_bytes, profile, profile_cs_raw, size_css, style_css,
-              left_graphic, right_graphic, crop_marks, q),
+              left_graphic, right_graphic, crop_marks, pages_clean, q),
         daemon=True,
     )
     worker.start()

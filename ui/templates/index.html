@@ -69,6 +69,12 @@
       <p class="hint">ค่าเริ่มต้นไม่แสดง — ติ๊กเมื่อต้องการส่งให้โรงพิมพ์ตัดเล่ม</p>
     </div>
 
+    <div class="field">
+      <label for="pages">หน้าที่ต้องการ <span class="hint-inline">(ไม่บังคับ — ถ้าไม่ใส่ = ทั้งเล่ม)</span></label>
+      <input type="text" id="pages" name="pages" placeholder="เช่น: 1,4-8,12  หรือ  4-20">
+      <p class="hint">ตัดเฉพาะหน้าที่ระบุจาก PDF final ด้วย <code>mutool clean</code> — เหมาะกับการทดสอบสไตล์/เลย์เอาต์เร็วๆ</p>
+    </div>
+
     <fieldset>
       <legend>5. กราฟิกขอบหน้า (ไม่บังคับ)</legend>
       <p class="hint">
@@ -243,6 +249,7 @@ form.addEventListener('submit', async (e) => {
     `ขอบซ้าย  : ${sel('left_graphic').files[0]?.name || '–'}\n` +
     `ขอบขวา   : ${sel('right_graphic').files[0]?.name || '–'}\n` +
     `Crop marks: ${sel('crop_marks').checked ? 'แสดง' : 'ไม่แสดง'}\n` +
+    `หน้า     : ${sel('pages').value.trim() || '(ทั้งเล่ม)'}\n` +
     '──────────────────────────────\n\n';
   let buffer = '';
   let finished = false;

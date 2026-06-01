@@ -145,6 +145,26 @@ button[type="submit"]:disabled { background: #9a9a9a; cursor: wait; }
   min-height: 16px;
   color: #6a6a6a;
 }
+
+.hint-inline {
+  font-weight: 400;
+  color: #888;
+  font-size: 12px;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid #d6d8db;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  background: #fff;
+}
+input[type="text"]:focus {
+  outline: none;
+  border-color: #1a1a1a;
+}
 .filter-msg.ok { color: #1f7a3a; }
 .filter-msg.warn { color: #b07f17; }
 
