@@ -75,6 +75,18 @@
       <p class="hint">ตัดเฉพาะหน้าที่ระบุจาก PDF final ด้วย <code>mutool clean</code> — เหมาะกับการทดสอบสไตล์/เลย์เอาต์เร็วๆ</p>
     </div>
 
+    <div class="field">
+      <label for="template_css">
+        Template CSS ส่วนตัว
+        <span class="hint-inline">(ไม่บังคับ — override สไตล์เฉพาะเล่ม)</span>
+      </label>
+      <input type="file" id="template_css" name="template_css" accept=".css">
+      <p class="hint">
+        โหลดหลัง style หลัก → ปรับฟอนต์/ขนาด/ระยะ/heading/สี ต่อเล่มได้
+        ดูตัวอย่างที่ <code>template/template-print.gemini.css</code> (1MB max)
+      </p>
+    </div>
+
     <fieldset>
       <legend>5. กราฟิกขอบหน้า (ไม่บังคับ)</legend>
       <p class="hint">
@@ -248,6 +260,7 @@ form.addEventListener('submit', async (e) => {
     `ZIP      : ${sel('zipfile').files[0]?.name || '(ไม่มี)'}\n` +
     `ขอบซ้าย  : ${sel('left_graphic').files[0]?.name || '–'}\n` +
     `ขอบขวา   : ${sel('right_graphic').files[0]?.name || '–'}\n` +
+    `Template : ${sel('template_css').files[0]?.name || '–'}\n` +
     `Crop marks: ${sel('crop_marks').checked ? 'แสดง' : 'ไม่แสดง'}\n` +
     `หน้า     : ${sel('pages').value.trim() || '(ทั้งเล่ม)'}\n` +
     '──────────────────────────────\n\n';

@@ -1,0 +1,1887 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Prompt:wght@400;500;600;700&family=Anuphan:wght@300;400;500;600;700&family=IBM+Plex+Sans+Thai+Looped:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap');
+
+/* =========================================================
+   THEME: "Gemini" — หนังสือสอน Google Gemini
+   พื้นหลังขาว (สำหรับพิมพ์กระดาษขาว) + พาเลตต์ Google
+   ไล่สีเอกลักษณ์ Gemini: ฟ้า → ม่วง → ชมพู
+   หัวข้อสไตล์ minimal / modern
+   โครงสร้าง HTML และทุก class คงเดิม ปรับเฉพาะการออกแบบ
+   ========================================================= */
+
+/* ========================================= */
+/* 1. CSS Variables & Base Setup             */
+/* ========================================= */
+:root {
+  --bg: #FFFFFF;            /* พื้นขาวล้วน สำหรับงานพิมพ์ */
+  --surface: #FFFFFF;
+  --text: #202124;         /* Google grey 900 */
+  --muted: #5F6368;        /* Google grey 600 */
+
+  /* Google / Gemini palette */
+  --accent: #1A73E8;       /* Google blue */
+  --accent-lt: #E8F0FE;    /* blue ขุ่นอ่อน */
+  --accent-dk: #1558D6;    /* blue เข้ม */
+  --purple: #6E7BF2;
+  --pink: #9B72E6;
+
+  /* ไล่สีเอกลักษณ์ Gemini */
+  --grad: linear-gradient(95deg, #4285F4 0%, #6E7BF2 50%, #9B72E6 100%);
+  --grad-v: linear-gradient(180deg, #4285F4 0%, #6E7BF2 100%);
+
+  /* ดาว 4 แฉกสไตล์ Gemini แบบ inline SVG (ฝัง gradient ในตัว) — ใช้ได้กับ WeasyPrint ตอนแปลง PDF */
+  --gemini-star: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%222%22%20y1%3D%222%22%20x2%3D%2222%22%20y2%3D%2222%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%234285F4%22%2F%3E%3Cstop%20offset%3D%220.5%22%20stop-color%3D%22%236E7BF2%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%239B72E6%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cpath%20d%3D%22M12%200C12%206.627%2017.373%2012%2024%2012C17.373%2012%2012%2017.373%2012%2024C12%2017.373%206.627%2012%200%2012C6.627%2012%2012%206.627%2012%200Z%22%20fill%3D%22url%28%23g%29%22%2F%3E%3C%2Fsvg%3E');
+
+  /* ดาวสีขาว สำหรับวางบนป้าย pill ไล่สี */
+  --gemini-star-white: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M12%200C12%206.627%2017.373%2012%2024%2012C17.373%2012%2012%2017.373%2012%2024C12%2017.373%206.627%2012%200%2012C6.627%2012%2012%206.627%2012%200Z%22%20fill%3D%22%23FFFFFF%22%2F%3E%3C%2Fsvg%3E');
+
+  /* ดาวลายเส้นไล่สี (outline) ดวงเดียว — สำหรับ eyebrow */
+  --gemini-star-outline: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%222%22%20y1%3D%222%22%20x2%3D%2222%22%20y2%3D%2222%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%234285F4%22%2F%3E%3Cstop%20offset%3D%220.5%22%20stop-color%3D%22%236E7BF2%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%239B72E6%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cpath%20d%3D%22M12%201.5C12%206.937%2017.063%2012%2022.5%2012C17.063%2012%2012%2017.063%2012%2022.5C12%2017.063%206.937%2012%201.5%2012C6.937%2012%2012%206.937%2012%201.5Z%22%20fill%3D%22none%22%20stroke%3D%22url%28%23g%29%22%20stroke-width%3D%221.5%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E');
+
+  /* ดาวลายเส้นไล่สี ดวงใหญ่(ซ้าย)+ดวงเล็ก(ขวา) — ไล่สีแนวนอนเหมือน --grad — ซ้อนหลังหัวบท */
+  --gemini-constellation: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%20130%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20gradientUnits%3D%22objectBoundingBox%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%220%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%234285F4%22%2F%3E%3Cstop%20offset%3D%220.5%22%20stop-color%3D%22%236E7BF2%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%239B72E6%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22url%28%23g%29%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20transform%3D%22translate%2819.6%2C29.6%29%20scale%284.2%29%20rotate%28-8%2012%2012%29%22%20stroke-width%3D%220.36%22%20stroke-opacity%3D%220.9%22%20d%3D%22M12%201.5C12%206.937%2017.063%2012%2022.5%2012C17.063%2012%2012%2017.063%2012%2022.5C12%2017.063%206.937%2012%201.5%2012C6.937%2012%2012%206.937%2012%201.5Z%22%2F%3E%3Cpath%20transform%3D%22translate%28135.2%2C7.2%29%20scale%281.9%29%20rotate%2816%2012%2012%29%22%20stroke-width%3D%220.8%22%20stroke-opacity%3D%220.55%22%20d%3D%22M12%201.5C12%206.937%2017.063%2012%2022.5%2012C17.063%2012%2012%2017.063%2012%2022.5C12%2017.063%206.937%2012%201.5%2012C6.937%2012%2012%206.937%2012%201.5Z%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E');
+
+  --border: #E8EAED;       /* Google grey 200 */
+  --gold:   #B8924A;       /* ทองสำหรับ .credits-page */
+  --note-bg: #F8FBFF;
+  --note-bd: #4285F4;
+
+  --code-bg: #F8F9FA;      /* Google grey 50 */
+  --code-tx: #202124;
+  --ln-bg: #F1F3F4;
+  --ln-tx: #80868B;
+  --ln-border: #E8EAED;
+
+  /* หัวข้อ = Poppins (Prompt สำหรับไทย) / เนื้อความ = Sarabun */
+  --hd: 'Poppins', 'Prompt', sans-serif;
+  --bd: 'Anuphan', 'IBM Plex Sans Thai Looped', 'Sarabun', sans-serif;
+  --cd: 'Roboto Mono', monospace;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--bd);
+  font-size: 17px;
+  line-height: 1.78;
+  -webkit-font-smoothing: antialiased;
+  font-variant-ligatures: none !important;
+  font-feature-settings: "liga" 0, "calt" 0 !important;
+}
+
+/* ========================================= */
+/* 2. Cover (Front) - อยู่นอก book-wrap      */
+/* ========================================= */
+.cover {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  text-align: center;
+  padding: 40px;
+  background: #FFFFFF;
+  page-break-after: always;
+  break-after: page;
+}
+
+.cover.cover-has-image {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.cover-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+}
+
+.cover-title {
+  font-family: var(--hd);
+  font-size: 52px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -1px;
+  margin-bottom: 24px;
+  /* ไล่สี Gemini */
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--accent-dk);
+}
+
+.cover-subtitle {
+  font-family: var(--hd);
+  font-size: 19px;
+  font-weight: 500;
+  color: var(--muted);
+  margin-bottom: 40px;
+}
+
+.cover-meta {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 2;
+}
+
+.cover-line {
+  width: 96px;
+  height: 4px;
+  background: var(--grad);
+  margin: 32px auto;
+  border-radius: 4px;
+}
+
+/* ========================================= */
+/* 3. Book Wrap & Sections                   */
+/* ========================================= */
+.book-wrap {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 40px;
+}
+
+.copyright-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  min-height: 100vh;
+  page-break-before: always;
+  break-before: page;
+}
+
+.copyright-inner {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  text-align: left;
+  color: var(--text);
+}
+
+.copyright-label {
+  font-family: var(--hd);
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--accent-dk);
+  margin: 0 0 28px 0;
+}
+
+.copyright-detail {
+  font-family: var(--bd);
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.8;
+  color: var(--text);
+  margin: 0 0 6px 0;
+}
+
+.copyright-detail-label {
+  font-weight: 600;
+  color: var(--accent-dk);
+}
+
+.copyright-legal {
+  font-family: var(--bd);
+  font-size: 16px;
+  line-height: 1.9;
+  color: var(--text);
+  margin: 24px 0 16px 0;
+  font-weight: 600;
+}
+
+.copyright-restriction {
+  font-family: var(--bd);
+  font-size: 15px;
+  line-height: 1.9;
+  color: var(--text);
+  margin: 0 0 10px 0;
+}
+
+.copyright-note {
+  font-family: var(--bd);
+  font-size: 15px;
+  line-height: 1.9;
+  color: var(--muted);
+  margin: 8px 0 28px 0;
+}
+
+.copyright-info-grid {
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+  margin-top: 8px;
+}
+
+.copyright-info-item {
+  font-family: var(--bd);
+  font-size: 15px;
+  line-height: 2;
+  color: var(--text);
+}
+
+.copyright-info-label {
+  font-family: var(--hd);
+  font-weight: 600;
+  display: inline-block;
+  min-width: 100px;
+}
+
+.preface {
+  padding: 40px 0;
+  page-break-before: always;
+  break-before: page;
+}
+
+.preface-title {
+  font-family: var(--hd);
+  font-size: 30px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 40px;
+  letter-spacing: -0.3px;
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--accent-dk);
+}
+
+.preface-content {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.preface-content p {
+  margin-bottom: 16px;
+  text-align: left;
+  text-indent: 2em;
+}
+
+.toc {
+  padding: 40px 0;
+  page-break-before: always;
+  break-before: page;
+}
+
+.toc-title {
+  font-family: var(--hd);
+  font-size: 30px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 40px;
+  letter-spacing: -0.3px;
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--accent-dk);
+}
+
+.toc-list {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.toc-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-decoration: none;
+  color: var(--text);
+  padding: 14px 12px;
+  border-radius: 12px;
+  transition: background .2s, color .2s;
+  border-bottom: 1px solid var(--border);
+}
+
+.toc-item:hover {
+  color: var(--accent-dk);
+  background: var(--accent-lt);
+}
+
+.toc-num {
+  font-family: var(--hd);
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+  min-width: 64px;
+  letter-spacing: 0.5px;
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--accent);
+}
+
+.toc-name {
+  font-family: var(--hd);
+  font-weight: 500;
+  font-size: 17px;
+}
+
+.chapter {
+  padding: 40px 0 80px;
+  page-break-before: always;
+  break-before: page;
+}
+
+/* ============================================================
+   หัวบท — คลีน พื้นขาว · ดาวลายเส้นไล่สี · เส้นใต้ไล่สีสั้น
+   ============================================================ */
+.ch-hdr {
+  position: relative;
+  overflow: visible;
+  text-align: left;
+  padding: 18px 0 28px;
+  margin-bottom: 52px;
+  /* ฟ้าฟุ้งจากชื่อบทแล้วจางเป็นใสก่อนถึงขอบทุกด้าน (closest-side = ไม่เหลือเส้นขอบ) */
+  background: radial-gradient(ellipse closest-side at 24% 52%,
+      rgba(66, 133, 244, .14) 0%,
+      rgba(66, 133, 244, .06) 45%,
+      rgba(66, 133, 244, 0) 100%);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  box-shadow: none;
+  break-inside: avoid;
+}
+
+/* เส้นใต้ไล่สีสั้น คร่อมเส้นคั่นล่าง */
+.ch-hdr::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  bottom: -2px;
+  width: 120px;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--grad);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+/* ดาวลายเส้นไล่สี ดวงใหญ่(ซ้าย)+เล็ก(ขวา) — ซ้อนหลังข้อความให้มีมิติ ลึก-ตื้น */
+.ch-hdr::before {
+  content: "";
+  position: absolute;
+  z-index: 0;                /* อยู่หลังข้อความ (ข้อความ z-index:1) */
+  top: -6px;
+  right: 6px;
+  width: 212px;
+  height: 138px;
+  background-image: var(--gemini-constellation);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+/* eyebrow: ดาวลายเส้นนำหน้า + CHAPTER X (เทา) */
+.ch-num {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--hd);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  margin-bottom: 14px;
+  text-transform: uppercase;
+  color: #5F6368;
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  -webkit-text-fill-color: #5F6368;
+}
+
+.ch-num::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  background-image: var(--gemini-star-outline);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+
+.ch-title {
+  position: relative;
+  z-index: 1;
+  font-family: var(--hd);
+  font-size: 44px;
+  font-weight: 700;
+  color: #202124;
+  line-height: 1.18;
+  letter-spacing: -1px;
+  max-width: 88%;
+  break-after: avoid;
+}
+
+.ch-meta {
+  position: relative;
+  z-index: 1;
+  font-size: 13px;
+  color: #80868B;
+  margin-top: 16px;
+}
+
+/* ปกหลัง (จบเล่ม) */
+.back-cover {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 40px 0;
+  page-break-before: always;
+  break-before: page;
+  min-height: 80vh;
+}
+
+.back-cover-image {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+}
+
+.content h1,
+.content h2,
+.content h3,
+.content h4 {
+  page-break-after: avoid;
+  break-after: avoid;
+}
+
+.content h1 {
+  font-family: var(--hd);
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 48px 0 20px;
+  line-height: 1.3;
+  letter-spacing: -0.5px;
+}
+
+/* ---- h2: minimal modern + ข้อความไล่สี Gemini + เส้นใต้สั้นไล่สี ---- */
+.content h2 {
+  font-family: var(--hd);
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+
+  margin: 46px 0 22px;
+  padding: 0 0 12px 0;
+
+  line-height: 1.35;
+  position: relative;
+
+  width: fit-content;
+  max-width: 100%;
+
+  border-left: none;
+
+  /* ไล่สีตัวอักษร */
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--accent-dk);
+}
+
+/* (เลิกใช้แถบแนวตั้งแบบเดิม) */
+.content h2::before {
+  content: none;
+}
+
+/* เส้นใต้สั้นไล่สี ปลายขวาจาง */
+.content h2::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+
+  width: 56px;
+  height: 3px;
+
+  background: var(--grad);
+  border-radius: 3px;
+}
+
+/* ---- h3: minimal เทาเข้ม + จุดไล่สีนำหน้า ---- */
+.content h3 {
+  font-family: var(--hd);
+  font-size: 20px;
+  font-weight: 600;
+  color: #3C4043;
+  margin: 32px 0 12px;
+  padding-left: 26px;
+  position: relative;
+  line-height: 1.4;
+}
+
+.content h3::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.28em;
+  width: 17px;
+  height: 17px;
+  background-image: var(--gemini-star);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+
+/* ---- h4: uppercase + ขีดสั้นไล่สีนำหน้า (ไม่มีเส้นตั้งซ้าย) ---- */
+.content h4 {
+  font-family: var(--hd);
+  font-size: 16px;
+  font-weight: 700;
+  color: #5F6368;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  /* เยื้องขวา 2em ให้ตรงกับการย่อหน้าแรกของ <p> */
+  margin: 28px 0 12px 2em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  line-height: 1.5;
+}
+
+/* ขีดสั้นไล่สีนำหน้า — โทนเดียวกับเส้นใต้ h2 / ดาว h3 */
+.content h4::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 22px;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--grad);
+}
+
+.content p {
+  margin-bottom: 16px;
+  text-align: left;          /* ชิดซ้าย — กันช่องว่างถ่างจากไทย-อังกฤษปนกัน */
+  text-indent: 2em;
+  orphans: 3;
+  widows: 3;
+}
+
+/* ---- การจัดรูปแบบตัวอักษรอินไลน์ (ให้เข้าชุดธีม Gemini · พิมพ์ PDF ได้) ---- */
+
+/* ตัวหนา — น้ำเงินเข้มเน้นคำสำคัญ */
+.content strong,
+.content b {
+  font-weight: 700;
+  color: var(--accent-dk);
+}
+
+/* ตัวเอียง */
+.content em,
+.content i {
+  font-style: italic;
+}
+
+/* เน้นเอียง+หนาพร้อมกัน */
+.content strong em,
+.content em strong,
+.content b i,
+.content i b {
+  font-weight: 700;
+  font-style: italic;
+  color: var(--accent-dk);
+}
+
+/* เส้นใต้ — เส้นไล่สี Gemini แทนขีดเส้นใต้ธรรมดา */
+.content u {
+  text-decoration: none;
+  background-image: var(--grad);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 100% 2px;
+  padding-bottom: 1px;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+/* ไฮไลต์ — พื้นไล่เฉดอ่อนฟ้า→ม่วง */
+.content mark {
+  background: linear-gradient(120deg, #E8F0FE 0%, #F3E8FF 100%);
+  color: var(--accent-dk);
+  padding: 0 4px;
+  border-radius: 4px;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+/* ลิงก์ */
+.content a {
+  color: var(--accent-dk);
+  text-decoration: underline;
+  text-decoration-color: #9DBFF6;
+  text-underline-offset: 2px;
+}
+.content a:hover {
+  text-decoration-color: var(--accent);
+}
+
+/* ขีดฆ่า / ลบ */
+.content del,
+.content s {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+/* ข้อความเพิ่มเข้ามา */
+.content ins {
+  text-decoration: none;
+  border-bottom: 2px solid var(--accent);
+}
+
+/* ปุ่มคีย์บอร์ด — สไตล์ key cap (เหมาะกับหนังสือสอนใช้งาน) */
+.content kbd {
+  font-family: var(--cd);
+  font-size: 0.85em;
+  color: #202124;
+  background: #F1F3F4;
+  border: 1px solid #DADCE0;
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  padding: 1px 7px;
+  white-space: nowrap;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+/* ตัวยก / ตัวห้อย — ไม่ดันบรรทัด */
+.content sub,
+.content sup {
+  font-size: 0.72em;
+  line-height: 0;
+}
+
+/* คำย่อ */
+.content abbr[title] {
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+  cursor: help;
+}
+
+.content ul,
+.content ol {
+  list-style: none !important;   /* ชนะ inline list-style-type ที่ editor ใส่มา (กัน native marker ก./ข. ซ้อน badge วงกลม) */
+  margin: 14px 0 20px 0;
+  orphans: 3;
+  widows: 3;
+}
+
+.content li {
+  position: relative;
+  margin-bottom: 9px;
+}
+
+/* ── ul: จุดกลมไล่สีเล็ก (เบากว่าดาว h3 เพื่อแยกลำดับชัด) ── */
+.content ul {
+  padding-left: 28px;
+}
+.content ul li {
+  padding-left: 6px;
+}
+.content ul li::before {
+  content: "";
+  position: absolute;
+  left: -20px;
+  /* จัดให้จุดอยู่กึ่งกลางบรรทัดแรกพอดี (ครึ่งของ line-height แล้วเลื่อนขึ้นครึ่งของขนาดจุด) */
+  top: 0.95em;
+  margin-top: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--grad);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+/* ── ol: เลขในวงกลมไล่สี ตัวเลขสีขาว ── */
+.content ol {
+  padding-left: 40px;
+  counter-reset: ol-counter;
+}
+.content ol li {
+  padding-left: 6px;
+  counter-increment: ol-counter;
+}
+.content ol li::before {
+  content: counter(ol-counter, var(--ol-marker, decimal));
+  position: absolute;
+  left: -36px;
+  top: 0.12em;
+  width: 25px;
+  height: 25px;
+  background: var(--grad);
+  color: #FFFFFF;
+  font-family: var(--hd);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 25px;
+  text-align: center;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(96, 70, 200, .3);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.drop-cap::first-letter {
+  font-family: var(--hd);
+  font-size: 3.4em;
+  font-weight: 700;
+  float: left;
+  line-height: 0.82;
+  margin: 0.05em 0.12em 0 0;
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--accent);
+}
+
+/* ========================================= */
+/* 4. Components (Code, Note, Table, Img)    */
+/* ========================================= */
+.code-block {
+  background: var(--code-bg);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  margin: 24px 0;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(60, 64, 67, .08);
+  break-inside: avoid;
+}
+
+.code-header {
+  display: flex;
+  align-items: center;
+  background: #FFFFFF;
+  border-bottom: 1px solid var(--border);
+}
+
+.code-lang-badge {
+  font-family: var(--cd);
+  font-size: 11px;
+  font-weight: 700;
+  color: #FFFFFF;
+  background: var(--grad);
+  padding: 6px 14px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.code-filename {
+  font-family: var(--cd);
+  font-size: 12px;
+  color: var(--text);
+  padding: 6px 14px;
+  letter-spacing: .3px;
+  font-weight: 500;
+}
+
+.code-filename::before {
+  content: '📄  ';
+}
+
+.code-linecount {
+  font-family: var(--cd);
+  font-size: 11px;
+  color: var(--ln-tx);
+  margin-left: auto;
+  padding: 6px 14px;
+}
+
+.code-block pre {
+  padding: 12px 0;
+  overflow-x: auto;
+  margin: 0;
+  counter-reset: line-num;
+}
+
+.code-block code {
+  font-family: var(--cd);
+  font-size: 14px;
+  color: var(--code-tx);
+  line-height: 1.4;
+  display: block;
+  font-variant-ligatures: none;
+  font-feature-settings: "liga" 0, "calt" 0;
+}
+
+.line {
+  display: block;
+  counter-increment: line-num;
+  padding-left: 4em;
+  padding-right: 20px;
+  position: relative;
+  min-height: 1.4em;
+  color: var(--code-tx);
+}
+
+.line::before {
+  content: counter(line-num);
+  position: absolute;
+  left: 0;
+  width: 3.2em;
+  text-align: right;
+  padding-right: 0.8em;
+  color: var(--ln-tx);
+  font-size: 12px;
+  line-height: 1.4;
+  user-select: none;
+  border-right: 1px solid var(--ln-border);
+  background: var(--ln-bg);
+}
+
+.line:hover {
+  background: rgba(66, 133, 244, .06);
+}
+
+.line:hover::before {
+  color: var(--text);
+}
+
+.inline-code {
+  font-family: var(--cd);
+  font-size: 15px;
+  background: var(--accent-lt);
+  color: var(--accent-dk);
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid #D2E3FC;
+  font-variant-ligatures: none;
+  font-feature-settings: "liga" 0, "calt" 0;
+}
+
+/* note สไตล์ Gemini: การ์ดพื้นอ่อนมุมโค้ง + ป้าย pill ไล่สีลอยมุมบน (ไม่มีเส้นซ้าย) */
+.note {
+  position: relative;
+  background: linear-gradient(135deg, #F6F9FF 0%, #FBF6FF 100%);
+  border: 1px solid #E6EAF6;
+  border-radius: 16px;
+  padding: 28px 24px 20px;
+  margin: 34px 0 24px;
+  box-shadow: 0 4px 14px rgba(66, 73, 105, .07);
+  break-inside: avoid;
+}
+
+/* ป้าย pill ลอยคร่อมขอบบนการ์ด */
+.note-label {
+  position: absolute;
+  top: -14px;
+  left: 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--hd);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #FFFFFF;
+  background: var(--grad);
+  padding: 6px 15px 6px 13px;
+  border-radius: 999px;
+  box-shadow: 0 3px 8px rgba(96, 70, 200, .28);
+}
+
+/* ดาว Gemini สีขาวหน้า label (SVG ใช้ได้กับ WeasyPrint) */
+.note-label::before {
+  content: "";
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  background-image: var(--gemini-star-white);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+
+.note p {
+  margin-bottom: 0;
+  font-size: 16px;
+}
+
+blockquote {
+  border-left: 4px solid transparent;
+  border-image: var(--grad-v) 1;
+  background: #FAFBFF;
+  padding: 16px 22px;
+  margin: 24px 0;
+  border-radius: 0 10px 10px 0;
+  color: #3C4043;
+  font-style: italic;
+  break-inside: avoid;
+}
+
+hr {
+  border: none;
+  height: 2px;
+  background: var(--grad);
+  opacity: 0.5;
+  border-radius: 2px;
+  margin: 40px 0;
+}
+
+.table-wrap {
+  overflow: hidden;                 /* ให้มุมโค้งคลุมแถบหัวตาราง */
+  margin: 24px 0;
+  break-inside: avoid;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 10px rgba(60, 64, 67, .06);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+/* หัวตาราง — แถบไล่สี Gemini ตัวอักษรขาว */
+thead {
+  background: var(--grad);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+th {
+  font-family: var(--hd);
+  font-weight: 600;
+  text-align: left;
+  padding: 13px 16px;
+  color: #FFFFFF;
+  letter-spacing: .3px;
+  border: none;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+td {
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+/* แถวสลับสี (zebra) อ่านง่าย */
+tbody tr:nth-child(even) {
+  background: #F6F9FF;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+tbody tr:hover td {
+  background: #ECF1FE;
+}
+
+.book-img {
+  margin: 32px 0;
+  text-align: center;
+  break-inside: avoid;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.book-img img {
+  max-width: 100%;
+  display: block;
+  margin: 0 auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(60, 64, 67, .12);
+}
+
+.book-img figcaption {
+  font-family: var(--hd);
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 12px;
+}
+
+.img-placeholder {
+  background: #F8FAFF;
+  border: 2px dashed var(--accent);
+  border-radius: 14px;
+  padding: 32px;
+  margin: 24px 0;
+  text-align: center;
+  break-inside: avoid;
+}
+
+.img-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+.img-desc {
+  font-family: var(--hd);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent-dk);
+  margin-bottom: 8px;
+}
+
+.img-prompt {
+  font-family: var(--cd);
+  font-size: 12px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, .9);
+  padding: 6px 12px;
+  border-radius: 6px;
+  display: inline-block;
+  border: 1px solid rgba(66, 133, 244, 0.25);
+}
+
+/* ========================================= */
+/* 5. Print Setup (@page - หน้ากระดาษ)         */
+/* ========================================= */
+@page {
+  size: A4;
+  bleed: 3mm;
+}
+
+@page :right {
+  margin: 25mm 20mm 25mm 25mm;
+
+  @bottom-right {
+    content: counter(page);
+    font-family: 'Poppins', 'Prompt', sans-serif;
+    font-size: 11pt;
+    color: #5F6368;
+  }
+
+  @bottom-left {
+    content: none;
+  }
+}
+
+@page :left {
+  margin: 25mm 25mm 25mm 20mm;
+
+  @bottom-left {
+    content: counter(page);
+    font-family: 'Poppins', 'Prompt', sans-serif;
+    font-size: 11pt;
+    color: #5F6368;
+  }
+
+  @bottom-right {
+    content: none;
+  }
+}
+
+@page :first {
+  margin: 0mm !important;
+
+  @bottom-right {
+    content: none !important;
+  }
+
+  @bottom-left {
+    content: none !important;
+  }
+}
+
+/* ========================================= */
+/* 6. Print Setup (@media print)             */
+/* ========================================= */
+@media print {
+
+  body,
+  html {
+    background: #fff !important;
+    color: #202124 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .book-wrap {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+  }
+
+  .ch-meta,
+  .cover-meta,
+  .book-footer {
+    display: none !important;
+  }
+
+  /* หัวบทตอนพิมพ์ — ฟ้าฟุ้งจางมาก ดาวลายเส้น เส้นใต้ไล่สี */
+  .ch-hdr {
+    text-align: left !important;
+    background: radial-gradient(ellipse closest-side at 24% 52%,
+        rgba(66, 133, 244, .14) 0%,
+        rgba(66, 133, 244, .06) 45%,
+        rgba(66, 133, 244, 0) 100%) !important;
+    border: none !important;
+    border-bottom: 1px solid var(--border) !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    padding: 8px 0 26px !important;
+    box-shadow: none !important;
+  }
+
+  .ch-hdr::after {
+    left: 0 !important;
+    bottom: -2px !important;
+    right: auto !important;
+    top: auto !important;
+    width: 120px !important;
+    height: 4px !important;
+    background: var(--grad) !important;
+    border-radius: 4px !important;
+    opacity: 1 !important;
+  }
+
+  .ch-hdr::before {
+    background: none !important;
+    background-image: var(--gemini-constellation) !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: contain !important;
+  }
+
+  .ch-num {
+    color: #5F6368 !important;
+    -webkit-text-fill-color: #5F6368 !important;
+    background: none !important;
+  }
+  .ch-title {
+    color: #202124 !important;
+    -webkit-text-fill-color: #202124 !important;
+  }
+
+  .content h2 {
+    margin: 40px 0 24px !important;
+    padding: 0 0 12px 0 !important;
+    line-height: 1.35 !important;
+    position: relative !important;
+
+    width: fit-content !important;
+    max-width: 100% !important;
+
+    border-left: none !important;
+    border-bottom: none !important;
+
+    /* พิมพ์: ใช้สีน้ำเงินทึบแทนไล่สี เพื่อความคมชัดบนกระดาษ */
+    background-image: none !important;
+    -webkit-text-fill-color: #1558D6 !important;
+    color: #1558D6 !important;
+  }
+
+  .content h2::before {
+    content: none !important;
+  }
+
+  .content h2::after {
+    content: "" !important;
+    position: absolute !important;
+    left: 0 !important;
+    bottom: 0 !important;
+
+    width: 56px !important;
+    height: 3px !important;
+
+    background: var(--grad) !important;
+    border-radius: 3px !important;
+  }
+
+  /* h1/h3/h4 ตอนพิมพ์ ใช้สีทึบ */
+  .content h1 {
+    color: #202124 !important;
+    -webkit-text-fill-color: #202124 !important;
+  }
+
+  .content h3 {
+    color: #3C4043 !important;
+    -webkit-text-fill-color: #3C4043 !important;
+  }
+
+  blockquote {
+    background: #F7F9FC !important;
+  }
+
+  .content h4 {
+    background: transparent !important;
+    border: none !important;
+    color: #5F6368 !important;
+    -webkit-text-fill-color: #5F6368 !important;
+  }
+
+  .note {
+    position: relative !important;
+    background: #F6F9FF !important;
+    border: 1px solid #E6EAF6 !important;
+    border-radius: 16px !important;
+    box-shadow: none !important;
+    padding: 24px 22px 16px !important;
+    margin-top: 28px !important;
+  }
+
+  .note-label {
+    line-height: 1.4 !important;
+    margin-bottom: 6px !important;
+  }
+
+  .note p {
+    margin: 0 !important;
+    line-height: 1.6 !important;
+    text-indent: 0 !important;
+  }
+
+  /* ปกหน้า */
+  .cover.cover-has-image {
+    width: 100vw !important;
+    height: 297mm !important;
+    max-height: 297mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .cover-image {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    object-position: center !important;
+  }
+
+  /* ปกหลัง */
+  .back-cover {
+    height: 230mm !important;
+    page-break-before: always !important;
+    page-break-after: avoid !important;
+  }
+
+  .back-cover-image {
+    max-width: 100% !important;
+    max-height: 200mm !important;
+    object-fit: contain !important;
+    box-shadow: none !important;
+  }
+
+  .copyright-page {
+    min-height: 0;
+    height: auto;
+    margin: 0 !important;
+    padding: 28mm 0 0 0 !important;
+  }
+
+  .note,
+  .table-wrap,
+  .code-block,
+  .book-img,
+  blockquote {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .code-block {
+    background: #FFFFFF !important;
+    box-shadow: none !important;
+    border: 1px solid #DADCE0 !important;
+  }
+
+  .code-block pre,
+  .code-block code {
+    white-space: pre-wrap !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #FFFFFF !important;
+  }
+
+  .code-block code,
+  .line {
+    color: #202124 !important;
+  }
+
+  .code-block code {
+    font-size: 0 !important;
+    display: block !important;
+  }
+
+  .code-header {
+    margin-bottom: 0 !important;
+    background: #F8F9FA !important;
+    color: #202124 !important;
+    border-bottom: 1px solid #DADCE0 !important;
+  }
+
+  .code-block pre {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+  }
+
+  .line {
+    font-size: 10pt !important;
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin-top: 0 !important;
+    line-height: 1.5 !important;
+  }
+
+  .line::before {
+    top: 0 !important;
+    height: 100% !important;
+    padding-top: 0 !important;
+    line-height: 1.5 !important;
+    background: #F1F3F4 !important;
+    color: #80868B !important;
+    border-right: 1px solid #DADCE0 !important;
+  }
+
+  .content p,
+  .content ul,
+  .content ol {
+    margin-top: 0 !important;
+    margin-bottom: 12px !important;
+    line-height: 1.6 !important;
+    font-size: 12pt !important;
+  }
+
+  .content li {
+    margin-bottom: 4px !important;
+  }
+
+  .content ul {
+    padding-left: 28px !important;
+  }
+  .content ol {
+    padding-left: 40px !important;
+  }
+
+  .book-img img {
+    max-width: 100% !important;
+    box-shadow: none !important;
+    border: 1px solid #DADCE0 !important;
+  }
+
+  .img-placeholder {
+    box-shadow: none !important;
+    background: #FFFFFF !important;
+    border: 1px dashed #9AA0A6 !important;
+  }
+
+  /* ==================================================== */
+  /* แก้บั๊กเบราว์เซอร์: หัวข้อห้อยท้ายหน้ากระดาษ */
+  /* ==================================================== */
+
+  .content h1,
+  .content h3,
+  .content h4 {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin-bottom: 0 !important;
+  }
+
+  .content h2 {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+
+    font-family: var(--hd) !important;
+    font-size: 25px !important;
+    font-weight: 700 !important;
+  }
+
+  .content h3 {
+    padding-top: 0 !important;
+    padding-bottom: 8px !important;
+    padding-left: 26px !important;
+    line-height: 1.4 !important;
+  }
+
+  .content h3::before {
+    content: "" !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0.2em !important;
+    width: 17px !important;
+    height: 17px !important;
+    border-radius: 0 !important;
+    background-image: var(--gemini-star) !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: contain !important;
+  }
+
+  .content h4 {
+    padding: 0 !important;
+    line-height: 1.5 !important;
+    border: none !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+
+  .content h4::before {
+    content: "" !important;
+    flex: 0 0 auto !important;
+    width: 22px !important;
+    height: 3px !important;
+    border-radius: 3px !important;
+    background: var(--grad) !important;
+    background-image: var(--grad) !important;
+  }
+
+  .content h1+*,
+  .content h3+*,
+  .content h4+* {
+    page-break-before: avoid !important;
+    break-before: avoid !important;
+    margin-top: 0 !important;
+  }
+
+  .content h2+* {
+    page-break-before: avoid !important;
+    break-before: avoid !important;
+    padding-top: 0px !important;
+  }
+
+}
+
+/* =========================================================
+   Headings Font Override
+   h1-h4 ใช้ Poppins + Prompt (ไทย) โดยเฉพาะ
+   ========================================================= */
+.content h1,
+.content h2,
+.content h3,
+.content h4 {
+  font-family: 'Poppins', 'Prompt', 'IBM Plex Sans Thai', sans-serif !important;
+  font-style: normal !important;
+}
+
+.content h1,
+.content h2,
+.content h4 {
+  font-weight: 700 !important;
+}
+
+.content h3 {
+  font-weight: 600 !important;
+}
+
+
+
+/* =========================================================
+   หน้าเครดิตเวอร์ชันส่งโรงพิมพ์ — <section class="credits-page">
+   ดีไซน์ตามฟอร์ม Think Beyond Books
+   ========================================================= */
+
+.credits-page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2mm;
+  min-height: 190mm;
+  padding-bottom: 22mm;
+  font-family: 'Poppins', 'Prompt', 'Sarabun', sans-serif;
+  font-size: 7.5pt;
+  line-height: 1.25;
+  color: #1a1a1a;
+}
+.credits-page * { box-sizing: border-box; }
+
+.credits-page .credits-header { text-align: left; }
+.credits-page .credits-header .book-title {
+  font-size: 14pt;
+  font-weight: 700;
+  color: var(--accent-dk);
+  margin-bottom: 2mm;
+}
+.credits-page .credits-header .meta-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4mm;
+  font-size: 9pt;
+  margin-bottom: 1mm;
+}
+.credits-page .credits-header .meta-row .label {
+  font-weight: 700;
+  color: var(--accent-dk);
+}
+.credits-page .credits-header .price { font-size: 9pt; font-weight: 700; }
+
+.credits-page .row-cip-copyright {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 6mm;
+}
+.credits-page .cip,
+.credits-page .copyright-block {
+  border: 0.4mm solid var(--gold);
+  border-radius: 2mm;
+  padding: 2mm 3mm;
+}
+.credits-page .copyright-block { text-align: center; }
+
+.credits-page .cip h3,
+.credits-page .copyright-block h3 {
+  font-size: 9pt;
+  font-weight: 700;
+  margin-bottom: 1.5mm;
+}
+.credits-page .cip-author { font-weight: 600; margin-top: 1mm; }
+.credits-page .cip-desc { margin: 0.5mm 0; }
+.credits-page .cip-isbn { margin-top: 2mm; }
+.credits-page .copyright-block .law-year { font-weight: 600; margin-bottom: 1mm; }
+.credits-page .copyright-block .by-publisher { margin-bottom: 1.5mm; }
+.credits-page .copyright-block .notice { font-size: 8pt; line-height: 1.5; }
+
+.credits-page .row-production {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8mm;
+}
+.credits-page .production h3 {
+  font-size: 10pt;
+  font-weight: 700;
+  margin-bottom: 2mm;
+  color: var(--accent-dk);
+}
+.credits-page .verification {
+  margin-top: calc(10pt * 1.2 + 2mm);
+}
+.credits-page .production-list .row,
+.credits-page .verification .row {
+  display: grid;
+  grid-template-columns: 32mm 1fr;
+  margin-bottom: 1mm;
+}
+.credits-page .production-list .label,
+.credits-page .verification .label { font-weight: 500; }
+.credits-page .verification .tech-block { margin-top: 3mm; }
+.credits-page .verification .tech-heading { font-weight: 600; margin-bottom: 1mm; }
+.credits-page .verification .print-year { margin-top: 2mm; }
+.credits-page .verification .print-year-label { font-weight: 600; }
+
+.credits-page .print-house h3 {
+  font-size: 10pt;
+  font-weight: 700;
+  margin-bottom: 1.5mm;
+  color: var(--accent-dk);
+}
+.credits-page .print-house .name { font-weight: 600; }
+.credits-page .print-house .address-line { margin-top: 0.5mm; }
+
+.credits-page .row-publisher {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8mm;
+}
+.credits-page .publisher h3,
+.credits-page .distributor h3 {
+  font-size: 10pt;
+  font-weight: 700;
+  margin-bottom: 2mm;
+  color: var(--accent-dk);
+}
+.credits-page .publisher .logo,
+.credits-page .distributor .logo {
+  height: 8mm;
+  margin-bottom: 1mm;
+  background: #eef1f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9pt;
+  color: #888;
+  font-style: italic;
+}
+.credits-page .publisher .logo img,
+.credits-page .distributor .logo img {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+}
+.credits-page .publisher .name,
+.credits-page .distributor .name { font-weight: 600; margin-bottom: 1mm; }
+.credits-page .publisher .web { font-weight: 600; margin-top: 1mm; }
+
+.credits-page .credits-footer {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  border-top: 0.3mm solid #888;
+  padding-top: 2mm;
+  font-size: 8pt;
+  line-height: 1.35;
+}
+.credits-page .credits-footer .for-retail {
+  font-weight: 700;
+  font-size: 10pt;
+  color: var(--accent-dk);
+  margin-bottom: 0.5mm;
+}
+.credits-page .credits-footer .commercial-notice {
+  margin-top: 2mm;
+  padding: 2.5mm 3mm;
+  border: 0.4mm solid var(--gold);
+  border-radius: 2mm;
+  text-align: center;
+}
+.credits-page .credits-footer .commercial-notice .heading {
+  font-weight: 700;
+  font-size: 9.5pt;
+  color: var(--gold);
+  margin-bottom: 1mm;
+}
+
+.credits-page .placeholder { color: #b04545; font-style: italic; }
+
+
+/* ============================================================
+   IMAGE EDITING — ตัวชี้ / เส้นชี้ / กรอบ / กล่องข้อความ / crop
+   (วางต่อท้ายไฟล์ได้เลย ไม่กระทบสไตล์อื่น)
+   หน่วย px = แสดงผลบนเบราว์เซอร์ · ฝั่งพิมพ์ PDF ใช้ค่า pt แยกใน book-dev
+   ============================================================ */
+
+/* ── ตัวห่อรูป (ใช้ร่วมกันทุกฟีเจอร์) ── */
+.book-img .img-frame {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+  max-width: 100%;
+}
+.img-markers {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+}
+
+/* ── ตัวชี้ (numbered markers) ── */
+.img-marker {
+  position: absolute;
+  box-sizing: border-box;
+  width: 30px; height: 30px;                 /* ระดับ 3 = ค่าเริ่มต้น */
+  margin-left: -15px; margin-top: -15px;
+  border-radius: 50%;
+  border: 2px solid #fff;                    /* ขอบขาว = อ่านชัดบนพื้นเข้ม */
+  background: var(--grad); color: #fff;       /* ไล่สี Gemini · override ด้วย inline ได้ */
+  font-family: var(--hd, sans-serif);
+  font-size: 15px; font-weight: 700;
+  line-height: 26px; text-align: center;
+  box-shadow: 0 1px 3px rgba(60, 64, 67, .35); /* เงานุ่ม + ขอบขาว = แยกชัดบนทุกพื้น */
+  user-select: none;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+.img-frame.msize-1 .img-marker {
+  width: 18px; height: 18px; margin-left: -9px; margin-top: -9px;
+  border-width: 1.5px; line-height: 15px; font-size: 10px;
+}
+.img-frame.msize-2 .img-marker {
+  width: 24px; height: 24px; margin-left: -12px; margin-top: -12px;
+  line-height: 20px; font-size: 12px;
+}
+.img-frame.msize-4 .img-marker {
+  width: 38px; height: 38px; margin-left: -19px; margin-top: -19px;
+  border-width: 2.5px; line-height: 33px; font-size: 18px;
+}
+
+/* ── กรอบเน้น (highlight rectangles) — สี/ความหนา/มุม เก็บเป็น inline ── */
+.img-rect {
+  position: absolute;
+  box-sizing: border-box;
+  border: 3px solid #E5534B;
+  background: transparent;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+.img-rect.rounded { border-radius: 12px; }
+
+/* ── เส้นชี้ (leader lines) — SVG; stroke/fill เก็บเป็น inline ต่อเส้น ── */
+.img-lines {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  overflow: visible;
+  /* สีเริ่มต้นเส้นชี้ — มีผลเฉพาะตอนดูในเบราว์เซอร์เท่านั้น
+     หมายเหตุ: WeasyPrint ไม่อ่าน stroke จาก CSS บน SVG → ตอน build PDF
+     ต้องใส่ stroke ให้แต่ละเส้นแบบ inline (เช่น stroke="#1A73E8") */
+  stroke: var(--accent);
+}
+.img-line-hit { stroke: transparent; fill: none; }
+
+/* ── กล่องข้อความ / callout — ฟอนต์/สี/พื้นหลัง/ขอบ เก็บเป็น inline ต่อกล่อง ── */
+.img-textbox {
+  position: absolute;
+  box-sizing: border-box;
+  min-width: 26px;
+  padding: 4px 7px;
+  font-family: 'Prompt', sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #18181B;
+  background: #ffffff;
+  border: 1px solid #2D6CDF;
+  border-radius: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  white-space: pre-wrap;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+/* ── Crop รูปภาพ ──
+   ไม่ต้องมี CSS เพิ่ม — crop เก็บเป็น inline style บน <img> เอง
+   (width / height / object-fit:cover / object-position / max-width:none) */
+
+/* OL marker ก,ข,ค,ง (P2-S111) — Thai-consonant numbering */
+@counter-style thai-alpha {
+  system: alphabetic;
+  symbols: "ก" "ข" "ค" "ง" "จ" "ฉ" "ช" "ซ" "ฌ" "ญ" "ฎ" "ฏ" "ฐ" "ฑ" "ฒ" "ณ" "ด" "ต" "ถ" "ท" "ธ" "น" "บ" "ป" "ผ" "ฝ" "พ" "ฟ" "ภ" "ม" "ย" "ร" "ล" "ว" "ศ" "ษ" "ส" "ห" "ฬ" "อ" "ฮ";
+  suffix: ". ";
+}
+
+/* ── ระบบคอลัมน์ bd-grid / bd-row / bd-col (12 คอลัมน์ คล้าย Bootstrap) ──
+   flex + gutter แบบ padding (ไม่ใช้ negative margin → ไม่ล้นขอบ, ปลอดภัยกับ WeasyPrint/PDF)
+   ใช้: <div class="bd-row"><div class="bd-col bd-col-6">…</div><div class="bd-col bd-col-6">…</div></div> */
+.bd-grid { width: 100%; }
+.bd-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+.bd-col,
+.bd-col-1, .bd-col-2, .bd-col-3, .bd-col-4, .bd-col-5, .bd-col-6,
+.bd-col-7, .bd-col-8, .bd-col-9, .bd-col-10, .bd-col-11, .bd-col-12 {
+  box-sizing: border-box;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+.bd-col { flex: 1 1 0; min-width: 0; }            /* ไม่ระบุเลข = แบ่งพื้นที่เท่ากันอัตโนมัติ */
+/* flex-shrink = 1 (เลข 0 ตัวกลาง→1) ให้หดได้เล็กน้อยกันคอลัมน์ตกบรรทัดจากเศษพิกเซล */
+.bd-col-1  { flex: 0 1 8.33%;  max-width: 8.33%; }
+.bd-col-2  { flex: 0 1 16.66%; max-width: 16.66%; }
+.bd-col-3  { flex: 0 1 25%;    max-width: 25%; }
+.bd-col-4  { flex: 0 1 33.33%; max-width: 33.33%; }
+.bd-col-5  { flex: 0 1 41.66%; max-width: 41.66%; }
+.bd-col-6  { flex: 0 1 50%;    max-width: 50%; }
+.bd-col-7  { flex: 0 1 58.33%; max-width: 58.33%; }
+.bd-col-8  { flex: 0 1 66.66%; max-width: 66.66%; }
+.bd-col-9  { flex: 0 1 75%;    max-width: 75%; }
+.bd-col-10 { flex: 0 1 83.33%; max-width: 83.33%; }
+.bd-col-11 { flex: 0 1 91.66%; max-width: 91.66%; }
+.bd-col-12 { flex: 0 1 100%;   max-width: 100%; }
+
+/* จอแคบ (มือถือ/พรีวิวแคบ): พับทุกคอลัมน์เป็นเต็มความกว้าง */
+@media (max-width: 600px) {
+  .bd-col, [class*="bd-col-"] { flex: 0 0 100%; max-width: 100%; }
+}
+
+/* ── Quiz choices — ใส่ class="quiz" ที่ <div class="bd-grid quiz"> (opt-in) ──
+   เปลี่ยนแต่ละข้อ (li) เป็น "การ์ดตัวเลือก" ธีม Gemini + ไฮไลต์ตอน hover
+   คอลัมน์ bd-grid ปกติ (ไม่ใส่ quiz) ไม่กระทบ ยังเป็น ol/badge แบบเดิม
+   prefix .content เพื่อชนะ specificity ของ .content ol li เดิม
+   เฉลย/เลือก: ใส่ class ที่ <li> ได้ — selected / correct / wrong */
+/* การ์ดสูงเท่ากันทั้งแถว — แตะแค่ row(stretch) + ol/li height:100% (ไม่ยุ่ง .bd-col เลย → คอลัมน์ไม่เพี้ยน) */
+.content .quiz .bd-row { align-items: stretch; }
+.content .quiz ol { padding-left: 0; margin: 0; height: 100%; box-sizing: border-box; }
+.content .quiz li {
+  position: relative;
+  list-style: none !important;
+  margin: 0;
+  padding: 15px 18px 15px 60px;       /* เว้นซ้ายให้ badge ตัวอักษร */
+  min-height: 100%;                   /* ยืดเต็มความสูงคอลัมน์ (เท่ากันทั้งแถว) */
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;                /* จัดข้อความกึ่งกลางแนวตั้งในการ์ด */
+  min-width: 0;                       /* ให้ flex item หดได้ (กันคำยาวดันการ์ดล้น) */
+  overflow-wrap: anywhere;            /* คำยาวพรืดไม่มีเว้นวรรค → ตัดบรรทัดได้ */
+  word-break: break-word;
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgba(32, 33, 36, .05);
+  transition: border-color .15s ease, background .15s ease, box-shadow .15s ease, transform .15s ease;
+  cursor: pointer;
+}
+/* badge ตัวอักษร (ก/ข/A) แบบ "วงแหวนไล่สี Gemini" — ต่างจาก ol ปกติที่เป็นวงทึบ
+   เทคนิค: พื้นขาว (padding-box) + ขอบไล่สี (border-box) ผ่าน border โปร่งใส */
+.content .quiz li::before {
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;            /* จัดตัวอักษรกึ่งกลางวงแหวนชัวร์ทุกเบราว์เซอร์ */
+  line-height: 1;
+  font-size: 14px;
+  background: #fff;
+  border: 2.5px solid var(--accent);  /* วงแหวนขอบน้ำเงิน (สีทึบ → render เนียนทั้งจอ+PDF) */
+  color: var(--accent);               /* ตัวอักษรน้ำเงิน อยู่ในวงขาว */
+  box-shadow: 0 1px 4px rgba(96, 70, 200, .16);
+  transition: background .15s ease, color .15s ease, border-color .15s ease, transform .15s ease;
+}
+/* hover: การ์ดขอบฟ้า + พื้นฟ้าอ่อน + ยกขึ้น · วงแหวน "เติมเต็ม" ไล่สี ตัวอักษรขาว */
+.content .quiz li:hover {
+  border-color: var(--accent);
+  background: var(--accent-lt);
+  box-shadow: 0 6px 18px rgba(66, 133, 244, .18);
+  transform: translateY(-2px);
+}
+.content .quiz li:hover::before {
+  transform: translateY(-50%) scale(1.06);
+  background: var(--grad);            /* เติมเต็มวงตอน hover */
+  border-color: transparent;
+  color: #fff;
+}
+/* สถานะ: เลือกแล้ว / ถูก / ผิด (ใส่ class ที่ <li>) — วงแหวนเติมเต็มสีตามสถานะ */
+.content .quiz li.selected {
+  border-color: var(--accent);
+  background: var(--accent-lt);
+  box-shadow: 0 4px 14px rgba(66, 133, 244, .2);
+}
+.content .quiz li.selected::before { background: var(--grad); border-color: transparent; color: #fff; }
+.content .quiz li.correct { border-color: #1E8E3E; background: #E6F4EA; }
+.content .quiz li.correct::before { background: #1E8E3E; border-color: transparent; color: #fff; box-shadow: 0 1px 4px rgba(30, 142, 62, .25); }
+.content .quiz li.wrong { border-color: #D93025; background: #FCE8E6; }
+.content .quiz li.wrong::before { background: #D93025; border-color: transparent; color: #fff; box-shadow: 0 1px 4px rgba(217, 48, 37, .25); }

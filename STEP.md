@@ -275,6 +275,50 @@ weasyprint -s css/sizes/size_170x228.css -s css/styles/style_bw.css \
 
 ---
 
+## Template CSS ส่วนตัว — override สไตล์ต่อเล่ม
+
+ถ้าอยากปรับ **ฟอนต์ / ขนาด h1-h4-p / สี / ระยะ heading→p / layout เลขบท** **เฉพาะเล่มนั้น** โดยไม่แตะ style หลัก → ใช้ feature **upload template CSS**
+
+### วิธีใช้
+
+1. สร้างไฟล์ `template-print.css` ของคุณ (ดูตัวอย่างที่ [template/template-print.gemini.css](template/template-print.gemini.css))
+2. ใน UI → field "**Template CSS ส่วนตัว**" → เลือกไฟล์
+3. กด "เริ่มสร้าง PDF" → template จะถูก load **หลัง** style หลักของระบบ → override ได้ทุกอย่างที่ต้องการ
+
+### Load order ใน weasyprint
+
+```
+-s css/sizes/size_X.css         ← geometry
+-s css/styles/style_Y.css       ← base style (bw/cmyk)
+-s input/_template_print.css    ← per-book override (จาก upload)
+-s css/edge-graphic-*.css       ← orthogonal
+-s css/no-marks.css             ← crop marks
+```
+
+### ขอบเขตที่ template ควบคุมได้
+
+| ✅ ทำได้ | ❌ ไม่ควรอยู่ใน template |
+|---|---|
+| ฟอนต์ + ขนาด h1-h4, p | ขนาดหน้า (ใช้ `size_*.css`) |
+| สี / น้ำหนัก / spacing ของทุก element | crop marks (ใช้ checkbox) |
+| Layout เลขบท / ชื่อบท (.ch-hdr, .ch-num, .ch-title) | ICC color space (ใช้ dropdown) |
+| ระยะ h2→p, h3→p, h4→p, p→p (margin-top + `+ p`) | |
+| Drop cap, callouts, inline styles | |
+| `@import url(...)` Google Fonts | |
+
+### ข้อระวัง
+
+- ทุก rule ใน template ต้องใช้ `!important` เพราะ normalization patch ของ base style ก็ใช้ `!important` อยู่แล้ว
+- `box-shadow`, `print-color-adjust`, `-webkit-background-clip: text`, gradient text **ไม่รองรับ** ใน WeasyPrint — ใช้ solid color แทน
+- ไฟล์ทดแทนทุก build — clear_dir() ลบหลัง pipeline เสร็จ ไม่ต้องเก็บไว้
+- ขนาดสูงสุด **1MB**
+
+### ตัวอย่างที่ให้มา
+
+[template/template-print.gemini.css](template/template-print.gemini.css) — port มาจาก style-gemini.css (browser version) ให้ทำงานใน WeasyPrint ได้ — minimal modern + Google blue accent
+
+---
+
 ## เพิ่มสไตล์หนังสือส่วนตัว (custom style)
 
 UI auto-detect ไฟล์ใน `css/styles/` ทุกครั้งที่ refresh — แค่ก็อปไฟล์ `.css` ของคุณเข้าไป จะโผล่ใน dropdown "สไตล์" ทันที (ไม่ต้อง restart server)

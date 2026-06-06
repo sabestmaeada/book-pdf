@@ -1,0 +1,332 @@
+/* =========================================================
+   TEMPLATE-PRINT.CSS — Gemini-inspired (WeasyPrint-safe port)
+   อิงจาก style-gemini.css (ใช้บนเบราว์เซอร์) → แปลงให้รัน WeasyPrint ได้
+
+   Load order ใน pipeline:
+     -s css/sizes/size_X.css         ← geometry
+     -s css/styles/style_Y.css       ← base style (bw/cmyk)
+     -s <THIS FILE>                  ← per-book override (โหลดหลังสุด)
+     -s css/edge-graphic-*.css
+     -s css/no-marks.css
+
+   ⚠ ทุก rule ใช้ !important เพราะต้อง override normalization patch
+      ใน style_*.css ที่ใช้ !important อยู่แล้ว
+
+   สิ่งที่ "ตัดออก/แปลง" จาก Gemini browser version (ไม่รองรับใน WeasyPrint):
+   - Text gradient (-webkit-background-clip: text) → solid color var(--tpl-accent-dk)
+   - radial-gradient / linear-gradient bg → solid var(--tpl-accent-lt)
+   - box-shadow → ลบทิ้ง (ใช้ border แทน)
+   - print-color-adjust → ลบ (WeasyPrint อยู่ใน print mode 100%)
+   - SVG constellation decoration → ใช้ solid accent line แทน (เรียบง่ายแต่ตรงคอนเซ็ปต์)
+   ========================================================= */
+
+
+/* ========================================
+   1. Fonts (Google Fonts — WeasyPrint รองรับ @import)
+   ======================================== */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Anuphan:wght@300;400;500;600;700&family=Sarabun:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap');
+
+:root {
+  /* ใช้ prefix --tpl-* เพื่อไม่ทับ --accent ของ base style */
+  --tpl-hd: 'Poppins', 'Prompt', 'IBM Plex Sans Thai', sans-serif;   /* heading */
+  --tpl-bd: 'Anuphan', 'Sarabun', 'IBM Plex Sans Thai', sans-serif;  /* body */
+  --tpl-cd: 'Roboto Mono', 'JetBrains Mono', monospace;              /* code */
+
+  --tpl-accent:    #1A73E8;     /* Google blue */
+  --tpl-accent-dk: #1558D6;     /* น้ำเงินเข้ม */
+  --tpl-accent-lt: #E8F0FE;     /* ฟ้าอ่อน (bg) */
+  --tpl-text:      #202124;     /* Google grey 900 */
+  --tpl-muted:     #5F6368;     /* Google grey 600 */
+  --tpl-border:    #DADCE0;     /* Google grey 300 */
+}
+
+
+/* ========================================
+   2. Body — ฟอนต์เนื้อหา + ขนาด + line-height
+   ======================================== */
+html, body {
+  font-family: var(--tpl-bd) !important;
+  font-size: 11pt !important;            /* base body */
+  line-height: 1.65 !important;
+  color: var(--tpl-text) !important;
+}
+
+.content p {
+  font-family: var(--tpl-bd) !important;
+  font-size: 11pt !important;
+  line-height: 1.65 !important;
+  text-align: left !important;            /* ชิดซ้าย — กันช่องว่างถ่างจากไทย-อังกฤษปนกัน */
+  text-indent: 2em !important;
+  margin: 0 0 9pt 0 !important;           /* ←→ ระยะ p → p */
+  hyphens: auto !important;
+  color: var(--tpl-text) !important;
+}
+
+
+/* ========================================
+   3. Heading (h1–h4) — Gemini minimal modern
+   ======================================== */
+.content h1 {
+  font-family: var(--tpl-hd) !important;
+  font-size: 22pt !important;
+  font-weight: 700 !important;
+  color: var(--tpl-text) !important;
+  margin: 26pt 0 12pt 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  letter-spacing: -0.5pt !important;
+  line-height: 1.3 !important;
+}
+
+/* h2: สี accent-dk + เส้นใต้สั้น (แทน text gradient ของ Gemini) */
+.content h2 {
+  font-family: var(--tpl-hd) !important;
+  font-size: 17pt !important;
+  font-weight: 700 !important;
+  color: var(--tpl-accent-dk) !important;
+  background: transparent !important;
+  margin: 24pt 0 14pt 0 !important;
+  padding: 0 0 6pt 0 !important;
+  border: none !important;
+  border-bottom: 2pt solid var(--tpl-accent) !important;
+  width: fit-content !important;
+  max-width: 100% !important;
+  letter-spacing: -0.2pt !important;
+  line-height: 1.3 !important;
+}
+.content h2::before { content: none !important; }
+.content h2::after  { content: none !important; }
+
+/* h3: เทาเข้ม + จุดวงกลม accent นำหน้า (แทนดาว gradient) */
+.content h3 {
+  font-family: var(--tpl-hd) !important;
+  font-size: 13.5pt !important;
+  font-weight: 600 !important;
+  color: #3C4043 !important;
+  background: transparent !important;
+  margin: 18pt 0 7pt 0 !important;
+  padding: 0 0 0 14pt !important;
+  border: none !important;
+  position: relative !important;
+  line-height: 1.4 !important;
+}
+.content h3::before {
+  content: "" !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: 0.45em !important;
+  width: 7pt !important;
+  height: 7pt !important;
+  border-radius: 50% !important;
+  background: var(--tpl-accent) !important;
+}
+
+/* h4: uppercase + ขีดสั้น accent นำหน้า */
+.content h4 {
+  font-family: var(--tpl-hd) !important;
+  font-size: 10.5pt !important;
+  font-weight: 700 !important;
+  color: var(--tpl-muted) !important;
+  background: transparent !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.7pt !important;
+  padding: 0 0 0 15pt !important;
+  margin: 14pt 0 5pt 0 !important;
+  border: none !important;
+  position: relative !important;
+  line-height: 1.4 !important;
+}
+.content h4::before {
+  content: "" !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: 0.55em !important;
+  width: 10pt !important;
+  height: 2pt !important;
+  border-radius: 1pt !important;
+  background: var(--tpl-accent) !important;
+}
+
+
+/* ========================================
+   4. ระยะ heading → ย่อหน้าแรก (ปรับให้กระชับขึ้น)
+   ======================================== */
+.content h2 + p { margin-top: 4pt !important; }
+.content h3 + p { margin-top: 3pt !important; }
+.content h4 + p { margin-top: 2pt !important; }
+
+
+/* ========================================
+   5. Chapter header — vertical layout (Gemini)
+   ⚠ override .ch-hdr horizontal layout จาก style_*.css
+   ======================================== */
+.ch-hdr {
+  display: block !important;             /* ทับ flex จาก base */
+  text-align: left !important;
+  padding: 12pt 0 18pt 0 !important;
+  margin: 0 0 36pt 0 !important;
+  border: none !important;
+  border-bottom: 0.5pt solid var(--tpl-border) !important;
+  background: transparent !important;
+  position: relative !important;
+  min-height: auto !important;
+}
+/* เส้นใต้สั้น accent คร่อมเส้น border (signature Gemini) */
+.ch-hdr::after {
+  content: "" !important;
+  position: absolute !important;
+  left: 0 !important;
+  bottom: -1pt !important;
+  width: 70pt !important;
+  height: 2.5pt !important;
+  background: var(--tpl-accent) !important;
+  border-radius: 1pt !important;
+}
+
+/* eyebrow: "CHAPTER N" (เทา) — Gemini ใช้ HTML text ตรงๆ
+   ที่นี่ override ::before/::after ของ base ที่ inject "บทที่" + counter
+   แล้วเปลี่ยนเป็น "CHAPTER" + counter เอง */
+.ch-num {
+  display: block !important;             /* ทับ flex column จาก base */
+  font-family: var(--tpl-hd) !important;
+  font-size: 10pt !important;            /* unset font-size:0 ของ base ที่ซ่อน text */
+  font-weight: 600 !important;
+  color: var(--tpl-muted) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 3pt !important;
+  margin: 0 0 10pt 0 !important;
+  padding: 0 !important;
+  min-width: 0 !important;
+  line-height: 1.4 !important;
+  /* ซ่อน text "CHAPTER 1" ที่มาจาก HTML (ถ้ามี) — ใช้ ::before/::after แทน */
+}
+.ch-num::before {
+  content: "CHAPTER " !important;
+  display: inline !important;
+  font-family: var(--tpl-hd) !important;
+  font-size: 10pt !important;
+  font-weight: 600 !important;
+  color: var(--tpl-muted) !important;
+  letter-spacing: 3pt !important;
+  line-height: 1.4 !important;
+  margin: 0 !important;
+}
+.ch-num::after {
+  content: counter(ch-counter, decimal) !important;
+  display: inline !important;
+  font-family: var(--tpl-hd) !important;
+  font-size: 10pt !important;
+  font-weight: 700 !important;
+  color: var(--tpl-accent) !important;
+  letter-spacing: 3pt !important;
+  line-height: 1.4 !important;
+  margin: 0 !important;
+}
+
+/* ชื่อบท — ใหญ่ minimal */
+.ch-title {
+  display: block !important;             /* ทับ flex จาก base */
+  font-family: var(--tpl-hd) !important;
+  font-size: 30pt !important;
+  font-weight: 700 !important;
+  color: var(--tpl-text) !important;
+  line-height: 1.18 !important;
+  padding: 0 !important;
+  border: none !important;
+  margin: 0 !important;
+  letter-spacing: -0.5pt !important;
+  flex: none !important;
+}
+
+
+/* ========================================
+   6. Inline elements
+   ======================================== */
+.content strong,
+.content b {
+  font-weight: 700 !important;
+  color: var(--tpl-accent-dk) !important;   /* น้ำเงินเข้ม — เน้นคำสำคัญ */
+}
+.content em,
+.content i {
+  font-style: italic !important;
+}
+.content a {
+  color: var(--tpl-accent-dk) !important;
+  text-decoration: underline !important;
+}
+.content mark {
+  background: var(--tpl-accent-lt) !important;
+  color: var(--tpl-accent-dk) !important;
+  padding: 0 2pt !important;
+  border-radius: 1pt !important;
+}
+.content kbd {
+  font-family: var(--tpl-cd) !important;
+  font-size: 0.85em !important;
+  color: var(--tpl-text) !important;
+  background: #F1F3F4 !important;
+  border: 0.5pt solid var(--tpl-border) !important;
+  border-radius: 2pt !important;
+  padding: 0.5pt 4pt !important;
+  white-space: nowrap !important;
+}
+
+
+/* ========================================
+   7. Ordered list — เลขในวงกลม accent (Gemini signature)
+   ⚠ ทำงานคู่กับ section 8f ใน style_*.css ที่ใช้ ol-counter อยู่แล้ว
+   ======================================== */
+.content ol {
+  padding-left: 28pt !important;
+}
+.content ol li {
+  padding-left: 4pt !important;
+}
+.content ol li::before {
+  /* base style_*.css มี content: counter(...) อยู่แล้ว — override styling */
+  position: absolute !important;
+  left: -26pt !important;
+  top: 0.05em !important;
+  width: 19pt !important;
+  height: 19pt !important;
+  background: var(--tpl-accent) !important;
+  color: #FFFFFF !important;
+  font-family: var(--tpl-hd) !important;
+  font-size: 9pt !important;
+  font-weight: 700 !important;
+  line-height: 19pt !important;
+  text-align: center !important;
+  border-radius: 50% !important;
+  border: none !important;
+}
+
+/* Quiz cards — เก็บ marker เดิม (ของ base style) */
+.bd-grid.quiz li::before { content: none !important; }
+
+
+/* ========================================
+   8. Drop cap — solid accent (แทน gradient text)
+   ======================================== */
+.drop-cap::first-letter {
+  font-family: var(--tpl-hd) !important;
+  font-size: 38pt !important;
+  font-weight: 700 !important;
+  color: var(--tpl-accent) !important;
+  float: left !important;
+  line-height: 0.82 !important;
+  margin: 1pt 4pt 0 0 !important;
+}
+
+
+/* ========================================
+   9. หมายเหตุ — สิ่งที่ไม่ใส่ใน template (เพราะ base style คุมอยู่แล้ว)
+   ========================================
+   - .note (callout box)
+   - .code-block / .line / .inline-code
+   - table (th/td)
+   - .book-img / image markers/rect/textbox/lines
+   - .credits-page
+   → ถ้าอยากปรับ component พวกนี้ด้วย สามารถเพิ่ม rule ใน template นี้ได้เลย
+   ======================================== */

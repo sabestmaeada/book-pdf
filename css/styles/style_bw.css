@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=IBM+Plex+Sans+Thai+Looped:wght@300;400;500&family=Anuphan:wght@300;400;500&display=swap');
 
 /* =========================================================
    STYLE — BLACK & WHITE EDITION (ICC: GRAY)
@@ -1050,14 +1050,14 @@ tr:last-child td {
    8d. Column layout — .bd-grid / .bd-row / .bd-col-N (12-grid, table-based)
    ใช้ display:table ที่ WeasyPrint รองรับเต็ม (browser comment: "WeasyPrint-safe")
    ========================================= */
-.bd-grid { margin: 12pt 0; }
+.bd-grid { margin: 8pt 0; }
 .bd-grid > .bd-row { margin: 0; }
-.bd-grid > .bd-row + .bd-row { margin-top: 9pt; }
+.bd-grid > .bd-row + .bd-row { margin-top: 6pt; }
 .bd-row {
   display: table;
   table-layout: fixed;
   width: 100%;
-  margin: 12pt 0;
+  margin: 8pt 0;
   border-spacing: 0;
 }
 .bd-col {
@@ -1464,14 +1464,27 @@ tr {
 
 html,
 body {
-  font-size: 10.6pt !important;
+  font-size: 9.6pt !important;
   line-height: 1.46 !important;
   color: #000000 !important;
 }
 
-.content p,
+.content p {
+  font-family: 'IBM Plex Sans Thai Looped', 'Anuphan', sans-serif !important;
+  font-size: 9.6pt !important;
+  font-weight: 300 !important;            /* Light — เบาตา + อ่านง่าย */
+  line-height: 1.55 !important;           /* ผ่อนกว่า 1.46 — Thai ต้องการ air มากขึ้น */
+  margin: 0 0 6pt 0 !important;
+  text-indent: 1.45em !important;
+  text-align: left !important;            /* ชิดซ้าย — กันช่องว่างถ่างจากไทย-อังกฤษปนกัน */
+  hyphens: auto !important;
+  orphans: 3 !important;
+  widows: 3 !important;
+  color: #000000 !important;              /* K100 — font Light + line-height ผ่อน → ไม่ดูหนา */
+}
+
 .preface-content p {
-  font-size: 10.6pt !important;
+  font-size: 9.6pt !important;
   line-height: 1.46 !important;
   margin: 0 0 6pt 0 !important;
   text-indent: 1.45em !important;
@@ -1488,11 +1501,16 @@ body {
 .content h4+p {
   margin-top: 0 !important;
 }
+/* Heading → p spacing override — เพิ่มช่องว่างเล็กน้อยเฉพาะ h2/h3 */
+.content h2 + p { margin-top: 1pt !important; }
+.content h3 + p { margin-top: 0.8pt !important; }
 
 .content ul,
 .content ol {
-  font-size: 10.4pt !important;
-  line-height: 1.43 !important;
+  font-family: 'IBM Plex Sans Thai Looped', 'Anuphan', sans-serif !important;
+  font-size: 9.6pt !important;
+  font-weight: 300 !important;
+  line-height: 1.55 !important;
   margin: 4.5pt 0 7pt 14pt !important;
   padding-left: 7pt !important;
   orphans: 3 !important;
@@ -1501,16 +1519,20 @@ body {
 }
 
 .content li {
-  font-size: 10.4pt !important;
-  line-height: 1.43 !important;
+  font-family: 'IBM Plex Sans Thai Looped', 'Anuphan', sans-serif !important;
+  font-size: 9.6pt !important;
+  font-weight: 300 !important;
+  line-height: 1.55 !important;
   margin: 0 0 2.2pt 0 !important;
   padding-left: 1.2pt !important;
   color: #000000 !important;
 }
 
 .content li>p {
-  font-size: 10.4pt !important;
-  line-height: 1.43 !important;
+  font-family: 'IBM Plex Sans Thai Looped', 'Anuphan', sans-serif !important;
+  font-size: 9.6pt !important;
+  font-weight: 300 !important;
+  line-height: 1.55 !important;
   margin: 0 0 3pt 0 !important;
   text-indent: 0 !important;
   color: #000000 !important;

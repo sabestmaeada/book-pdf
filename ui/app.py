@@ -240,6 +240,10 @@ def list_styles() -> list[dict]:
 LEFT_GRAPHIC_NAME = "left-graphic-18x234mm-300dpi.png"
 RIGHT_GRAPHIC_NAME = "right-graphic-18x234mm-300dpi.png"
 
+# Per-book CSS override — บันทึกไว้ใน input/ (clear_dir ลบหลังใช้)
+TEMPLATE_CSS_NAME = "_template_print.css"
+TEMPLATE_CSS_MAX_BYTES = 1 * 1024 * 1024   # 1MB hard cap
+
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 500 * 1024 * 1024  # 500 MB
 
@@ -423,6 +427,7 @@ def build_pipeline(
     right_graphic: tuple[str, bytes] | None,
     crop_marks: bool,
     pages: str,
+    template_css: tuple[str, bytes] | None,
     q: Queue,
 ) -> None:
     try:
@@ -445,6 +450,15 @@ def build_pipeline(
             ASSETS_DIR.mkdir(parents=True, exist_ok=True)
             (ASSETS_DIR / RIGHT_GRAPHIC_NAME).write_bytes(right_graphic[1])
             q.put(f"✓ บันทึก edge graphic ขวา: {RIGHT_GRAPHIC_NAME}")
+
+        # 2b) บันทึก template CSS (per-book override) ลง input/ ถ้ามี
+        if template_css is not None:
+            tpl_path = INPUT_DIR / TEMPLATE_CSS_NAME
+            tpl_path.write_bytes(template_css[1])
+            q.put(
+                f"✓ บันทึก template CSS: {template_css[0]} "
+                f"({len(template_css[1])} bytes) → {tpl_path.relative_to(ROOT)}"
+            )
 
         # 3) Step 1/3 — sync_toc
         # เขียน synced ไว้ข้างไฟล์ต้นฉบับ เพื่อให้ relative path (./images/...) resolve ถูก
@@ -474,12 +488,15 @@ def build_pipeline(
         q.put("\n[2/3] weasyprint")
         rgb_pdf = OUTPUT_DIR / "book_rgb_bw_nomarks.pdf"
         (ROOT / ".weasy-cache").mkdir(parents=True, exist_ok=True)
-        # Order: size (geometry) → style (typography) → graphics → no-marks override
+        # Order: size (geometry) → style (typography) → template (per-book override)
+        #        → graphics → no-marks override
         weasy_cmd: list[str] = [
             "weasyprint",
             "-s", f"css/{size_css}",
             "-s", f"css/{style_css}",
         ]
+        if template_css is not None:
+            weasy_cmd += ["-s", f"input/{TEMPLATE_CSS_NAME}"]
         if left_graphic is not None:
             weasy_cmd += ["-s", "css/edge-graphic-left.css"]
         if right_graphic is not None:
@@ -589,6 +606,21 @@ def build():
     right_graphic = read_optional("right_graphic")
     crop_marks = request.form.get("crop_marks") is not None
 
+    # Per-book CSS override — ไม่บังคับ
+    template_css = read_optional("template_css")
+    if template_css is not None:
+        fname, data = template_css
+        if not fname.lower().endswith(".css"):
+            return jsonify(
+                error=f"ไฟล์ template ต้องเป็น .css เท่านั้น (ได้รับ: {fname})"
+            ), 400
+        if len(data) > TEMPLATE_CSS_MAX_BYTES:
+            mb = len(data) / (1024 * 1024)
+            return jsonify(
+                error=f"ไฟล์ template ใหญ่เกินกำหนด {mb:.1f}MB "
+                      f"(สูงสุด {TEMPLATE_CSS_MAX_BYTES // (1024*1024)}MB)"
+            ), 400
+
     # หน้าที่ต้องการ — ไม่บังคับ ถ้าไม่ใส่ = ทั้งเล่ม
     pages_input = (request.form.get("pages") or "").strip()
     if pages_input:
@@ -608,6 +640,7 @@ def build():
         f"zip={len(zip_bytes)} bytes  "
         f"left={'✓' if left_graphic else '–'}  "
         f"right={'✓' if right_graphic else '–'}  "
+        f"template={'✓ ' + template_css[0] if template_css else '–'}  "
         f"crop_marks={crop_marks}  "
         f"pages={pages_clean!r}",
         flush=True,
@@ -617,7 +650,7 @@ def build():
     worker = threading.Thread(
         target=build_pipeline,
         args=(zip_bytes, profile, profile_cs_raw, size_css, style_css,
-              left_graphic, right_graphic, crop_marks, pages_clean, q),
+              left_graphic, right_graphic, crop_marks, pages_clean, template_css, q),
         daemon=True,
     )
     worker.start()
