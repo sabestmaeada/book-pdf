@@ -134,6 +134,28 @@ SIZES_DIR = CSS_DIR / "sizes"
 STYLES_DIR = CSS_DIR / "styles"
 PROFILES_DIR = ROOT / "profiles"
 SYNC_SCRIPT = ROOT / "sync_toc.py"
+NORMALIZE_SCRIPT = ROOT / "normalize_images.py"
+
+# margin constants (mm) — match @page rule ใน size_*.css
+# text column width = trim_width − INNER_GUTTER − OUTER_MARGIN
+INNER_GUTTER_MM = 22
+OUTER_MARGIN_MM = 15
+SAFETY_PT = 5            # เผื่อ rounding/edge cases
+MM_TO_PT = 2.8346
+
+_SIZE_FILE_RE = re.compile(r"size_(\d+)x(\d+)\.css$", re.IGNORECASE)
+
+
+def compute_text_column_pt(size_css: str) -> float:
+    """คำนวณความกว้าง text column สูงสุดจากชื่อไฟล์ size CSS
+       เช่น 'sizes/size_170x228.css' → 170mm − 22mm − 15mm = 133mm = 377pt − 5pt safety = 372pt
+    """
+    m = _SIZE_FILE_RE.search(size_css)
+    if not m:
+        return 360.0  # fallback กลางๆ
+    book_w_mm = int(m.group(1))
+    col_mm = book_w_mm - INNER_GUTTER_MM - OUTER_MARGIN_MM
+    return col_mm * MM_TO_PT - SAFETY_PT
 
 # Auto-detect ขนาด + สไตล์ จากชื่อไฟล์ใน subfolder
 # Path layout:
@@ -434,6 +456,18 @@ def build_pipeline(
         )
         if rc != 0:
             q.put(json.dumps({"__error__": f"sync_toc failed (exit {rc})"}))
+            return
+
+        # 3b) normalize_images — scale crop <img> ที่เกิน text column ให้พอดี (uniform)
+        max_col_pt = compute_text_column_pt(size_css)
+        q.put(f"\n[1b/3] normalize_images.py (max-col {max_col_pt:.1f}pt)")
+        rc = stream_subprocess(
+            ["python3", str(NORMALIZE_SCRIPT), str(synced_html),
+             "-o", str(synced_html), "--max-col-pt", f"{max_col_pt:.2f}"],
+            cwd=ROOT, output_queue=q,
+        )
+        if rc != 0:
+            q.put(json.dumps({"__error__": f"normalize_images failed (exit {rc})"}))
             return
 
         # 4) Step 2/3 — weasyprint

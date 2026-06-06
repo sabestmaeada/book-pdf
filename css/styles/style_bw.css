@@ -1006,6 +1006,158 @@ tr:last-child td {
 }
 
 /* =========================================
+   8c. Image overlays — rectangles, callout lines, text boxes
+   วางใน .img-frame ร่วมกับ markers
+   ⚠ สี/ความหนาส่วนใหญ่อยู่ใน inline ของแต่ละ element (editor ใส่ให้)
+      CSS ที่นี่เป็นแค่ fallback + positioning
+   ========================================= */
+.img-rect {
+  position: absolute;
+  box-sizing: border-box;
+  border: 2pt solid #C0392B;          /* fallback — inline override เกือบทุกครั้ง */
+  background: transparent;
+}
+.img-rect.rounded { border-radius: 3mm; }
+
+.img-lines {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+/* stroke/fill ของ path อยู่ใน inline ของ HTML — CSS แค่ positioning
+   ⚠ .img-line-hit มี stroke/fill ใน inline attr อยู่แล้ว (editor ใส่ให้)
+      WeasyPrint ไม่รับ stroke/fill เป็น CSS property บน selector class → ไม่ต้องใส่ */
+
+.img-textbox {
+  position: absolute;
+  box-sizing: border-box;
+  min-width: 7mm;
+  padding: 3pt 5pt;
+  font-family: 'Prompt', 'IBM Plex Sans Thai', sans-serif;
+  font-size: 10.5pt;
+  line-height: 1.4;
+  color: #000000;
+  background: #FFFFFF;
+  border: 0.75pt solid var(--accent);  /* fallback — inline override เกือบทุกครั้ง */
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+/* =========================================
+   8d. Column layout — .bd-grid / .bd-row / .bd-col-N (12-grid, table-based)
+   ใช้ display:table ที่ WeasyPrint รองรับเต็ม (browser comment: "WeasyPrint-safe")
+   ========================================= */
+.bd-grid { margin: 12pt 0; }
+.bd-grid > .bd-row { margin: 0; }
+.bd-grid > .bd-row + .bd-row { margin-top: 9pt; }
+.bd-row {
+  display: table;
+  table-layout: fixed;
+  width: 100%;
+  margin: 12pt 0;
+  border-spacing: 0;
+}
+.bd-col {
+  display: table-cell;
+  vertical-align: top;
+  padding: 0 9pt;
+  box-sizing: border-box;
+}
+.bd-col:first-child { padding-left: 0; }
+.bd-col:last-child { padding-right: 0; }
+.bd-col > :first-child { margin-top: 0; }
+.bd-col-1  { width: 8.333%; }
+.bd-col-2  { width: 16.667%; }
+.bd-col-3  { width: 25%; }
+.bd-col-4  { width: 33.333%; }
+.bd-col-5  { width: 41.667%; }
+.bd-col-6  { width: 50%; }
+.bd-col-7  { width: 58.333%; }
+.bd-col-8  { width: 66.667%; }
+.bd-col-9  { width: 75%; }
+.bd-col-10 { width: 83.333%; }
+.bd-col-11 { width: 91.667%; }
+.bd-col-12 { width: 100%; }
+
+/* Quiz cards — .bd-grid.quiz = ตัวเลือก 4 คำตอบ (2×2) */
+.bd-grid.quiz .bd-col { padding-top: 4.5pt; padding-bottom: 4.5pt; }
+.bd-grid.quiz ol,
+.bd-grid.quiz ul { margin: 0; padding-left: 21pt; }
+.bd-grid.quiz li {
+  margin: 0 0 7.5pt 0;
+  padding: 7.5pt 10.5pt;
+  background: var(--accent-lt);
+  border: 0.5pt solid var(--border);
+  border-radius: 7.5pt;
+  break-inside: avoid;
+  page-break-inside: avoid;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.bd-grid.quiz li::marker { color: var(--accent-dk); font-weight: 700; }
+
+/* =========================================
+   8e. Thai consonant counter — ก, ข, ค, ง... (อนุกรม 41 ตัว)
+   ใช้กับ <ol style="list-style: thai-alpha"> หรือ <ol class="thai-alpha">
+   ========================================= */
+@counter-style thai-alpha {
+  system: alphabetic;
+  symbols: "ก" "ข" "ค" "ง" "จ" "ฉ" "ช" "ซ" "ฌ" "ญ" "ฎ" "ฏ" "ฐ" "ฑ" "ฒ" "ณ"
+           "ด" "ต" "ถ" "ท" "ธ" "น" "บ" "ป" "ผ" "ฝ" "พ" "ฟ" "ภ" "ม" "ย" "ร"
+           "ล" "ว" "ศ" "ษ" "ส" "ห" "ฬ" "อ" "ฮ";
+  suffix: ". ";
+}
+.content ol.thai-alpha { list-style: thai-alpha; }
+
+/* =========================================
+   8f. OL counter mode — เพื่อรองรับ <ol start="N"> + --ol-marker จาก editor
+   WeasyPrint native marker อ่าน inline counter-reset / var(--ol-marker) ไม่เจอ
+   → render marker เองด้วย ::before + counter()
+   ⚠ counter-reset ห้ามใส่ !important — inline ของ editor ต้องทับได้
+   ========================================= */
+.content ol {
+  list-style: none;
+  counter-reset: ol-counter;          /* ห้ามมี !important — กัน inline ของ editor ถูกทับ */
+  padding-left: 20pt !important;      /* override 7pt จาก normalization patch */
+  margin-left: 0 !important;
+}
+.content ol li {
+  counter-increment: ol-counter;
+  position: relative;
+  padding-left: 0 !important;
+}
+.content ol li::before {
+  content: counter(ol-counter, var(--ol-marker, decimal)) ".";
+  position: absolute;
+  left: -18pt;
+  width: 14pt;
+  text-align: right;
+  color: var(--accent);
+  font-weight: 600;
+}
+/* Fallback — กรณี WeasyPrint รุ่นเก่าไม่รองรับ var() ใน counter() */
+.content ol[style*="lower-alpha"] li::before { content: counter(ol-counter, lower-alpha) "."; }
+.content ol[style*="upper-alpha"] li::before { content: counter(ol-counter, upper-alpha) "."; }
+.content ol[style*="thai-alpha"]  li::before { content: counter(ol-counter, thai-alpha)  "."; }
+.content ol[style*="decimal"]     li::before { content: counter(ol-counter, decimal)     "."; }
+
+/* Quiz cards: เก็บ native ::marker ไว้ (ไม่ใช้ counter overlay) */
+.bd-grid.quiz ol {
+  list-style: decimal;
+  counter-reset: none;
+  padding-left: 21pt !important;
+}
+.bd-grid.quiz li {
+  position: static;
+}
+.bd-grid.quiz li::before {
+  content: none;
+}
+
+/* =========================================
    9. WeasyPrint Print Safeguards
    ========================================= */
 .cover-meta,
