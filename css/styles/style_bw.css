@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=IBM+Plex+Sans+Thai+Looped:wght@300;400;500&family=Anuphan:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=IBM+Plex+Sans+Thai+Looped:wght@300;400;500&family=Anuphan:wght@300;400;500&family=IBM+Plex+Mono:wght@300;400;500&display=swap');
 
 /* =========================================================
    STYLE — BLACK & WHITE EDITION (ICC: GRAY)
@@ -33,7 +33,7 @@
 
   --hd: 'IBM Plex Sans Thai', sans-serif;
   --bd: 'Sarabun', sans-serif;
-  --cd: 'JetBrains Mono', monospace;
+  --cd: 'IBM Plex Mono', 'JetBrains Mono', monospace;
 }
 
 * {
@@ -1205,15 +1205,10 @@ img {
   font-style: normal !important;
 }
 
-.content h1,
-.content h2,
-.content h4 {
-  font-weight: 700 !important;
-}
-
-.content h3 {
-  font-weight: 600 !important;
-}
+.content h1 { font-weight: 700 !important; }   /* bold — หัวเรื่องระดับหนึ่ง */
+.content h2 { font-weight: 600 !important; }   /* semi-bold */
+.content h3 { font-weight: 500 !important; }   /* medium */
+.content h4 { font-weight: 400 !important; }   /* regular — เบาที่สุด */
 
 /* =========================================================
    FIX 2026-05-12 — Compact table + Heading guard
@@ -1250,7 +1245,7 @@ tfoot {
 th {
   font-family: 'Prompt', 'IBM Plex Sans Thai', 'Sarabun', sans-serif !important;
   font-size: 9.5pt !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   line-height: 1.25 !important;
   padding: 3.2pt 4.5pt !important;
   vertical-align: top !important;
@@ -1261,8 +1256,9 @@ th {
 }
 
 td {
-  font-family: var(--bd) !important;
+  font-family: 'IBM Plex Sans Thai Looped', 'Anuphan', sans-serif !important;
   font-size: 9.5pt !important;
+  font-weight: 300 !important;
   line-height: 1.28 !important;
   padding: 3pt 4.5pt !important;
   vertical-align: top !important;
@@ -1600,6 +1596,7 @@ body {
 .content code:not(.line):not(pre code) {
   font-family: var(--cd) !important;
   font-size: 9.5pt !important;
+  font-weight: 300 !important;
   line-height: 1.2 !important;
   padding: 0.6pt 2.6pt !important;
   color: #000000 !important;
@@ -1634,6 +1631,7 @@ body {
 .line {
   font-family: var(--cd) !important;
   font-size: 9.5pt !important;
+  font-weight: 300 !important;
   line-height: 1.32 !important;
   white-space: pre-wrap !important;
   word-wrap: break-word !important;
