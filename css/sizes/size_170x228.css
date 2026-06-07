@@ -79,8 +79,11 @@
 }
 
 .cover-image {
-  width: 176mm;   /* trim + 3mm × 2 bleed */
+  display: block;
+  width: 176mm;             /* trim + 3mm × 2 bleed */
   height: 234mm;
+  object-fit: cover;        /* เต็มเสมอ ตัดส่วนเกินอัตโนมัติ ไม่บีบสัดส่วน */
+  object-position: center center;
 }
 
 .back-cover {
@@ -90,8 +93,11 @@
 }
 
 .back-cover-image {
+  display: block;
   width: 176mm;
   height: 234mm;
+  object-fit: cover;
+  object-position: center center;
 }
 
 /* --- Credits page min-height = trim_h − margin_top × 2 --- */
