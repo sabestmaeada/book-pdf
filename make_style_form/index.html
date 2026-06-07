@@ -403,8 +403,60 @@
         ระยะ (mm) <span id="sinkVal">35</span>
         <input type="range" id="sinkAmount" min="0" max="60" value="35" step="5">
       </label>
-      <label class="check"><input type="checkbox" id="justifyBody"> จัด justify ในเนื้อหา (ค่าปกติ left)</label>
+      <label class="check"><input type="checkbox" id="justifyBody"> จัด justify ในเนื้อหา (นอก grid)</label>
+      <label class="check"><input type="checkbox" id="justifyGrid"> จัด justify ในคอลัมน์ (.bd-grid)</label>
       <label class="check"><input type="checkbox" id="centerChapter"> Chapter header center-aligned</label>
+      <label class="check"><input type="checkbox" id="h3Indent"> h3 เยื้อง 1.45em (ตรงกับ p)</label>
+      <label class="check"><input type="checkbox" id="h4Indent" checked> h4 เยื้อง 1.45em (ตรงกับ p)</label>
+      <label class="check"><input type="checkbox" id="noIndentBody"> ยกเลิกเยื้อง p (นอก grid)</label>
+      <label class="check"><input type="checkbox" id="noIndentGrid" checked> ยกเลิกเยื้อง p ใน grid (quiz / columns)</label>
+    </fieldset>
+
+    <!-- I. Table (collapsible — many books don't have many tables) -->
+    <fieldset class="collapsible">
+      <details>
+        <summary>
+          <span class="collapsible-title">I. ตาราง (Table style)</span>
+          <span class="collapsible-hint">ค่า default ใช้ได้ทันที — คลิกถ้าต้องการปรับ</span>
+        </summary>
+
+        <p class="hint">หัวตาราง (thead)</p>
+        <div class="radio-grid">
+          <label><input type="radio" name="tableHead" value="bold"> <span>เน้น accent<br><small>bg เข้ม + text ขาว</small></span></label>
+          <label><input type="radio" name="tableHead" value="soft" checked> <span>อ่อน accent<br><small>bg อ่อน + text accent (default)</small></span></label>
+          <label><input type="radio" name="tableHead" value="none"> <span>ไม่มี bg<br><small>เน้น font-weight + border</small></span></label>
+          <label><input type="radio" name="tableHead" value="bw"> <span>เทาอ่อน B&W<br><small>bg เทา + text ดำ</small></span></label>
+        </div>
+
+        <p class="hint">เส้นขอบ</p>
+        <div class="radio-grid">
+          <label><input type="radio" name="tableBorder" value="none"> <span>ไม่มี border<br><small>มินิมัลที่สุด</small></span></label>
+          <label><input type="radio" name="tableBorder" value="thin" checked> <span>เส้นบาง (default)<br><small>รอบ + แยกแถว</small></span></label>
+          <label><input type="radio" name="tableBorder" value="thick"> <span>เส้นหนา accent<br><small>เด่นชัด</small></span></label>
+          <label><input type="radio" name="tableBorder" value="horizontal"> <span>เส้นแยกแถวเท่านั้น<br><small>no wrapper</small></span></label>
+        </div>
+
+        <p class="hint">สลับสีแถว (zebra striping)</p>
+        <div class="radio-grid">
+          <label><input type="radio" name="tableStripe" value="none" checked> <span>ไม่มี<br><small>default</small></span></label>
+          <label><input type="radio" name="tableStripe" value="gray"> <span>เทาอ่อน<br><small>สลับ #FAFAFA</small></span></label>
+          <label><input type="radio" name="tableStripe" value="accent"> <span>accent อ่อน<br><small>tinted</small></span></label>
+        </div>
+
+        <p class="hint">Padding ในเซลล์</p>
+        <div class="radio-grid">
+          <label><input type="radio" name="tablePadding" value="compact"> <span>กระชับ<br><small>2.5pt × 4pt</small></span></label>
+          <label><input type="radio" name="tablePadding" value="normal" checked> <span>ปกติ<br><small>4pt × 6pt</small></span></label>
+          <label><input type="radio" name="tablePadding" value="spacious"> <span>โปร่ง<br><small>6pt × 8pt</small></span></label>
+        </div>
+
+        <p class="hint">ขนาดฟอนต์</p>
+        <div class="radio-grid">
+          <label><input type="radio" name="tableFont" value="smaller"> <span>เล็ก<br><small>8.8pt</small></span></label>
+          <label><input type="radio" name="tableFont" value="normal" checked> <span>ปกติ<br><small>9.6pt (เท่า body)</small></span></label>
+          <label><input type="radio" name="tableFont" value="larger"> <span>ใหญ่นิด<br><small>10pt</small></span></label>
+        </div>
+      </details>
     </fieldset>
 
     <!-- Actions -->

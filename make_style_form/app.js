@@ -110,11 +110,21 @@ function readConfig() {
     h4dark: +document.getElementById('h4dark').value,
     olStyle: document.querySelector('input[name="olStyle"]:checked').value,
     noteStyle: document.querySelector('input[name="noteStyle"]:checked').value,
+    tableHead: document.querySelector('input[name="tableHead"]:checked').value,
+    tableBorder: document.querySelector('input[name="tableBorder"]:checked').value,
+    tableStripe: document.querySelector('input[name="tableStripe"]:checked').value,
+    tablePadding: document.querySelector('input[name="tablePadding"]:checked').value,
+    tableFont: document.querySelector('input[name="tableFont"]:checked').value,
     dropCap: document.getElementById('dropCap').checked,
     sinkage: document.getElementById('sinkage').checked,
     sinkAmount: +document.getElementById('sinkAmount').value,
     justifyBody: document.getElementById('justifyBody').checked,
+    justifyGrid: document.getElementById('justifyGrid').checked,
     centerChapter: document.getElementById('centerChapter').checked,
+    h3Indent: document.getElementById('h3Indent').checked,
+    h4Indent: document.getElementById('h4Indent').checked,
+    noIndentBody: document.getElementById('noIndentBody').checked,
+    noIndentGrid: document.getElementById('noIndentGrid').checked,
   };
 }
 
@@ -191,12 +201,24 @@ function genVariables(c) {
   --tpl-accent:    ${accent} !important;
   --tpl-accent-dk: ${accentDk} !important;
   --tpl-accent-lt: ${accentLt} !important;
+
+  /* Neutral palette — ต้องตั้งเอง เพราะ var(--tpl-text|muted|border) ใช้ในหลายที่
+     ถ้าไม่ตั้ง → CSS เป็น color: !important; → warning "no value" ใน WeasyPrint */
+  --tpl-text:      #000000 !important;
+  --tpl-muted:     #555555 !important;
+  --tpl-border:    #B0B0B0 !important;
 }`;
 }
 
 function genBody(c) {
-  const align = c.justifyBody ? 'justify' : 'left';
-  return `/* === BODY === */
+  // 4 toggles อิสระ — แยก p นอก grid / ใน grid
+  const alignBody   = c.justifyBody  ? 'justify' : 'left';
+  const alignGrid   = c.justifyGrid  ? 'justify' : 'left';
+  const pIndentBody = c.noIndentBody ? '0'       : '1.45em';
+  const pIndentGrid = c.noIndentGrid ? '0'       : '1.45em';
+  return `/* === BODY ===
+   p (นอก grid)  — align: ${alignBody}   / indent: ${pIndentBody}
+   p (ใน grid)   — align: ${alignGrid}   / indent: ${pIndentGrid} */
 html, body {
   font-family: var(--tpl-bd) !important;
   font-size: 9.6pt !important;
@@ -207,10 +229,14 @@ html, body {
   font-size: 9.6pt !important;
   font-weight: 300 !important;
   line-height: 1.55 !important;
-  text-align: ${align} !important;
-  text-indent: 1.45em !important;
+  text-align: ${alignBody} !important;
+  text-indent: ${pIndentBody} !important;
   margin: 0 0 6pt 0 !important;
   hyphens: auto !important;
+}
+.content .bd-grid p {
+  text-align: ${alignGrid} !important;
+  text-indent: ${pIndentGrid} !important;
 }
 .content ul, .content ol,
 .content li, .content li > p {
@@ -298,6 +324,7 @@ function genHeadings(c) {
   padding: 0 !important;
   border: none !important;
   position: static !important;
+  text-indent: ${c.h3Indent ? '1.45em' : '0'} !important;
   line-height: 1.35 !important;
 }
 .content h3::before { content: none !important; }
@@ -314,6 +341,7 @@ function genHeadings(c) {
   position: static !important;
   text-transform: none !important;
   letter-spacing: 0 !important;
+  text-indent: ${c.h4Indent ? '1.45em' : '0'} !important;
   line-height: 1.4 !important;
 }
 .content h4::before { content: none !important; }`;
@@ -744,6 +772,97 @@ function genPreface(c) {
 }`;
 }
 
+function genTable(c) {
+  // Head style
+  let headBg, headColor, headBorder;
+  if (c.tableHead === 'bold') {
+    headBg     = 'var(--tpl-accent)';
+    headColor  = '#FFFFFF';
+    headBorder = 'none';
+  } else if (c.tableHead === 'none') {
+    headBg     = 'transparent';
+    headColor  = 'var(--tpl-text)';
+    headBorder = '0.8pt solid var(--tpl-text)';
+  } else if (c.tableHead === 'bw') {
+    headBg     = '#F0F0F0';
+    headColor  = 'var(--tpl-text)';
+    headBorder = '0.6pt solid var(--tpl-text)';
+  } else {  // 'soft' (default)
+    headBg     = 'var(--tpl-accent-lt)';
+    headColor  = 'var(--tpl-accent-dk)';
+    headBorder = '0.8pt solid var(--tpl-accent)';
+  }
+
+  // Border style
+  let wrapBorder, wrapRadius, rowBorder;
+  if (c.tableBorder === 'none') {
+    wrapBorder = 'none';
+    wrapRadius = '0';
+    rowBorder  = 'none';
+  } else if (c.tableBorder === 'thick') {
+    wrapBorder = '0.8pt solid var(--tpl-accent)';
+    wrapRadius = '3pt';
+    rowBorder  = '0.5pt solid var(--tpl-accent-lt)';
+  } else if (c.tableBorder === 'horizontal') {
+    wrapBorder = 'none';
+    wrapRadius = '0';
+    rowBorder  = '0.4pt solid var(--tpl-border)';
+  } else {  // 'thin' (default)
+    wrapBorder = '0.5pt solid var(--tpl-border)';
+    wrapRadius = '2pt';
+    rowBorder  = '0.4pt solid var(--tpl-border)';
+  }
+
+  // Stripe
+  let stripeCss = '';
+  if (c.tableStripe === 'gray') {
+    stripeCss = `\ntr:nth-child(even) td { background: #FAFAFA !important; }`;
+  } else if (c.tableStripe === 'accent') {
+    stripeCss = `\ntr:nth-child(even) td { background: var(--tpl-accent-lt) !important; }`;
+  }
+
+  // Padding
+  const padding = c.tablePadding === 'compact'  ? '2.5pt 4pt'
+               : c.tablePadding === 'spacious' ? '6pt 8pt'
+               : '4pt 6pt';
+
+  // Font size
+  const fontSize = c.tableFont === 'smaller' ? '8.8pt'
+                 : c.tableFont === 'larger'  ? '10pt'
+                 : '9.6pt';
+
+  return `/* === TABLE ===
+   Head: ${c.tableHead} / Border: ${c.tableBorder} / Stripe: ${c.tableStripe}
+   Padding: ${c.tablePadding} / Font: ${c.tableFont} (${fontSize}) */
+.table-wrap {
+  border: ${wrapBorder} !important;
+  border-radius: ${wrapRadius} !important;
+}
+table {
+  font-size: ${fontSize} !important;
+}
+thead {
+  background: ${headBg} !important;
+}
+th {
+  font-family: var(--tpl-hd) !important;
+  color: ${headColor} !important;
+  background: ${headBg} !important;
+  border-bottom: ${headBorder} !important;
+  padding: ${padding} !important;
+  font-weight: 600 !important;
+  font-size: ${fontSize} !important;
+}
+td {
+  color: var(--tpl-text) !important;
+  border-bottom: ${rowBorder} !important;
+  padding: ${padding} !important;
+  font-size: ${fontSize} !important;
+}
+tr:last-child td { border-bottom: none !important; }${stripeCss}`;
+}
+
+
 function genMisc() {
   return `/* === MISC === */
 .content strong, .content b { color: var(--tpl-accent-dk) !important; }
@@ -755,8 +874,6 @@ blockquote {
   border-radius: 0 3pt 3pt 0 !important;
   padding: 7pt 10pt !important;
 }
-thead { background: var(--tpl-accent-lt) !important; }
-th { color: var(--tpl-accent-dk) !important; border-bottom: 0.8pt solid var(--tpl-accent) !important; }
 .img-marker {
   background: var(--tpl-accent) !important;
   color: #FFFFFF !important;
@@ -785,6 +902,7 @@ function generate() {
     genQuiz(),
     genNote(c),
     genCode(),
+    genTable(c),
     genDropCap(c),
     genTOC(c),
     genPreface(c),
@@ -1012,11 +1130,21 @@ function bindReset() {
     document.querySelector('input[name="h2svg"][value="none"]').checked = true;
     document.querySelector('input[name="olStyle"][value="circle"]').checked = true;
     document.querySelector('input[name="noteStyle"][value="simple"]').checked = true;
+    document.querySelector('input[name="tableHead"][value="soft"]').checked = true;
+    document.querySelector('input[name="tableBorder"][value="thin"]').checked = true;
+    document.querySelector('input[name="tableStripe"][value="none"]').checked = true;
+    document.querySelector('input[name="tablePadding"][value="normal"]').checked = true;
+    document.querySelector('input[name="tableFont"][value="normal"]').checked = true;
     document.getElementById('dropCap').checked = false;
     document.getElementById('sinkage').checked = false;
     document.getElementById('sinkAmount').value = 35;
     document.getElementById('justifyBody').checked = false;
+    document.getElementById('justifyGrid').checked = false;
     document.getElementById('centerChapter').checked = false;
+    document.getElementById('h3Indent').checked = false;
+    document.getElementById('h4Indent').checked = true;     // default ON
+    document.getElementById('noIndentBody').checked = false;
+    document.getElementById('noIndentGrid').checked = true;     // default ON
     document.getElementById('printGrayMode').checked = false;
     document.getElementById('h1dark').value = 0;
     document.getElementById('h2dark').value = 0;
