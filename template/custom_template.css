@@ -1,0 +1,407 @@
+/* =========================================================
+   custom_template.css — Per-book Override Template
+   ---------------------------------------------------------
+   อัปโหลดไฟล์นี้ใน UI ช่อง "Template CSS ส่วนตัว"
+   ระบบจะโหลด *สุดท้าย* หลัง size + style + edge-graphics
+   → ทับ base style ได้ทั้งหมด
+
+   ⚠ ใช้ !important ทุกที่ — เพราะ base มี NORMALIZATION PATCH
+     ที่ใส่ !important ไว้ จะทับไม่ขึ้นถ้าไม่ใส่
+
+   ⚠ ห้ามแตะ:
+     - @page { size, margin, bleed, marks } — อยู่ใน sizes/
+     - .cover-image, .credits-page min-height — อยู่ใน sizes/
+     - .bd-row/.bd-col display:table — ระบบ grid
+     - .ch-hdr display:flex — layout บท
+     - counter-reset ของ .content ol — Thai counter
+     - @counter-style thai-alpha
+     - string-set: chapter-title
+
+   ⚠ WeasyPrint ไม่รองรับ (ถ้าใส่จะถูก ignore + warning):
+     box-shadow, text-shadow, print-color-adjust,
+     gradient text (background-clip:text), transform ส่วนใหญ่
+   ========================================================= */
+
+
+/* =========================================
+   1. THEME VARIABLES — จุดเริ่มต้นที่ง่ายที่สุด
+   เปลี่ยน 4-5 ค่าด้านล่าง → ทั้งเล่มเปลี่ยนตาม
+   ========================================= */
+:root {
+  /* Accent colors — ใช้สีของแบรนด์/ธีมหนังสือ
+     ⚠ ถ้าใช้ style_bw → คงเป็น #000 เพื่อ K100
+     ⚠ ถ้าใช้ style_cmyk → ใช้สีที่ CMYK process plate จับได้ดี (≠ neon, ≠ pastel) */
+  --tpl-accent:    #1F3A93 !important;   /* สีหลัก — heading borders, list markers */
+  --tpl-accent-lt: #EEF3FA !important;   /* สี bg อ่อน — h3 bg, note bg */
+  --tpl-accent-dk: #0F2255 !important;   /* สีเข้ม — h1, ch-num */
+
+  --tpl-text:      #000000 !important;   /* สีข้อความ body */
+  --tpl-muted:     #555555 !important;   /* สีรอง — caption, label, page number */
+
+  --tpl-border:    #B0B0B0 !important;   /* เส้นขอบ */
+  --tpl-note-bg:   #F7F2E8 !important;   /* bg note (เช่น amber อ่อน) */
+  --tpl-note-bd:   #8B5E1E !important;   /* border note (เช่น amber เข้ม) */
+
+  --tpl-code-bg:   #F8F8F8 !important;   /* bg code block */
+  --tpl-code-tx:   #1A1A1A !important;   /* สี code */
+
+  /* Font stacks — ต้องมี fallback Thai เสมอ */
+  --tpl-hd: 'Prompt', 'IBM Plex Sans Thai', 'Sarabun', sans-serif !important;
+  --tpl-bd: 'IBM Plex Sans Thai Looped', 'Anuphan', sans-serif !important;
+  --tpl-cd: 'IBM Plex Mono', 'JetBrains Mono', monospace !important;
+}
+
+
+/* =========================================
+   2. BODY TYPOGRAPHY
+   ========================================= */
+.content p {
+  /* font-family: var(--tpl-bd) !important;  ← ถ้าจะเปลี่ยนฟอนต์ uncomment */
+  /* font-size: 9.8pt !important;            ← ปรับขนาดได้ */
+  /* line-height: 1.6 !important;            ← ปรับ leading */
+  /* color: var(--tpl-text) !important; */
+}
+
+/* Preface (คำนำ) — text-align คงเป็น justify */
+.preface-content p {
+  /* font-family: var(--tpl-bd) !important; */
+  /* text-indent: 1.5em !important; */
+}
+
+
+/* =========================================
+   3. HEADINGS — h1, h2, h3, h4
+   ========================================= */
+.content h1 {
+  color: var(--tpl-accent-dk) !important;
+  /* font-size: 16pt !important; */
+  /* margin: 14pt 0 6pt 0 !important; */
+}
+
+.content h2 {
+  color: var(--tpl-accent-dk) !important;
+  border-left: 2.2pt solid var(--tpl-accent) !important;
+  border-bottom: 1.2pt solid var(--tpl-accent) !important;
+  background: #FFFFFF !important;
+  /* font-size: 13.4pt !important; */
+  /* padding: 4pt 7pt 5pt 8pt !important; */
+}
+
+.content h3 {
+  color: var(--tpl-accent-dk) !important;
+  background: var(--tpl-accent-lt) !important;
+  /* font-size: 11.8pt !important; */
+  /* padding: 3.2pt 6.5pt 3.8pt 6.5pt !important; */
+}
+
+.content h4 {
+  color: var(--tpl-accent-dk) !important;
+  background: transparent !important;
+  /* font-size: 11pt !important; */
+  /* margin: 8pt 0 4pt 15.4pt !important; */
+}
+
+
+/* =========================================
+   4. CHAPTER HEADER (บทที่ X | ชื่อบท)
+   ⚠ ห้ามแตะ display:flex ของ .ch-hdr
+   ========================================= */
+
+/* เพิ่ม sinkage — ดันหัวบทลงต่ำลง (ดูเป็นทางการ/หรู) */
+.chapter {
+  /* padding-top: 35mm !important;  ← uncomment ถ้าต้องการ sinkage 35mm */
+}
+
+.ch-num::before {
+  content: "บทที่" !important;
+  color: var(--tpl-muted) !important;
+  /* font-size: 14pt !important; */
+}
+
+.ch-num::after {
+  color: var(--tpl-accent-dk) !important;
+  /* font-size: 40pt !important; */
+  /* font-weight: 700 !important; */
+}
+
+.ch-title {
+  color: var(--tpl-accent-dk) !important;
+  border-left: 1pt solid var(--tpl-accent) !important;
+  /* font-size: 18pt !important; */
+}
+
+
+/* =========================================
+   5. LISTS — ul, ol
+   ========================================= */
+.content ul li::marker {
+  color: var(--tpl-accent) !important;
+}
+
+/* OL counter (จาก section 8f ของ base) — สี marker */
+.content ol li::before {
+  color: var(--tpl-accent) !important;
+  /* font-weight: 700 !important; */
+}
+
+
+/* =========================================
+   6. CODE BLOCKS — code-block, inline-code, line
+   ========================================= */
+.code-block {
+  background: var(--tpl-code-bg) !important;
+  border: 0.5pt solid var(--tpl-border) !important;
+  /* margin: 8pt 0 10pt 0 !important; */
+}
+
+.code-header {
+  background: #E8E8E8 !important;
+  border-bottom: 0.5pt solid var(--tpl-border) !important;
+}
+
+.code-lang-badge {
+  background: var(--tpl-accent) !important;
+  color: #FFFFFF !important;
+}
+
+.code-block code,
+.line {
+  color: var(--tpl-code-tx) !important;
+  /* font-size: 9.5pt !important; */
+  /* line-height: 1.4 !important; */
+}
+
+.line::before {
+  background: #EEEEEE !important;
+  color: var(--tpl-muted) !important;
+  border-right: 0.5pt solid var(--tpl-border) !important;
+}
+
+.inline-code,
+.content code:not(.line):not(pre code) {
+  background: #EEEEEE !important;
+  color: var(--tpl-code-tx) !important;
+  border: 0.5pt solid var(--tpl-border) !important;
+  /* font-size: 9.4pt !important; */
+}
+
+
+/* =========================================
+   7. NOTE — กล่องโน้ต/คำเตือน
+   ========================================= */
+.note {
+  background: var(--tpl-note-bg) !important;
+  border: 0.5pt solid var(--tpl-note-bd) !important;
+  border-left: 2.2pt solid var(--tpl-note-bd) !important;
+  color: var(--tpl-text) !important;
+  /* padding: 7pt 9pt !important; */
+}
+
+.note-label {
+  color: var(--tpl-note-bd) !important;
+  font-family: var(--tpl-hd) !important;
+  font-weight: 700 !important;
+  /* font-size: 9.3pt !important; */
+}
+
+
+/* =========================================
+   8. BLOCKQUOTE — คำพูดอ้างอิง
+   ========================================= */
+blockquote {
+  border-left: 2.2pt solid var(--tpl-accent) !important;
+  background: var(--tpl-accent-lt) !important;
+  color: var(--tpl-text) !important;
+  /* font-style: italic !important; */
+  /* padding: 7pt 9pt !important; */
+}
+
+
+/* =========================================
+   9. TABLES — th, td
+   ========================================= */
+.table-wrap {
+  border: 0.5pt solid var(--tpl-border) !important;
+}
+
+thead {
+  background: var(--tpl-accent-lt) !important;
+}
+
+th {
+  color: var(--tpl-accent-dk) !important;
+  border-bottom: 0.8pt solid var(--tpl-accent) !important;
+  /* font-weight: 500 !important; */
+}
+
+td {
+  color: var(--tpl-text) !important;
+  border-bottom: 0.5pt solid var(--tpl-border) !important;
+}
+
+
+/* =========================================
+   10. QUIZ CARDS — .bd-grid.quiz li
+   default base ไม่ใส่ bg/border — สามารถเติมได้ที่นี่
+   ⚠ ห้ามแตะ display:table ของ .bd-row/.bd-col
+   ========================================= */
+.bd-grid.quiz li {
+  /* uncomment เพื่อใส่ card style:
+  background: #FAFAFA !important;
+  border: 0.5pt solid var(--tpl-border) !important;
+  border-radius: 2mm !important;
+  padding: 5pt 10.5pt !important;
+  */
+}
+
+.bd-grid.quiz li::marker,
+.bd-grid.quiz li::before {
+  color: var(--tpl-accent) !important;
+  font-weight: 700 !important;
+}
+
+
+/* =========================================
+   11. DROP CAP — ตัวอักษรแรกใหญ่
+   markup: <p class="drop-cap">ใ...</p>
+   ========================================= */
+.drop-cap::first-letter {
+  color: var(--tpl-accent-dk) !important;
+  font-family: var(--tpl-hd) !important;
+  /* font-size: 30pt !important; */
+  /* margin: 1pt 4pt 0 0 !important; */
+}
+
+
+/* =========================================
+   12. TOC — สารบัญ
+   ========================================= */
+.toc-title {
+  color: var(--tpl-accent-dk) !important;
+  /* font-size: 18pt !important; */
+}
+
+.toc-item {
+  border-bottom: 0.4pt dashed var(--tpl-border) !important;
+  color: var(--tpl-text) !important;
+}
+
+.toc-num {
+  color: var(--tpl-accent) !important;
+  font-weight: 600 !important;
+}
+
+.toc-name {
+  font-weight: 500 !important;
+}
+
+.toc-leader {
+  border-bottom: 0.4pt dotted var(--tpl-muted) !important;
+}
+
+a.toc-item::after {
+  color: var(--tpl-muted) !important;
+}
+
+
+/* =========================================
+   13. PREFACE TITLE (คำนำ heading)
+   ========================================= */
+.preface-title {
+  color: var(--tpl-accent-dk) !important;
+  /* font-size: 18pt !important; */
+}
+
+
+/* =========================================
+   14. IMAGES — .book-img, figcaption
+   ========================================= */
+.book-img img {
+  border: 0.5pt solid var(--tpl-border) !important;
+  /* max-width: 65% !important; */
+  /* max-height: 110mm !important; */
+}
+
+.book-img figcaption {
+  color: var(--tpl-muted) !important;
+  font-family: var(--tpl-hd) !important;
+  /* font-size: 8.5pt !important; */
+  /* font-style: italic !important; */
+}
+
+
+/* =========================================
+   15. IMAGE OVERLAYS — markers, rects, callout
+   ========================================= */
+.img-marker {
+  background: var(--tpl-accent) !important;
+  border: 2px solid #FFFFFF !important;
+  color: #FFFFFF !important;
+}
+
+
+/* =========================================
+   16. PAGE NUMBERS (เลขหน้าใน footer)
+   ⚠ override ได้แค่ font/color/size — ห้ามแตะตำแหน่ง
+   ========================================= */
+@page :right {
+  @bottom-right {
+    /* font-family: var(--tpl-hd);   ← ไม่ต้องใส่ !important ใน @page rule */
+    /* font-size: 9pt; */
+    /* color: var(--tpl-muted); */
+  }
+}
+
+@page :left {
+  @bottom-left {
+    /* font-family: var(--tpl-hd); */
+    /* font-size: 9pt; */
+    /* color: var(--tpl-muted); */
+  }
+}
+
+/* Running header (ชื่อบทบนหน้าซ้าย — body:left @top-left) */
+@page body:left {
+  @top-left {
+    /* font-family: var(--tpl-hd); */
+    /* font-size: 8.5pt; */
+    /* color: var(--tpl-muted); */
+  }
+}
+
+
+/* =========================================
+   17. HORIZONTAL RULE
+   ========================================= */
+hr {
+  background: var(--tpl-border) !important;
+  /* height: 0.5pt !important; */
+  /* margin: 14pt 0 !important; */
+}
+
+
+/* =========================================================
+   END — custom_template.css
+   ---------------------------------------------------------
+   วิธีใช้:
+   1. Copy ไฟล์นี้ตั้งชื่อตามหนังสือ เช่น custom_book_a.css
+   2. แก้ค่าใน section 1 (Variables) เป็นสีและฟอนต์ที่ต้องการ
+   3. Uncomment เฉพาะส่วนที่ต้องการ override
+   4. อัปโหลดใน UI ช่อง "Template CSS ส่วนตัว"
+   5. กด Build PDF
+
+   Tips:
+   - เริ่มจาก section 1 (variables) ก่อน — เปลี่ยนแค่ 5 ค่าก็ได้ theme ใหม่
+   - ค่อยๆ uncomment ทีละส่วน → preview → ปรับ
+   - ถ้าผลลัพธ์ไม่เปลี่ยน → ลืม !important
+   - ถ้า PDF เพี้ยน → ใช้ git revert ลบไฟล์ + build ใหม่
+
+   ✗ ห้ามใส่ใน custom_template.css:
+   - @page { size, margin, bleed, marks }
+   - .cover-image { width, height }
+   - .credits-page { min-height }
+   - display:table / display:flex ของ .bd-row, .ch-hdr
+   - counter-reset ของ .content ol
+   - @counter-style thai-alpha
+   - box-shadow, text-shadow, transform, gradient text
+   ========================================================= */

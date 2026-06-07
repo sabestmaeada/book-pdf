@@ -5,9 +5,9 @@
    Load order ใน pipeline:
      -s css/sizes/size_X.css         ← geometry
      -s css/styles/style_Y.css       ← base style (bw/cmyk)
-     -s <THIS FILE>                  ← per-book override (โหลดหลังสุด)
      -s css/edge-graphic-*.css
      -s css/no-marks.css
+     -s <THIS FILE>                  ← per-book override (โหลดหลังสุด)
 
    ⚠ ทุก rule ใช้ !important เพราะต้อง override normalization patch
       ใน style_*.css ที่ใช้ !important อยู่แล้ว
@@ -18,6 +18,23 @@
    - box-shadow → ลบทิ้ง (ใช้ border แทน)
    - print-color-adjust → ลบ (WeasyPrint อยู่ใน print mode 100%)
    - SVG constellation decoration → ใช้ solid accent line แทน (เรียบง่ายแต่ตรงคอนเซ็ปต์)
+
+   ─────────────────────────────────────────────────────────
+   อัปเดตล่าสุด — sync กับ base ที่ใช้ counter mode (section 8f)
+   ─────────────────────────────────────────────────────────
+   ✓ OL: override `content` ตัด "." ออก ให้เห็นแค่เลขในวงกลม
+   ✓ OL fallback variants — รองรับ --ol-marker: lower-alpha / upper-alpha / thai-alpha / decimal
+   ✓ OL li: เพิ่ม margin-bottom 5pt + min-height 19pt
+            → กัน circle (19pt) ของ item N overlap กับ item N+1 ตอนข้อความ 1 บรรทัด
+            (เกิดเฉพาะ alpha/thai marker เพราะ content สั้นกว่า decimal)
+   ✓ OL circle ::before: top -2pt
+            → ดึงวงกลมขึ้น 2pt ให้ char baseline ในวงกลม
+              align กับ text baseline บรรทัดแรก (เดิม top: 0.05em ทำให้ char "หล่น" ต่ำกว่า)
+   ✓ Quiz: เอาวงกลมออก (แบบฝึก ไม่ต้องเน้นเหมือนเนื้อหา)
+           reset ผ่าน selector specificity (0,3,3) > variant (0,2,3) ของ Section 7
+   ✓ Code blocks: ใช้ var(--tpl-cd) = Roboto Mono (เดิมใช้ var(--cd) จาก base)
+   ✓ Note, TOC, image markers — Gemini accent
+   ✓ Chapter title: ลบ flex: none ที่เหลือจาก base flex layout
    ========================================================= */
 
 
@@ -38,6 +55,10 @@
   --tpl-text:      #202124;     /* Google grey 900 */
   --tpl-muted:     #5F6368;     /* Google grey 600 */
   --tpl-border:    #DADCE0;     /* Google grey 300 */
+
+  --tpl-note-bg:   #E8F0FE;     /* note bg (= accent-lt) */
+  --tpl-note-bd:   #1A73E8;     /* note border-left (= accent) */
+  --tpl-code-bg:   #F8F9FA;     /* code block bg (เทาอ่อนมาก แบบ Google) */
 }
 
 
@@ -64,75 +85,83 @@ html, body {
 
 
 /* ========================================
-   3. Heading (h1–h4) — Gemini minimal modern
+   3. Heading (h1–h4) — Gemini minimal modern (book-scale)
+   ⚠ Body text = 9.6pt → headings ใช้ modular scale ~1.2-1.8×
+      (เดิม h1 22pt = 2.29× ใหญ่เกินสำหรับหน้า 170×228mm)
    ======================================== */
 .content h1 {
   font-family: var(--tpl-hd) !important;
-  font-size: 22pt !important;
+  font-size: 17pt !important;          /* 22 → 17 (1.77× body) */
   font-weight: 700 !important;
   color: var(--tpl-text) !important;
-  margin: 26pt 0 12pt 0 !important;
+  margin: 22pt 0 10pt 0 !important;    /* 26/12 → 22/10 */
   padding: 0 !important;
   background: transparent !important;
   border: none !important;
-  letter-spacing: -0.5pt !important;
-  line-height: 1.3 !important;
+  letter-spacing: -0.3pt !important;   /* 0.5 → 0.3 (เล็กลง = tracking น้อยลง) */
+  line-height: 1.28 !important;
 }
 
-/* h2: สี accent-dk + เส้นใต้สั้น (แทน text gradient ของ Gemini) */
+/* h2: สี accent-dk + เส้นใต้สั้นแบบ Gemini (แทน text gradient)
+   ⚠ WeasyPrint ปัญหาเรื่องเส้นใต้สั้นแบบ Browser:
+     - width: fit-content → ไม่รองรับ (invalid value warning)
+     - display: table → Thai text + hyphens:auto → min-content = 1 char → wrap หมด!
+     - display: inline-block → เจอปัญหา shrink-to-fit แบบเดียวกัน
+   → เปลี่ยน strategy: ใช้ block ปกติ + วาดเส้นใต้สั้นด้วย ::after
+     เส้นใต้ความกว้างคงที่ ไม่ขึ้นกับความยาวข้อความ → predictable + designed */
 .content h2 {
   font-family: var(--tpl-hd) !important;
-  font-size: 17pt !important;
+  font-size: 14pt !important;          /* 17 → 14 (1.46× body) */
   font-weight: 700 !important;
   color: var(--tpl-accent-dk) !important;
   background: transparent !important;
-  margin: 24pt 0 14pt 0 !important;
-  padding: 0 0 6pt 0 !important;
+  margin: 20pt 0 10pt 0 !important;    /* 24/14 → 20/10 */
+  padding: 0 !important;
   border: none !important;
-  border-bottom: 2pt solid var(--tpl-accent) !important;
-  width: fit-content !important;
-  max-width: 100% !important;
-  letter-spacing: -0.2pt !important;
+  display: block !important;
+  letter-spacing: -0.1pt !important;   /* 0.2 → 0.1 (เล็กลง = ลด tracking) */
   line-height: 1.3 !important;
 }
 .content h2::before { content: none !important; }
-.content h2::after  { content: none !important; }
+.content h2::after {
+  content: "" !important;
+  display: block !important;
+  width: 50pt !important;              /* 60 → 50 (scale ตาม h2) */
+  height: 2pt !important;
+  background: var(--tpl-accent) !important;
+  margin-top: 5pt !important;          /* 6 → 5 */
+  border-radius: 1pt !important;
+}
 
-/* h3: เทาเข้ม + จุดวงกลม accent นำหน้า (แทนดาว gradient) */
+/* h3: เทาเข้ม — ไม่มีจุดนำหน้า */
 .content h3 {
   font-family: var(--tpl-hd) !important;
-  font-size: 13.5pt !important;
+  font-size: 12pt !important;          /* 13.5 → 12 (1.25× body) */
   font-weight: 600 !important;
   color: #3C4043 !important;
   background: transparent !important;
-  margin: 18pt 0 7pt 0 !important;
-  padding: 0 0 0 14pt !important;
+  margin: 14pt 0 6pt 0 !important;     /* 18/7 → 14/6 */
+  padding: 0 !important;
   border: none !important;
-  position: relative !important;
-  line-height: 1.4 !important;
+  position: static !important;
+  line-height: 1.35 !important;
 }
 .content h3::before {
-  content: "" !important;
-  position: absolute !important;
-  left: 0 !important;
-  top: 0.45em !important;
-  width: 7pt !important;
-  height: 7pt !important;
-  border-radius: 50% !important;
-  background: var(--tpl-accent) !important;
+  content: none !important;             /* ยกเลิกจุดวงกลม accent */
 }
 
-/* h4: uppercase + ขีดสั้น accent นำหน้า */
+/* h4: uppercase + ขีดสั้น accent นำหน้า — ขนาดเก็บเดิม (1.09× body)
+   uppercase + letter-spacing 0.7pt = identity แทน font-size ใหญ่ */
 .content h4 {
   font-family: var(--tpl-hd) !important;
-  font-size: 10.5pt !important;
+  font-size: 10.5pt !important;        /* เก็บเดิม */
   font-weight: 700 !important;
   color: var(--tpl-muted) !important;
   background: transparent !important;
   text-transform: uppercase !important;
   letter-spacing: 0.7pt !important;
-  padding: 0 0 0 15pt !important;
-  margin: 14pt 0 5pt 0 !important;
+  padding: 0 0 0 13pt !important;      /* 15 → 13 (ตาม dash ที่เล็กลง) */
+  margin: 12pt 0 5pt 0 !important;     /* 14/5 → 12/5 */
   border: none !important;
   position: relative !important;
   line-height: 1.4 !important;
@@ -142,8 +171,8 @@ html, body {
   position: absolute !important;
   left: 0 !important;
   top: 0.55em !important;
-  width: 10pt !important;
-  height: 2pt !important;
+  width: 9pt !important;               /* 10 → 9 (scale ตาม font ที่ไม่เปลี่ยน แต่ดูเข้ากันมากขึ้น) */
+  height: 1.8pt !important;            /* 2 → 1.8 (เล็กลงเล็กน้อย) */
   border-radius: 1pt !important;
   background: var(--tpl-accent) !important;
 }
@@ -234,9 +263,9 @@ html, body {
   line-height: 1.18 !important;
   padding: 0 !important;
   border: none !important;
+  border-left: none !important;          /* override 1pt solid #999 จาก base */
   margin: 0 !important;
   letter-spacing: -0.5pt !important;
-  flex: none !important;
 }
 
 
@@ -277,18 +306,48 @@ html, body {
 /* ========================================
    7. Ordered list — เลขในวงกลม accent (Gemini signature)
    ⚠ ทำงานคู่กับ section 8f ใน style_*.css ที่ใช้ ol-counter อยู่แล้ว
+
+   ─── Content override ───
+   base ใส่ `content: counter(...) "."` (มี dot)
+   → วงกลมเล็กไม่พอใส่ "1." ดูแน่น → override เป็นเลขเปล่า
+   → ต้องครอบ fallback selectors ทั้งหมด เพราะ
+      .content ol[style*="--ol-marker:..."] มี specificity สูงกว่า
+
+   ─── Limitation ───
+   วงกลม 19pt × 19pt เหมาะกับ marker ความยาว ≤ 2 ตัวอักษร
+   ถ้ามี ≥10 ข้อ → เลข "10", "11" จะเบียดวงกลม
+   → กรณีหนังสือมีข้อมาก แนะนำใช้ปรับขนาด width/height เป็น 22pt + font-size 8.5pt
    ======================================== */
 .content ol {
   padding-left: 28pt !important;
 }
 .content ol li {
   padding-left: 4pt !important;
+  margin: 0 0 5pt 0 !important;     /* ⚠ จำเป็น — กัน circle (19pt) ของ item N
+                                       overlap กับ item N+1 ตอนข้อความ 1 บรรทัด
+                                       (1-line li ≈ 15pt + margin 5pt = 20pt > 19.5pt circle) */
+  min-height: 19pt !important;       /* ห้ามต่ำกว่าวงกลม — กันข้อความสั้นๆ ทำให้ดูเบียด */
 }
-.content ol li::before {
-  /* base style_*.css มี content: counter(...) อยู่แล้ว — override styling */
+
+/* Content: override ทั้ง base + fallback variants ให้ตัด "." ออก
+   ─── Baseline alignment ───
+   วงกลมใช้ line-height 19pt (กว้างกว่า text line-height 14.88pt มาก)
+   → ทำให้ char baseline ภายในวงกลม อยู่ "ต่ำกว่า" text baseline ≈ 2pt
+   → ต้องใช้ top: -2pt ดึงวงกลมขึ้น เพื่อ align กับบรรทัดแรกของข้อความ
+   (วงกลมจะยื่นเหนือ li 2pt — ไม่กระทบ layout เพราะ position:absolute) */
+.content ol li::before,
+.content ol[style*="--ol-marker: lower-alpha"] li::before,
+.content ol[style*="--ol-marker:lower-alpha"]  li::before,
+.content ol[style*="--ol-marker: upper-alpha"] li::before,
+.content ol[style*="--ol-marker:upper-alpha"]  li::before,
+.content ol[style*="--ol-marker: thai-alpha"]  li::before,
+.content ol[style*="--ol-marker:thai-alpha"]   li::before,
+.content ol[style*="--ol-marker: decimal"]     li::before,
+.content ol[style*="--ol-marker:decimal"]      li::before {
+  content: counter(ol-counter, var(--ol-marker, decimal)) !important;  /* ไม่มี "." */
   position: absolute !important;
   left: -26pt !important;
-  top: 0.05em !important;
+  top: -2pt !important;                /* ดันวงกลมขึ้น → baseline ตรงกับ text */
   width: 19pt !important;
   height: 19pt !important;
   background: var(--tpl-accent) !important;
@@ -302,8 +361,64 @@ html, body {
   border: none !important;
 }
 
-/* Quiz cards — เก็บ marker เดิม (ของ base style) */
-.bd-grid.quiz li::before { content: none !important; }
+/* Fallback content per variant — กรณี WeasyPrint รุ่นเก่าไม่อ่าน var() ใน counter() */
+.content ol[style*="--ol-marker: lower-alpha"] li::before,
+.content ol[style*="--ol-marker:lower-alpha"]  li::before { content: counter(ol-counter, lower-alpha) !important; }
+.content ol[style*="--ol-marker: upper-alpha"] li::before,
+.content ol[style*="--ol-marker:upper-alpha"]  li::before { content: counter(ol-counter, upper-alpha) !important; }
+.content ol[style*="--ol-marker: thai-alpha"]  li::before,
+.content ol[style*="--ol-marker:thai-alpha"]   li::before { content: counter(ol-counter, thai-alpha)  !important; }
+.content ol[style*="--ol-marker: decimal"]     li::before,
+.content ol[style*="--ol-marker:decimal"]      li::before { content: counter(ol-counter, decimal)     !important; }
+
+
+/* ========================================
+   7b. Quiz cards — เอาวงกลมออก (แบบฝึก ไม่ต้องเน้นเหมือนเนื้อหา)
+   ⚠ ต้องครอบทุก variant ของ ol[style*="--ol-marker:..."]
+      เพราะ specificity ของ Section 7 = (0,2,3)
+      → reset แค่ .bd-grid.quiz li::before (0,2,2) แพ้
+      → ต้องใช้ .bd-grid.quiz ol li::before (0,2,3) + variant (0,3,3) จึงชนะ
+   ⚠ ห้ามใช้ content: none — ทำให้ ก, ข, ค หาย
+      ปล่อย content จาก Section 7 (counter ตาม --ol-marker) เป็น "a", "ก" ฯลฯ
+   ======================================== */
+.bd-grid.quiz ol li::before,
+.bd-grid.quiz ol[style*="--ol-marker"] li::before,
+.bd-grid.quiz ol[style*="--ol-marker: lower-alpha"] li::before,
+.bd-grid.quiz ol[style*="--ol-marker:lower-alpha"]  li::before,
+.bd-grid.quiz ol[style*="--ol-marker: upper-alpha"] li::before,
+.bd-grid.quiz ol[style*="--ol-marker:upper-alpha"]  li::before,
+.bd-grid.quiz ol[style*="--ol-marker: thai-alpha"]  li::before,
+.bd-grid.quiz ol[style*="--ol-marker:thai-alpha"]   li::before,
+.bd-grid.quiz ol[style*="--ol-marker: decimal"]     li::before,
+.bd-grid.quiz ol[style*="--ol-marker:decimal"]      li::before {
+  /* ล้างวงกลม + position ทั้งหมด → inline marker ปกติ */
+  position: static !important;
+  display: inline !important;
+  left: auto !important;
+  top: auto !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  border: none !important;
+  margin: 0 4pt 0 0 !important;
+  padding: 0 !important;
+  text-align: left !important;
+  line-height: inherit !important;
+  font-size: inherit !important;
+  font-family: inherit !important;
+  font-weight: 600 !important;
+  color: var(--tpl-accent-dk) !important;
+  /* content "a", "ก" ฯลฯ ตกทอดจาก Section 7 — ไม่ต้องตั้งใหม่ที่นี่ */
+}
+
+/* Quiz li — เผื่อ template Section 7 ใส่ min-height: 19pt → quiz ไม่ต้องการ */
+.bd-grid.quiz li {
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 10.5pt !important;
+}
 
 
 /* ========================================
@@ -321,12 +436,225 @@ html, body {
 
 
 /* ========================================
-   9. หมายเหตุ — สิ่งที่ไม่ใส่ใน template (เพราะ base style คุมอยู่แล้ว)
+   9. Code blocks — Roboto Mono + Google grey
+   base ใช้ var(--cd) = IBM Plex Mono → override เป็น var(--tpl-cd) = Roboto Mono
+   ======================================== */
+.code-block {
+  background: var(--tpl-code-bg) !important;
+  border: 0.5pt solid var(--tpl-border) !important;
+  border-radius: 3pt !important;
+}
+
+.code-header {
+  background: #F1F3F4 !important;             /* Google grey 200 */
+  border-bottom: 0.5pt solid var(--tpl-border) !important;
+}
+
+.code-lang-badge {
+  font-family: var(--tpl-cd) !important;
+  background: var(--tpl-accent) !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+}
+
+.code-filename {
+  font-family: var(--tpl-cd) !important;
+  color: var(--tpl-text) !important;
+}
+
+.code-linecount {
+  font-family: var(--tpl-cd) !important;
+  color: var(--tpl-muted) !important;
+}
+
+.code-block code,
+.line {
+  font-family: var(--tpl-cd) !important;      /* Roboto Mono */
+  color: var(--tpl-text) !important;
+}
+
+.line::before {
+  background: #F1F3F4 !important;             /* Google grey 200 */
+  color: var(--tpl-muted) !important;
+  border-right: 0.5pt solid var(--tpl-border) !important;
+}
+
+.inline-code,
+.content code:not(.line):not(pre code) {
+  font-family: var(--tpl-cd) !important;
+  background: #F1F3F4 !important;
+  color: var(--tpl-accent-dk) !important;
+  border: 0.5pt solid var(--tpl-border) !important;
+  border-radius: 2pt !important;
+}
+
+
+/* ========================================
+   10. Note (กล่องหมายเหตุ) — Gemini soft blue
+   ⚠ base ตั้ง font-size: 10pt ซึ่งใหญ่กว่า body (9.6pt) → ปรับให้เท่ากัน
+   ======================================== */
+.note {
+  background: var(--tpl-note-bg) !important;
+  border: 0.5pt solid var(--tpl-border) !important;
+  border-left: 2.5pt solid var(--tpl-note-bd) !important;
+  border-radius: 3pt !important;
+  color: var(--tpl-text) !important;
+  font-size: 9.6pt !important;        /* match body */
+  line-height: 1.55 !important;       /* match body */
+}
+
+.note-label {
+  font-family: var(--tpl-hd) !important;
+  color: var(--tpl-accent-dk) !important;
+  font-weight: 700 !important;
+  font-size: 9.3pt !important;        /* label เล็กกว่า body นิดเดียว — ใช้เป็น tag */
+  text-transform: uppercase !important;
+  letter-spacing: 0.4pt !important;
+  line-height: 1.28 !important;
+}
+
+/* ทุก inline element ใน note ต้อง match — base ตั้ง 10pt ไว้ทุกตัว */
+.note p,
+.note li,
+.note span,
+.note strong,
+.note b,
+.note ul,
+.note ol {
+  font-size: 9.6pt !important;        /* match body */
+  line-height: 1.55 !important;       /* match body */
+}
+
+
+/* ========================================
+   11. Blockquote — Gemini accent
+   ======================================== */
+blockquote {
+  border-left: 2.5pt solid var(--tpl-accent) !important;
+  background: var(--tpl-accent-lt) !important;
+  color: var(--tpl-text) !important;
+  border-radius: 3pt !important;
+  font-style: italic !important;
+}
+
+
+/* ========================================
+   12. Tables — header accent
+   ======================================== */
+.table-wrap {
+  border: 0.5pt solid var(--tpl-border) !important;
+  border-radius: 3pt !important;
+}
+
+thead {
+  background: var(--tpl-accent-lt) !important;
+}
+
+th {
+  font-family: var(--tpl-hd) !important;
+  color: var(--tpl-accent-dk) !important;
+  border-bottom: 0.8pt solid var(--tpl-accent) !important;
+  font-weight: 600 !important;
+}
+
+td {
+  color: var(--tpl-text) !important;
+  border-bottom: 0.5pt solid var(--tpl-border) !important;
+}
+
+
+/* ========================================
+   13. TOC — สารบัญ Gemini accent
+   ======================================== */
+.toc-title {
+  font-family: var(--tpl-hd) !important;
+  color: var(--tpl-text) !important;
+}
+
+.toc-item {
+  border-bottom: 0.4pt dashed var(--tpl-border) !important;
+  color: var(--tpl-text) !important;
+}
+
+.toc-num {
+  font-family: var(--tpl-hd) !important;
+  color: var(--tpl-accent) !important;
+  font-weight: 700 !important;
+}
+
+.toc-name {
+  font-family: var(--tpl-hd) !important;
+  font-weight: 500 !important;
+}
+
+.toc-leader {
+  border-bottom: 0.4pt dotted var(--tpl-muted) !important;
+}
+
+a.toc-item::after {
+  font-family: var(--tpl-hd) !important;
+  color: var(--tpl-muted) !important;
+}
+
+
+/* ========================================
+   14. Preface — คำนำ
+   ======================================== */
+.preface-title {
+  font-family: var(--tpl-hd) !important;
+  color: var(--tpl-text) !important;
+}
+
+.preface-content p {
+  font-family: var(--tpl-bd) !important;
+  color: var(--tpl-text) !important;
+}
+
+
+/* ========================================
+   15. Image markers — ตัวชี้หมายเลขบนรูป
+   เปลี่ยนเป็น Google blue ให้เข้าธีม
+   ======================================== */
+.img-marker {
+  background: var(--tpl-accent) !important;
+  color: #FFFFFF !important;
+  border: 2px solid #FFFFFF !important;
+  font-family: var(--tpl-hd) !important;
+}
+
+
+/* ========================================
+   16. Images — figure caption
+   ======================================== */
+.book-img img {
+  border: 0.5pt solid var(--tpl-border) !important;
+  border-radius: 3pt !important;
+}
+
+.book-img figcaption {
+  font-family: var(--tpl-hd) !important;
+  color: var(--tpl-muted) !important;
+  font-style: italic !important;
+}
+
+
+/* ========================================
+   17. Horizontal rule
+   ======================================== */
+hr {
+  background: var(--tpl-border) !important;
+}
+
+
+/* ========================================
+   หมายเหตุ — สิ่งที่ไม่ override ใน template นี้
+   (ใช้ค่าจาก base style หรือ size CSS)
    ========================================
-   - .note (callout box)
-   - .code-block / .line / .inline-code
-   - table (th/td)
-   - .book-img / image markers/rect/textbox/lines
-   - .credits-page
-   → ถ้าอยากปรับ component พวกนี้ด้วย สามารถเพิ่ม rule ใน template นี้ได้เลย
+   ✗ @page (size, margin, bleed, marks)              ← อยู่ใน sizes/
+   ✗ .cover, .cover-image, .back-cover-image         ← อยู่ใน sizes/
+   ✗ .credits-page (geometry)                        ← อยู่ใน sizes/
+   ✗ .bd-row, .bd-col display:table                  ← ระบบ grid (base)
+   ✗ .ch-hdr counter-reset / counter-increment       ← base
+   ✗ @counter-style thai-alpha                       ← base
+   ✗ string-set: chapter-title                       ← base
    ======================================== */
