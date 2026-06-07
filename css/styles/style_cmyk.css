@@ -1495,11 +1495,13 @@ body {
 }
 
 .preface-content p {
+  font-family: 'IBM Plex Sans Thai Looped', 'Anuphan', sans-serif !important;
   font-size: 9.6pt !important;
-  line-height: 1.46 !important;
+  font-weight: 300 !important;
+  line-height: 1.55 !important;
   margin: 0 0 6pt 0 !important;
   text-indent: 1.45em !important;
-  text-align: justify !important;
+  text-align: justify !important;       /* preface เก็บ justify ตามเดิม (ต่างจาก .content p ที่ left) */
   hyphens: auto !important;
   orphans: 3 !important;
   widows: 3 !important;
