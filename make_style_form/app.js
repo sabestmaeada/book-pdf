@@ -39,6 +39,14 @@ function lighten(hex, amount = 0.85) {
   return rgbToHex(r + (255 - r) * amount, g + (255 - g) * amount, b + (255 - b) * amount);
 }
 
+// Blend hex color toward black by percent (0 = pure hex, 100 = pure black)
+// ใช้สำหรับ heading ที่ต้องการให้เข้มขึ้น (กัน "จาง" ตอนพิมพ์ขาวดำ)
+function blendToBlack(hex, percent) {
+  const [r, g, b] = hexToRgb(hex);
+  const t = Math.max(0, Math.min(100, percent)) / 100;
+  return rgbToHex(r * (1 - t), g * (1 - t), b * (1 - t));
+}
+
 
 // ============================================================
 // CONFIG — อ่านค่าจาก form
@@ -68,6 +76,12 @@ function readConfig() {
     h1, h2, h3, h4,
     h2under: document.querySelector('input[name="h2under"]:checked').value,
     underlineLen: +document.getElementById('underlineLen').value,
+    h2svg: document.querySelector('input[name="h2svg"]:checked').value,
+    printGray: document.getElementById('printGrayMode').checked,
+    h1dark: +document.getElementById('h1dark').value,
+    h2dark: +document.getElementById('h2dark').value,
+    h3dark: +document.getElementById('h3dark').value,
+    h4dark: +document.getElementById('h4dark').value,
     olStyle: document.querySelector('input[name="olStyle"]:checked').value,
     noteStyle: document.querySelector('input[name="noteStyle"]:checked').value,
     dropCap: document.getElementById('dropCap').checked,
@@ -92,10 +106,48 @@ function fontStack(name, type) {
   return `'${name}', ${thaiFallback}`;
 }
 
+// Font weight availability — Google Fonts API จะ fail ถ้าขอ weight ที่ไม่มี
+// (เช่น Itim มีแค่ 400 — ขอ 300 แล้ว response 400 error)
+const FONT_WEIGHTS = {
+  // Heading — modern sans
+  'Poppins':                   '300;400;500;600;700',
+  'Prompt':                    '300;400;500;600;700',
+  'Kanit':                     '300;400;500;600;700',
+  'Krub':                      '300;400;500;600;700',
+  'Bai Jamjuree':              '300;400;500;600;700',
+  'KoHo':                      '300;400;500;600;700',
+  'IBM Plex Sans Thai':        '300;400;500;600;700',
+  // Display
+  'Mitr':                      '300;400;500;600;700',
+  'Chakra Petch':              '300;400;500;600;700',
+  'Charm':                     '400;700',                    // ⚠ มีแค่ 2 weights
+  // Handwritten / playful
+  'Itim':                      '400',                        // ⚠ มี weight เดียว!
+  'Mali':                      '300;400;500;600;700',
+  // Classic / serif
+  'Sarabun':                   '300;400;500;600;700',
+  'Trirong':                   '300;400;500;600;700',
+  // Body
+  'IBM Plex Sans Thai Looped': '300;400;500',
+  'Anuphan':                   '300;400;500;600;700',
+  'Noto Sans Thai':            '300;400;500;600;700',
+  'K2D':                       '300;400;500;600;700',
+  'Maitree':                   '300;400;500;600;700',
+  'Pridi':                     '300;400;500;600;700',
+  // Code
+  'IBM Plex Mono':             '300;400;500',
+  'JetBrains Mono':            '400;500;700',
+  'Roboto Mono':               '300;400;500;700',
+  'Source Code Pro':           '300;400;500;700',
+};
+
 function genGoogleImport(c) {
   const families = new Set([c.fontHd, c.fontBd, c.fontCd]);
   const url = 'https://fonts.googleapis.com/css2?' +
-    [...families].map(f => `family=${f.replace(/ /g, '+')}:wght@300;400;500;600;700`).join('&') +
+    [...families].map(f => {
+      const weights = FONT_WEIGHTS[f] || '400;500;700';   // safe fallback
+      return `family=${f.replace(/ /g, '+')}:wght@${weights}`;
+    }).join('&') +
     '&display=swap';
   return `/* === FONTS === */\n@import url('${url}');`;
 }
@@ -170,12 +222,21 @@ function genHeadings(c) {
 }` : `
 .content h2::after { content: none !important; }`;
 
-  return `/* === HEADINGS === */
+  // Blend accent-dk → black ตามความเข้มที่กำหนดต่อ heading
+  // 0% = pure accent-dk (สด, อาจจางใน B&W) / 100% = pure black K100 (เข้มสุด)
+  const h1color = blendToBlack(c.accentDk, c.h1dark);
+  const h2color = blendToBlack(c.accentDk, c.h2dark);
+  const h3color = blendToBlack(c.accentDk, c.h3dark);
+  const h4color = blendToBlack(c.accentDk, c.h4dark);
+
+  return `/* === HEADINGS ===
+   Color blend: 0%=accent-dk / 100%=K100 (per-heading darkness)
+   h1: ${c.h1dark}% / h2: ${c.h2dark}% / h3: ${c.h3dark}% / h4: ${c.h4dark}% */
 .content h1 {
   font-family: var(--tpl-hd) !important;
   font-size: ${c.h1}pt !important;
   font-weight: 700 !important;
-  color: var(--tpl-accent-dk) !important;
+  color: ${h1color} !important;
   margin: ${Math.round(c.h1 * 1.3)}pt 0 ${Math.round(c.h1 * 0.6)}pt 0 !important;
   padding: 0 !important;
   background: transparent !important;
@@ -186,7 +247,7 @@ function genHeadings(c) {
   font-family: var(--tpl-hd) !important;
   font-size: ${c.h2}pt !important;
   font-weight: 700 !important;
-  color: var(--tpl-accent-dk) !important;
+  color: ${h2color} !important;
   background: transparent !important;
   margin: ${Math.round(c.h2 * 1.4)}pt 0 ${Math.round(c.h2 * 0.7)}pt 0 !important;
   padding: 0 !important;
@@ -200,7 +261,7 @@ function genHeadings(c) {
   font-family: var(--tpl-hd) !important;
   font-size: ${c.h3}pt !important;
   font-weight: 600 !important;
-  color: var(--tpl-accent-dk) !important;
+  color: ${h3color} !important;
   background: transparent !important;
   margin: ${Math.round(c.h3 * 1.2)}pt 0 ${Math.round(c.h3 * 0.5)}pt 0 !important;
   padding: 0 !important;
@@ -214,7 +275,7 @@ function genHeadings(c) {
   font-family: var(--tpl-hd) !important;
   font-size: ${c.h4}pt !important;
   font-weight: 700 !important;
-  color: var(--tpl-accent-dk) !important;
+  color: ${h4color} !important;
   background: transparent !important;
   margin: ${Math.round(c.h4 * 1.2)}pt 0 ${Math.round(c.h4 * 0.5)}pt 0 !important;
   padding: 0 !important;
@@ -533,6 +594,60 @@ function genCode() {
 }`;
 }
 
+// ============================================================
+// SVG decoration for h2 — inline data URI (WeasyPrint safe)
+// ============================================================
+function svgDataUri(type, color) {
+  const c = color.replace('#', '%23');
+  // viewBox 0 0 24 24 ทุกอัน → ปรับขนาด h2 รัน proportional
+  const svgs = {
+    // === Basic (simple shapes) ===
+    bar:     `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect x='10' y='2' width='4' height='20' fill='${c}'/></svg>`,
+    diamond: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 3 L21 12 L12 21 L3 12 Z' stroke='${c}' stroke-width='2' fill='none'/></svg>`,
+    chevron: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M8 4 L16 12 L8 20' stroke='${c}' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>`,
+    dots:    `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='4' cy='12' r='3' fill='${c}'/><circle cx='12' cy='12' r='3' fill='${c}'/><circle cx='20' cy='12' r='3' fill='${c}'/></svg>`,
+    star:    `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 2 L14.5 9 L21.5 9 L16 13 L18 20 L12 16 L6 20 L8 13 L2.5 9 L9.5 9 Z' fill='${c}'/></svg>`,
+
+    // === Decorative (complex, beautiful) ===
+    fleuron: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 3 C7 8 5 13 5 16 C5 19 8 20 12 20 C16 20 19 19 19 16 C19 13 17 8 12 3' stroke='${c}' stroke-width='1.5' fill='none'/><line x1='12' y1='6' x2='12' y2='19' stroke='${c}' stroke-width='1.2'/></svg>`,
+    wave:    `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M2 14 Q6 6 12 12 T22 10' stroke='${c}' stroke-width='2' fill='none' stroke-linecap='round'/><circle cx='2' cy='14' r='1.2' fill='${c}'/><circle cx='22' cy='10' r='1.2' fill='${c}'/></svg>`,
+    crown:   `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M3 20 L5 9 L9 13 L12 6 L15 13 L19 9 L21 20 Z' stroke='${c}' stroke-width='1.5' fill='none' stroke-linejoin='round'/><rect x='4' y='20' width='16' height='2' fill='${c}'/></svg>`,
+    compass: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='9' stroke='${c}' stroke-width='1.2' fill='none'/><path d='M12 3 L14 12 L10 12 Z' fill='${c}'/><path d='M12 21 L14 12 L10 12 Z' stroke='${c}' stroke-width='1' fill='none'/><circle cx='12' cy='12' r='1.2' fill='${c}'/></svg>`,
+    quill:   `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M5 20 L19 6 L21 8 L7 22 Z' fill='${c}'/><path d='M5 20 L3 22 L4 23 L7 22 Z' fill='${c}'/><circle cx='20' cy='6' r='1.2' fill='${c}'/></svg>`,
+    mandala: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='5' stroke='${c}' stroke-width='1.5' fill='none'/><circle cx='12' cy='12' r='2' fill='${c}'/><g stroke='${c}' stroke-width='1.5' stroke-linecap='round'><line x1='12' y1='3' x2='12' y2='5.5'/><line x1='12' y1='18.5' x2='12' y2='21'/><line x1='3' y1='12' x2='5.5' y2='12'/><line x1='18.5' y1='12' x2='21' y2='12'/></g></svg>`,
+
+    // === Grid 2×2 group ===
+    squares_4: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M7 3 L11 7 L7 11 L3 7 Z' fill='${c}'/><path d='M17 3 L21 7 L17 11 L13 7 Z' fill='${c}'/><path d='M7 13 L11 17 L7 21 L3 17 Z' fill='${c}'/><path d='M17 13 L21 17 L17 21 L13 17 Z' fill='${c}'/></svg>`,
+    circles_4: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='8' cy='8' r='3' fill='${c}'/><circle cx='16' cy='8' r='3' fill='${c}'/><circle cx='8' cy='16' r='3' fill='${c}'/><circle cx='16' cy='16' r='3' fill='${c}'/></svg>`,
+    windows:   `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect x='3' y='3' width='8.5' height='8.5' fill='${c}'/><rect x='12.5' y='3' width='8.5' height='8.5' fill='${c}'/><rect x='3' y='12.5' width='8.5' height='8.5' fill='${c}'/><rect x='12.5' y='12.5' width='8.5' height='8.5' fill='${c}'/></svg>`,
+  };
+  if (!svgs[type]) return '';
+  return `url("data:image/svg+xml;utf8,${svgs[type]}")`;
+}
+
+function genH2Svg(c) {
+  if (c.h2svg === 'none') return '';
+  const uri = svgDataUri(c.h2svg, c.accent);
+  if (!uri) return '';
+  // override `content: none` ที่ genHeadings ตั้งไว้ก่อนหน้า (cascade last wins)
+  // ใช้ background-image แทน content: url() เพราะคุม size/aspect ได้ดีกว่า + รองรับ WeasyPrint
+  return `/* === H2 SVG decoration === */
+.content h2::before {
+  content: "" !important;
+  display: inline-block !important;
+  width: 14pt !important;
+  height: 14pt !important;
+  background-image: ${uri} !important;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  vertical-align: middle !important;
+  margin-right: 8pt !important;
+  margin-bottom: 1.5pt !important;
+}`;
+}
+
+
 function genDropCap(c) {
   if (!c.dropCap) return '';
   return `/* === DROP CAP === */
@@ -544,6 +659,57 @@ function genDropCap(c) {
   float: left !important;
   line-height: 0.85 !important;
   margin: 1pt 4pt 0 0 !important;
+}`;
+}
+
+function genTOC(c) {
+  // toc-title ใช้ blend เหมือน h1 — B&W toggle จะดันให้เข้มอัตโนมัติ
+  const titleColor = blendToBlack(c.accentDk, c.h1dark);
+  return `/* === TOC (สารบัญ) ===
+   toc-title blend ตาม h1 darkness (${c.h1dark}%) */
+.toc-title {
+  font-family: var(--tpl-hd) !important;
+  color: ${titleColor} !important;
+  font-weight: 700 !important;
+}
+.toc-item {
+  border-bottom: 0.4pt dashed var(--tpl-border, #d0d0d0) !important;
+  color: var(--tpl-text) !important;
+}
+.toc-num {
+  font-family: var(--tpl-hd) !important;
+  color: var(--tpl-accent) !important;
+  font-weight: 700 !important;
+}
+.toc-name {
+  font-family: var(--tpl-bd) !important;
+  color: var(--tpl-text) !important;
+  font-weight: 500 !important;
+}
+.toc-leader {
+  border-bottom: 0.4pt dotted var(--tpl-muted) !important;
+}
+.toc-page,
+a.toc-item::after {
+  font-family: var(--tpl-hd) !important;
+  color: var(--tpl-muted) !important;
+  font-weight: 500 !important;
+}`;
+}
+
+function genPreface(c) {
+  // preface-title blend ตาม h1 — สอดคล้องกัน (คำนำ = heading level 1)
+  const titleColor = blendToBlack(c.accentDk, c.h1dark);
+  return `/* === Preface (คำนำ) ===
+   preface-title blend ตาม h1 darkness (${c.h1dark}%) */
+.preface-title {
+  font-family: var(--tpl-hd) !important;
+  color: ${titleColor} !important;
+  font-weight: 700 !important;
+}
+.preface-content p {
+  font-family: var(--tpl-bd) !important;
+  color: var(--tpl-text) !important;
 }`;
 }
 
@@ -560,7 +726,6 @@ blockquote {
 }
 thead { background: var(--tpl-accent-lt) !important; }
 th { color: var(--tpl-accent-dk) !important; border-bottom: 0.8pt solid var(--tpl-accent) !important; }
-.toc-num { color: var(--tpl-accent) !important; font-weight: 700 !important; }
 .img-marker {
   background: var(--tpl-accent) !important;
   color: #FFFFFF !important;
@@ -580,12 +745,15 @@ function generate() {
     genVariables(c),
     genBody(c),
     genHeadings(c),
+    genH2Svg(c),
     genChapter(c),
     genOL(c),
     genQuiz(),
     genNote(c),
     genCode(),
     genDropCap(c),
+    genTOC(c),
+    genPreface(c),
     genMisc(),
   ].filter(Boolean).join('\n\n\n');
 
@@ -656,6 +824,12 @@ function handleInputChange() {
   document.getElementById('sinkVal').textContent =
     document.getElementById('sinkAmount').value;
 
+  // sync heading darkness slider values
+  ['h1', 'h2', 'h3', 'h4'].forEach(h => {
+    const val = document.getElementById(h + 'dark').value;
+    document.getElementById(h + 'darkVal').textContent = val;
+  });
+
   // toggle sinkage row
   const sink = document.getElementById('sinkage').checked;
   document.getElementById('sinkRow').hidden = !sink;
@@ -663,6 +837,19 @@ function handleInputChange() {
   // active swatch
   document.querySelectorAll('.swatch').forEach(s => {
     s.classList.toggle('active', s.dataset.hex.toLowerCase() === accent.toLowerCase());
+  });
+}
+
+// "พิมพ์ขาวดำ" toggle → preset sliders auto (รัน BEFORE bindForm's generic handler)
+function bindGrayModeToggle() {
+  document.getElementById('printGrayMode').addEventListener('change', (e) => {
+    const checked = e.target.checked;
+    // Recommended defaults: h1=100, h2=100, h3=85, h4=70
+    const preset = checked ? [100, 100, 85, 70] : [0, 0, 0, 0];
+    ['h1', 'h2', 'h3', 'h4'].forEach((h, i) => {
+      document.getElementById(h + 'dark').value = preset[i];
+    });
+    // bindForm's generic listener will trigger generate() หลังจาก handler นี้
   });
 }
 
@@ -757,6 +944,7 @@ function bindReset() {
     document.querySelector('input[name="hdScale"][value="standard"]').checked = true;
     document.querySelector('input[name="h2under"][value="short"]').checked = true;
     document.getElementById('underlineLen').value = 50;
+    document.querySelector('input[name="h2svg"][value="none"]').checked = true;
     document.querySelector('input[name="olStyle"][value="circle"]').checked = true;
     document.querySelector('input[name="noteStyle"][value="simple"]').checked = true;
     document.getElementById('dropCap').checked = false;
@@ -764,6 +952,11 @@ function bindReset() {
     document.getElementById('sinkAmount').value = 35;
     document.getElementById('justifyBody').checked = false;
     document.getElementById('centerChapter').checked = false;
+    document.getElementById('printGrayMode').checked = false;
+    document.getElementById('h1dark').value = 0;
+    document.getElementById('h2dark').value = 0;
+    document.getElementById('h3dark').value = 0;
+    document.getElementById('h4dark').value = 0;
     STATE.baseCSS = '';
     STATE.baseName = '';
     document.getElementById('fileName').textContent = 'ลากไฟล์ลงตรงนี้ หรือคลิกเพื่อเลือก';
@@ -778,6 +971,7 @@ function bindReset() {
 // INIT
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
+  bindGrayModeToggle();   // ต้อง bind ก่อน bindForm — handler รันตามลำดับ register
   bindForm();
   bindSwatches();
   bindUpload();
