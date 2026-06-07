@@ -505,7 +505,9 @@ def build_pipeline(
             weasy_cmd += ["-s", "css/no-marks.css"]
         weasy_cmd += [
             "--pdf-variant", "pdf/x-4",
-            "--optimize-images", "-j", "90", "-D", "300",
+            # ตัด --optimize-images -j 90 ออก → ไม่ re-encode รูป → ฝัง original bytes
+            # (PDF โตขึ้น ~30-50% แต่ภาพคมเท่าต้นฉบับ)
+            "-D", "300",
             "-c", ".weasy-cache",
             str(synced_html),
             str(rgb_pdf),
