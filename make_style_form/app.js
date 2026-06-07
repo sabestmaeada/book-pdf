@@ -17,16 +17,30 @@ const STATE = {
 // ============================================================
 // HELPERS — color math
 // ============================================================
+// Defensive: รับ string ใดๆ ก็คืนค่า rgb ปกติ — ถ้า invalid → [0, 0, 0]
 function hexToRgb(hex) {
-  hex = hex.replace('#', '');
+  if (typeof hex !== 'string') return [0, 0, 0];
+  hex = hex.replace('#', '').trim();
   if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+  if (!/^[0-9a-fA-F]{6}$/.test(hex)) return [0, 0, 0];
   const n = parseInt(hex, 16);
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 
+// Defensive: กัน NaN ไม่ให้ออกมาเป็น "#NaNNaNNaN"
 function rgbToHex(r, g, b) {
-  const toHex = v => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0');
+  const toHex = v => {
+    const n = Math.round(Math.max(0, Math.min(255, +v || 0)));
+    return n.toString(16).padStart(2, '0');
+  };
   return '#' + toHex(r) + toHex(g) + toHex(b);
+}
+
+// Safe color — fallback ถ้า input ไม่ใช่ hex ที่ valid
+function safeColor(hex, fallback = '#000000') {
+  if (typeof hex !== 'string') return fallback;
+  if (!/^#[0-9a-fA-F]{3,8}$/.test(hex.trim())) return fallback;
+  return hex.trim();
 }
 
 function darken(hex, amount = 0.25) {
@@ -42,8 +56,10 @@ function lighten(hex, amount = 0.85) {
 // Blend hex color toward black by percent (0 = pure hex, 100 = pure black)
 // ใช้สำหรับ heading ที่ต้องการให้เข้มขึ้น (กัน "จาง" ตอนพิมพ์ขาวดำ)
 function blendToBlack(hex, percent) {
+  hex = safeColor(hex);
   const [r, g, b] = hexToRgb(hex);
-  const t = Math.max(0, Math.min(100, percent)) / 100;
+  const p = +percent || 0;
+  const t = Math.max(0, Math.min(100, p)) / 100;
   return rgbToHex(r * (1 - t), g * (1 - t), b * (1 - t));
 }
 
@@ -153,14 +169,18 @@ function genGoogleImport(c) {
 }
 
 function genVariables(c) {
+  // Defensive — กัน CSS variable เป็น empty value (ทำให้ var() ทุกที่พังตาม)
+  const accent    = safeColor(c.accent,    '#1A73E8');
+  const accentDk  = safeColor(c.accentDk,  '#0F5BB9');
+  const accentLt  = safeColor(c.accentLt,  '#E8F0FE');
   return `:root {
   --tpl-hd: ${fontStack(c.fontHd, 'hd')} !important;
   --tpl-bd: ${fontStack(c.fontBd, 'bd')} !important;
   --tpl-cd: ${fontStack(c.fontCd, 'cd')} !important;
 
-  --tpl-accent:    ${c.accent} !important;
-  --tpl-accent-dk: ${c.accentDk} !important;
-  --tpl-accent-lt: ${c.accentLt} !important;
+  --tpl-accent:    ${accent} !important;
+  --tpl-accent-dk: ${accentDk} !important;
+  --tpl-accent-lt: ${accentLt} !important;
 }`;
 }
 
