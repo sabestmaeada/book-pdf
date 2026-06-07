@@ -1,0 +1,485 @@
+/* =========================================================
+   example_workbook.css — Practical Workbook (Teal)
+   ---------------------------------------------------------
+   มู้ด:    วิชาการ-textbook (ตำราเรียน คู่มือ เตรียมสอบ)
+   สี:     เขียวมิ้นต์-teal #14746F + ดำ
+   ฟอนต์:  Mitr (heading) + Anuphan (body) + JetBrains Mono
+   จุดเด่น: heading เด่นชัด, note เน้น (warning/tip variants),
+            OL ตัวเลขในวงกลม, quiz cards เด่น, drop cap small
+   ========================================================= */
+
+
+/* ========================================
+   1. Fonts
+   ======================================== */
+@import url('https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600;700&family=Anuphan:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+
+/* ========================================
+   2. Variables
+   ======================================== */
+:root {
+  --tpl-hd: 'Mitr', 'IBM Plex Sans Thai', sans-serif !important;
+  --tpl-bd: 'Anuphan', 'IBM Plex Sans Thai Looped', sans-serif !important;
+  --tpl-cd: 'JetBrains Mono', 'IBM Plex Mono', monospace !important;
+
+  --tpl-accent:    #14746F !important;   /* Teal */
+  --tpl-accent-dk: #0A4A47 !important;
+  --tpl-accent-lt: #E0F2F1 !important;
+
+  --tpl-text:      #1A2330 !important;   /* น้ำเงินเข้มมาก */
+  --tpl-muted:     #5A6B7A !important;
+  --tpl-border:    #C5D5D4 !important;
+
+  --tpl-note-bg:   #FFF8E6 !important;   /* เหลืองอ่อน — note ติด attention */
+  --tpl-note-bd:   #C28800 !important;   /* เหลืองเข้ม-ส้ม */
+  --tpl-code-bg:   #F0F4F4 !important;
+}
+
+
+/* ========================================
+   3. Body
+   ======================================== */
+html, body {
+  font-family: var(--tpl-bd) !important;
+  font-size: 9.6pt !important;
+  line-height: 1.55 !important;
+  color: var(--tpl-text) !important;
+}
+
+.content p {
+  font-family: var(--tpl-bd) !important;
+  font-size: 9.6pt !important;
+  font-weight: 300 !important;
+  line-height: 1.55 !important;
+  text-align: left !important;
+  text-indent: 1.4em !important;
+  margin: 0 0 6pt 0 !important;
+  hyphens: auto !important;
+  color: var(--tpl-text) !important;
+}
+
+.content ul, .content ol {
+  font-family: var(--tpl-bd) !important;
+  font-size: 9.6pt !important;
+  font-weight: 300 !important;
+  line-height: 1.55 !important;
+  color: var(--tpl-text) !important;
+}
+
+.content li, .content li > p {
+  font-family: var(--tpl-bd) !important;
+  font-size: 9.6pt !important;
+  font-weight: 300 !important;
+  line-height: 1.55 !important;
+  color: var(--tpl-text) !important;
+}
+
+
+/* ========================================
+   4. Headings — clear textbook hierarchy
+   ======================================== */
+.content h1 {
+  font-family: var(--tpl-hd) !important;
+  font-size: 16pt !important;
+  font-weight: 600 !important;
+  color: var(--tpl-accent-dk) !important;
+  margin: 20pt 0 9pt 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  line-height: 1.3 !important;
+}
+
+.content h2 {
+  font-family: var(--tpl-hd) !important;
+  font-size: 13.5pt !important;
+  font-weight: 600 !important;
+  color: #FFFFFF !important;
+  background: var(--tpl-accent) !important;
+  margin: 18pt 0 9pt 0 !important;
+  padding: 5pt 9pt !important;
+  border: none !important;
+  display: block !important;
+  line-height: 1.3 !important;
+  border-radius: 2pt !important;
+}
+.content h2::before { content: none !important; }
+.content h2::after  { content: none !important; }
+
+.content h3 {
+  font-family: var(--tpl-hd) !important;
+  font-size: 12pt !important;
+  font-weight: 500 !important;
+  color: var(--tpl-accent-dk) !important;
+  background: var(--tpl-accent-lt) !important;
+  margin: 14pt 0 6pt 0 !important;
+  padding: 3.5pt 7pt !important;
+  border: none !important;
+  border-left: 2.5pt solid var(--tpl-accent) !important;
+  position: static !important;
+  line-height: 1.35 !important;
+}
+.content h3::before { content: none !important; }
+
+.content h4 {
+  font-family: var(--tpl-hd) !important;
+  font-size: 10.8pt !important;
+  font-weight: 600 !important;
+  color: var(--tpl-accent-dk) !important;
+  background: transparent !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  padding: 0 0 0 8pt !important;
+  margin: 12pt 0 5pt 0 !important;
+  border: none !important;
+  border-left: 2pt solid var(--tpl-accent) !important;
+  position: static !important;
+  line-height: 1.4 !important;
+}
+.content h4::before { content: none !important; }
+
+
+/* ========================================
+   5. Heading → p spacing
+   ======================================== */
+.content h2 + p { margin-top: 4pt !important; }
+.content h3 + p { margin-top: 3pt !important; }
+.content h4 + p { margin-top: 3pt !important; }
+
+
+/* ========================================
+   6. Chapter header — textbook style with accent bar
+   ======================================== */
+.ch-hdr {
+  display: block !important;
+  text-align: left !important;
+  padding: 14pt 0 16pt 0 !important;
+  margin: 0 0 24pt 0 !important;
+  border: none !important;
+  background: transparent !important;
+  position: relative !important;
+  min-height: auto !important;
+}
+.ch-hdr::after {
+  content: "" !important;
+  position: absolute !important;
+  left: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 3pt !important;
+  background: var(--tpl-accent) !important;
+}
+
+.ch-num {
+  display: inline-block !important;
+  font-family: var(--tpl-hd) !important;
+  font-size: 10.5pt !important;
+  font-weight: 600 !important;
+  color: #FFFFFF !important;
+  background: var(--tpl-accent) !important;
+  padding: 3pt 9pt !important;
+  margin: 0 0 8pt 0 !important;
+  min-width: 0 !important;
+  line-height: 1.4 !important;
+  border-radius: 2pt !important;
+}
+.ch-num::before { content: none !important; }
+.ch-num::after  { content: none !important; }
+
+.ch-title {
+  display: block !important;
+  font-family: var(--tpl-hd) !important;
+  font-size: 22pt !important;
+  font-weight: 600 !important;
+  color: var(--tpl-text) !important;
+  line-height: 1.2 !important;
+  padding: 0 !important;
+  border: none !important;
+  border-left: none !important;
+  margin: 0 !important;
+}
+
+
+/* ========================================
+   7. Inline elements
+   ======================================== */
+.content strong, .content b {
+  font-weight: 600 !important;
+  color: var(--tpl-accent-dk) !important;
+}
+.content em, .content i { font-style: italic !important; }
+.content a {
+  color: var(--tpl-accent) !important;
+  text-decoration: underline !important;
+}
+.content mark {
+  background: #FFF8C5 !important;             /* highlighter yellow */
+  color: var(--tpl-text) !important;
+  padding: 0 2pt !important;
+}
+
+
+/* ========================================
+   8. OL counter — numbered circle accent
+   ======================================== */
+.content ol {
+  padding-left: 26pt !important;
+}
+.content ol li {
+  padding-left: 4pt !important;
+  margin: 0 0 5pt 0 !important;
+  min-height: 17pt !important;
+}
+.content ol li::before,
+.content ol[style*="--ol-marker: lower-alpha"] li::before,
+.content ol[style*="--ol-marker:lower-alpha"]  li::before,
+.content ol[style*="--ol-marker: upper-alpha"] li::before,
+.content ol[style*="--ol-marker:upper-alpha"]  li::before,
+.content ol[style*="--ol-marker: thai-alpha"]  li::before,
+.content ol[style*="--ol-marker:thai-alpha"]   li::before,
+.content ol[style*="--ol-marker: decimal"]     li::before,
+.content ol[style*="--ol-marker:decimal"]      li::before {
+  content: counter(ol-counter, var(--ol-marker, decimal)) !important;
+  position: absolute !important;
+  left: -24pt !important;
+  top: -1.5pt !important;
+  width: 17pt !important;
+  height: 17pt !important;
+  background: var(--tpl-accent) !important;
+  color: #FFFFFF !important;
+  font-family: var(--tpl-hd) !important;
+  font-size: 8.5pt !important;
+  font-weight: 600 !important;
+  line-height: 17pt !important;
+  text-align: center !important;
+  border-radius: 50% !important;
+  border: none !important;
+}
+
+.content ul li::marker {
+  color: var(--tpl-accent) !important;
+}
+
+
+/* ========================================
+   9. Quiz reset — เอาวงกลมออก (แบบฝึก)
+   ======================================== */
+.bd-grid.quiz ol li::before,
+.bd-grid.quiz ol[style*="--ol-marker"] li::before {
+  position: static !important;
+  display: inline !important;
+  left: auto !important;
+  top: auto !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  border: none !important;
+  margin: 0 4pt 0 0 !important;
+  padding: 0 !important;
+  text-align: left !important;
+  line-height: inherit !important;
+  font-size: inherit !important;
+  font-weight: 600 !important;
+  color: var(--tpl-accent-dk) !important;
+}
+.bd-grid.quiz li {
+  min-height: 0 !important;
+  margin: 2pt 0 !important;
+  padding: 4pt 10pt !important;
+  background: var(--tpl-accent-lt) !important;     /* quiz card style */
+  border-radius: 2pt !important;
+}
+
+
+/* ========================================
+   10. Drop cap — small textbook style (optional)
+   ======================================== */
+.drop-cap::first-letter {
+  font-family: var(--tpl-hd) !important;
+  font-size: 24pt !important;
+  font-weight: 600 !important;
+  color: var(--tpl-accent) !important;
+  float: left !important;
+  line-height: 0.9 !important;
+  margin: 1pt 3pt 0 0 !important;
+}
+
+
+/* ========================================
+   11. Code blocks
+   ======================================== */
+.code-block {
+  background: var(--tpl-code-bg) !important;
+  border: 0.5pt solid var(--tpl-border) !important;
+  border-radius: 3pt !important;
+}
+.code-header {
+  background: #DDE6E5 !important;
+  border-bottom: 0.5pt solid var(--tpl-border) !important;
+}
+.code-lang-badge {
+  font-family: var(--tpl-cd) !important;
+  background: var(--tpl-accent) !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+}
+.code-filename, .code-linecount {
+  font-family: var(--tpl-cd) !important;
+}
+.code-block code, .line {
+  font-family: var(--tpl-cd) !important;
+  font-size: 9pt !important;
+  line-height: 1.4 !important;
+  color: var(--tpl-text) !important;
+}
+.line::before {
+  background: #DDE6E5 !important;
+  color: var(--tpl-muted) !important;
+  font-size: 7.5pt !important;
+}
+.inline-code,
+.content code:not(.line):not(pre code) {
+  font-family: var(--tpl-cd) !important;
+  font-size: 9pt !important;
+  background: var(--tpl-code-bg) !important;
+  color: var(--tpl-accent-dk) !important;
+  border: 0.5pt solid var(--tpl-border) !important;
+  border-radius: 2pt !important;
+  padding: 0.5pt 2.5pt !important;
+}
+
+
+/* ========================================
+   12. Note — yellow attention box (textbook style)
+   ======================================== */
+.note {
+  background: var(--tpl-note-bg) !important;
+  border: 0.5pt solid var(--tpl-note-bd) !important;
+  border-left: 3pt solid var(--tpl-note-bd) !important;
+  border-radius: 3pt !important;
+  color: var(--tpl-text) !important;
+  font-size: 9.6pt !important;
+  line-height: 1.55 !important;
+  padding: 7pt 9pt !important;
+}
+.note-label {
+  font-family: var(--tpl-hd) !important;
+  color: var(--tpl-note-bd) !important;
+  font-weight: 700 !important;
+  font-size: 9.3pt !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5pt !important;
+  line-height: 1.3 !important;
+}
+.note p, .note li, .note span, .note strong, .note b,
+.note ul, .note ol {
+  font-size: 9.6pt !important;
+  line-height: 1.55 !important;
+}
+
+
+/* ========================================
+   13. Blockquote — accent stripe
+   ======================================== */
+blockquote {
+  border-left: 3pt solid var(--tpl-accent) !important;
+  background: var(--tpl-accent-lt) !important;
+  color: var(--tpl-text) !important;
+  border-radius: 0 3pt 3pt 0 !important;
+  padding: 7pt 10pt !important;
+  margin: 9pt 0 !important;
+}
+
+
+/* ========================================
+   14. Tables — textbook grid
+   ======================================== */
+.table-wrap {
+  border: 0.5pt solid var(--tpl-border) !important;
+  border-radius: 2pt !important;
+}
+thead {
+  background: var(--tpl-accent) !important;
+}
+th {
+  font-family: var(--tpl-hd) !important;
+  color: #FFFFFF !important;
+  border-bottom: none !important;
+  font-weight: 600 !important;
+}
+td {
+  color: var(--tpl-text) !important;
+  border-bottom: 0.5pt solid var(--tpl-border) !important;
+}
+
+
+/* ========================================
+   15. TOC
+   ======================================== */
+.toc-title {
+  font-family: var(--tpl-hd) !important;
+  font-size: 18pt !important;
+  color: var(--tpl-accent-dk) !important;
+}
+.toc-item {
+  border-bottom: 0.4pt dashed var(--tpl-border) !important;
+  color: var(--tpl-text) !important;
+}
+.toc-num {
+  font-family: var(--tpl-hd) !important;
+  color: var(--tpl-accent) !important;
+  font-weight: 600 !important;
+}
+.toc-name {
+  font-family: var(--tpl-bd) !important;
+  font-weight: 500 !important;
+}
+.toc-leader {
+  border-bottom: 0.4pt dotted var(--tpl-muted) !important;
+}
+a.toc-item::after {
+  font-family: var(--tpl-hd) !important;
+  color: var(--tpl-muted) !important;
+  font-weight: 500 !important;
+}
+
+
+/* ========================================
+   16. Preface
+   ======================================== */
+.preface-title {
+  font-family: var(--tpl-hd) !important;
+  font-size: 18pt !important;
+  color: var(--tpl-accent-dk) !important;
+  font-weight: 600 !important;
+}
+.preface-content p {
+  font-family: var(--tpl-bd) !important;
+  color: var(--tpl-text) !important;
+}
+
+
+/* ========================================
+   17. Image markers + figure + hr
+   ======================================== */
+.img-marker {
+  background: var(--tpl-accent) !important;
+  color: #FFFFFF !important;
+  border: 2px solid #FFFFFF !important;
+  font-family: var(--tpl-hd) !important;
+}
+.book-img img {
+  border: 0.5pt solid var(--tpl-border) !important;
+  border-radius: 3pt !important;
+}
+.book-img figcaption {
+  font-family: var(--tpl-hd) !important;
+  color: var(--tpl-muted) !important;
+  font-style: italic !important;
+}
+hr {
+  background: var(--tpl-border) !important;
+}

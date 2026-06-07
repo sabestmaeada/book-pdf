@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Make Style Form — สร้างเทมเพลตหนังสือ</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Sans+Thai+Looped:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <h1>🎨 Make Style Form</h1>
+    <p class="sub">สร้างเทมเพลตหนังสือโดยไม่ต้องเขียน CSS — เปิดไฟล์ → ติ๊กเลือก → ดาวน์โหลด</p>
+  </div>
+</header>
+
+<main class="layout">
+
+  <!-- =========================================
+       LEFT — FORM
+       ========================================= -->
+  <section class="form">
+
+    <!-- A. Base CSS -->
+    <fieldset>
+      <legend>A. เลือก base template</legend>
+      <p class="hint">อัปโหลดไฟล์ <code>.css</code> ตัวอย่าง (จาก <code>template/EXAMPLES/</code>) เป็นจุดเริ่ม</p>
+      <label class="file-drop" id="dropArea">
+        <input type="file" id="upload" accept=".css">
+        <span class="file-info">
+          <strong id="fileName">ลากไฟล์ลงตรงนี้ หรือคลิกเพื่อเลือก</strong>
+          <span id="fileSize" class="muted">ยังไม่มีไฟล์</span>
+        </span>
+      </label>
+      <details class="advanced">
+        <summary>หรือเริ่มจากศูนย์ (ไม่อัปโหลด)</summary>
+        <p class="hint">ระบบจะใช้โครงสร้าง Gemini-modern เป็น base แล้ว override ตามค่าที่ตั้ง</p>
+      </details>
+    </fieldset>
+
+    <!-- B. Colors -->
+    <fieldset>
+      <legend>B. สีหลัก (accent)</legend>
+      <p class="hint">เลือกจาก palette หรือใส่ hex เอง</p>
+      <div class="swatch-row" id="swatches">
+        <button type="button" class="swatch" data-hex="#1A73E8" style="background:#1A73E8" title="น้ำเงิน Google"></button>
+        <button type="button" class="swatch" data-hex="#1F3A93" style="background:#1F3A93" title="น้ำเงินทางการ"></button>
+        <button type="button" class="swatch" data-hex="#14746F" style="background:#14746F" title="เขียวมิ้นต์"></button>
+        <button type="button" class="swatch" data-hex="#1E7E34" style="background:#1E7E34" title="เขียวธรรมชาติ"></button>
+        <button type="button" class="swatch" data-hex="#8B1538" style="background:#8B1538" title="แดงเบอร์กันดี"></button>
+        <button type="button" class="swatch" data-hex="#C0392B" style="background:#C0392B" title="แดงสด"></button>
+        <button type="button" class="swatch" data-hex="#C75A1A" style="background:#C75A1A" title="ส้มอบอุ่น"></button>
+        <button type="button" class="swatch" data-hex="#5C2E5C" style="background:#5C2E5C" title="ม่วงคลาสสิก"></button>
+        <button type="button" class="swatch" data-hex="#6B4423" style="background:#6B4423" title="น้ำตาลเอิร์ธ"></button>
+        <button type="button" class="swatch" data-hex="#37474F" style="background:#37474F" title="เทาเข้ม"></button>
+        <button type="button" class="swatch" data-hex="#000000" style="background:#000000" title="ดำ (B&W)"></button>
+      </div>
+      <div class="row">
+        <label>
+          Hex สีหลัก
+          <input type="color" id="accent" value="#1A73E8">
+        </label>
+        <label class="auto-derive">
+          <input type="checkbox" id="autoDerive" checked>
+          คำนวณสีเข้ม/อ่อนอัตโนมัติ
+        </label>
+      </div>
+      <div class="row derive-row">
+        <label>สีเข้ม <input type="color" id="accentDk" value="#0F5BB9" disabled></label>
+        <label>สีอ่อน <input type="color" id="accentLt" value="#E8F0FE" disabled></label>
+      </div>
+    </fieldset>
+
+    <!-- C. Fonts -->
+    <fieldset>
+      <legend>C. ฟอนต์</legend>
+      <p class="hint">มี Thai fallback อัตโนมัติ — ใส่ชื่อฟอนต์ Google Fonts ได้</p>
+      <label>หัวบท (heading)
+        <select id="fontHd">
+          <option value="Poppins">Poppins (โมเดิร์น sans)</option>
+          <option value="Prompt">Prompt (โมเดิร์น sans)</option>
+          <option value="Mitr">Mitr (display)</option>
+          <option value="Chakra Petch">Chakra Petch (display)</option>
+          <option value="Sarabun">Sarabun (คลาสสิก)</option>
+          <option value="IBM Plex Sans Thai">IBM Plex Sans Thai (เรียบง่าย)</option>
+          <option value="Anuphan">Anuphan (นุ่มนวล)</option>
+        </select>
+      </label>
+      <label>เนื้อหา (body)
+        <select id="fontBd">
+          <option value="IBM Plex Sans Thai Looped">IBM Plex Sans Thai Looped (default)</option>
+          <option value="Anuphan">Anuphan (นุ่มนวล)</option>
+          <option value="Sarabun">Sarabun (คลาสสิก)</option>
+          <option value="Noto Sans Thai">Noto Sans Thai (ผอม)</option>
+          <option value="IBM Plex Sans Thai">IBM Plex Sans Thai (sans)</option>
+        </select>
+      </label>
+      <label>โค้ด (code)
+        <select id="fontCd">
+          <option value="IBM Plex Mono">IBM Plex Mono (default)</option>
+          <option value="JetBrains Mono">JetBrains Mono (กลม)</option>
+          <option value="Roboto Mono">Roboto Mono (กลาง)</option>
+          <option value="Source Code Pro">Source Code Pro</option>
+        </select>
+      </label>
+    </fieldset>
+
+    <!-- D. Heading sizes -->
+    <fieldset>
+      <legend>D. ขนาดหัวบท</legend>
+      <p class="hint">เทียบกับ body 9.6pt</p>
+      <div class="radio-grid">
+        <label><input type="radio" name="hdScale" value="compact"> <span>กระชับ (textbook)<br><small>h1:14 h2:12 h3:11 h4:10</small></span></label>
+        <label><input type="radio" name="hdScale" value="standard" checked> <span>ปกติ (default)<br><small>h1:17 h2:14 h3:12 h4:10.5</small></span></label>
+        <label><input type="radio" name="hdScale" value="airy"> <span>หรู-airy<br><small>h1:20 h2:16 h3:13 h4:11</small></span></label>
+        <label><input type="radio" name="hdScale" value="custom"> <span>กำหนดเอง</span></label>
+      </div>
+      <details class="advanced custom-sizes">
+        <summary>ขนาด custom</summary>
+        <div class="row size-row">
+          <label>h1 <input type="number" id="h1size" value="17" step="0.5" min="10" max="32"></label>
+          <label>h2 <input type="number" id="h2size" value="14" step="0.5" min="9" max="28"></label>
+          <label>h3 <input type="number" id="h3size" value="12" step="0.5" min="9" max="20"></label>
+          <label>h4 <input type="number" id="h4size" value="10.5" step="0.5" min="9" max="16"></label>
+        </div>
+      </details>
+    </fieldset>
+
+    <!-- E. H2 underline -->
+    <fieldset>
+      <legend>E. ตัวคั่นใต้ h2</legend>
+      <div class="radio-grid">
+        <label><input type="radio" name="h2under" value="none"> <span>ไม่มี<br><small>มินิมัล</small></span></label>
+        <label><input type="radio" name="h2under" value="short" checked> <span>เส้นใต้สั้น<br><small>Gemini style</small></span></label>
+        <label><input type="radio" name="h2under" value="full"> <span>เส้นใต้เต็มหน้า<br><small>formal</small></span></label>
+        <label><input type="radio" name="h2under" value="double"> <span>เส้นใต้คู่<br><small>classic</small></span></label>
+      </div>
+      <label class="range-row">
+        ความยาวเส้น (pt) <span id="underlineLenVal">50</span>
+        <input type="range" id="underlineLen" min="20" max="120" value="50" step="5">
+      </label>
+    </fieldset>
+
+    <!-- F. OL marker -->
+    <fieldset>
+      <legend>F. รายการลำดับ (OL)</legend>
+      <div class="radio-grid">
+        <label><input type="radio" name="olStyle" value="plain"> <span>ตัวเลข + จุด<br><small>1. 2. 3.</small></span></label>
+        <label><input type="radio" name="olStyle" value="circle" checked> <span>วงกลม accent<br><small>⓵ ⓶ ⓷</small></span></label>
+        <label><input type="radio" name="olStyle" value="square"> <span>กล่องสี่เหลี่ยม<br><small>[1] [2] [3]</small></span></label>
+        <label><input type="radio" name="olStyle" value="large"> <span>ตัวเลขใหญ่<br><small>display font</small></span></label>
+      </div>
+    </fieldset>
+
+    <!-- G. Note style -->
+    <fieldset>
+      <legend>G. กล่อง Note</legend>
+      <div class="radio-grid">
+        <label><input type="radio" name="noteStyle" value="simple" checked> <span>เรียบง่าย<br><small>เส้นซ้าย + bg อ่อน</small></span></label>
+        <label><input type="radio" name="noteStyle" value="bold"> <span>เน้นเด่น<br><small>border รอบ + label เข้ม</small></span></label>
+        <label><input type="radio" name="noteStyle" value="minimal"> <span>มินิมัล<br><small>เส้นซ้ายอย่างเดียว</small></span></label>
+        <label><input type="radio" name="noteStyle" value="amber"> <span>โน้ตเขียนมือ<br><small>bg เหลือง</small></span></label>
+      </div>
+    </fieldset>
+
+    <!-- H. Extras -->
+    <fieldset>
+      <legend>H. คุณลักษณะพิเศษ</legend>
+      <label class="check"><input type="checkbox" id="dropCap"> Drop cap ที่ย่อหน้าแรกของบท</label>
+      <label class="check"><input type="checkbox" id="sinkage"> Chapter sinkage (เลื่อนหัวบทลงล่าง)</label>
+      <label class="range-row sub" id="sinkRow" hidden>
+        ระยะ (mm) <span id="sinkVal">35</span>
+        <input type="range" id="sinkAmount" min="0" max="60" value="35" step="5">
+      </label>
+      <label class="check"><input type="checkbox" id="justifyBody"> จัด justify ในเนื้อหา (ค่าปกติ left)</label>
+      <label class="check"><input type="checkbox" id="centerChapter"> Chapter header center-aligned</label>
+    </fieldset>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button type="button" id="resetBtn" class="ghost">↺ Reset</button>
+      <button type="button" id="copyBtn" class="secondary">📋 Copy CSS</button>
+      <button type="button" id="downloadBtn" class="primary">⬇ Download style.css</button>
+    </div>
+
+  </section>
+
+
+  <!-- =========================================
+       RIGHT — PREVIEW
+       ========================================= -->
+  <aside class="preview">
+    <header class="preview-head">
+      <h2>Generated CSS</h2>
+      <span class="status" id="status">Live preview</span>
+    </header>
+    <pre id="output"><code></code></pre>
+  </aside>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <p>Output: <code>style.css</code> สำหรับ upload ใน UI ของ <code>book-dev</code> ช่อง "Template CSS ส่วนตัว"</p>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

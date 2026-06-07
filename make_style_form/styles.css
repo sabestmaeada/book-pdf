@@ -1,0 +1,417 @@
+/* =========================================================
+   make_style_form — UI styles
+   ========================================================= */
+
+:root {
+  --bg:        #F7F8FA;
+  --surface:   #FFFFFF;
+  --text:      #1A2330;
+  --muted:     #5A6B7A;
+  --border:    #DEE2E6;
+  --border-2:  #C5D5D4;
+  --accent:    #14746F;
+  --accent-dk: #0A4A47;
+  --accent-lt: #E0F2F1;
+  --code-bg:   #2D2D3D;
+  --code-tx:   #E0E0E5;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: 'IBM Plex Sans Thai Looped', 'Anuphan', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+code, pre {
+  font-family: 'IBM Plex Mono', 'JetBrains Mono', monospace;
+}
+
+.muted { color: var(--muted); }
+
+
+/* ========================================
+   TopBar
+   ======================================== */
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 20px 0;
+}
+.topbar .wrap {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.topbar h1 {
+  margin: 0;
+  font-family: 'IBM Plex Sans Thai', sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+}
+.topbar .sub {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+
+/* ========================================
+   Layout
+   ======================================== */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  max-width: 1400px;
+  margin: 24px auto;
+  padding: 0 24px;
+}
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  .preview { position: static; max-height: none; }
+}
+
+
+/* ========================================
+   Form
+   ======================================== */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+fieldset {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px 20px;
+  margin: 0;
+}
+
+legend {
+  font-family: 'IBM Plex Sans Thai', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--accent-dk);
+  padding: 0 8px;
+  margin-left: -4px;
+}
+
+.hint {
+  margin: 0 0 12px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+fieldset label {
+  display: block;
+  margin: 8px 0;
+  font-size: 13.5px;
+}
+
+fieldset label.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  cursor: pointer;
+}
+fieldset label.check input { margin: 0; }
+
+select, input[type="text"], input[type="number"] {
+  width: 100%;
+  padding: 8px 10px;
+  margin-top: 4px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13.5px;
+  background: #FAFBFC;
+}
+select:focus, input:focus {
+  outline: 2px solid var(--accent-lt);
+  border-color: var(--accent);
+}
+
+input[type="color"] {
+  width: 44px;
+  height: 32px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  vertical-align: middle;
+  margin-left: 8px;
+}
+
+input[type="range"] {
+  flex: 1;
+  margin: 0 8px;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 10px 0;
+}
+
+.row label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  flex: 1;
+  min-width: 140px;
+}
+
+.range-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0;
+}
+.range-row.sub { padding-left: 22px; }
+.range-row span { min-width: 30px; text-align: right; font-weight: 600; color: var(--accent-dk); }
+
+.size-row label {
+  flex: 1 1 70px;
+}
+.size-row input { width: 64px; }
+
+
+/* ========================================
+   File drop
+   ======================================== */
+.file-drop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.file-drop:hover,
+.file-drop.drag {
+  background: var(--accent-lt);
+  border-color: var(--accent);
+}
+.file-drop input { display: none; }
+.file-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+.file-info strong {
+  font-weight: 500;
+  color: var(--text);
+}
+.file-info .muted { font-size: 12px; }
+
+
+/* ========================================
+   Color swatches
+   ======================================== */
+.swatch-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 12px;
+}
+.swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--surface);
+  outline: 1px solid var(--border);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.1s;
+}
+.swatch:hover { transform: scale(1.15); }
+.swatch.active {
+  outline: 2px solid var(--accent-dk);
+  outline-offset: 1px;
+}
+
+
+/* ========================================
+   Radio grid
+   ======================================== */
+.radio-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin: 8px 0;
+}
+.radio-grid label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  margin: 0;
+  transition: background 0.1s, border-color 0.1s;
+}
+.radio-grid label:hover {
+  border-color: var(--accent);
+  background: #FAFBFC;
+}
+.radio-grid label:has(input:checked) {
+  background: var(--accent-lt);
+  border-color: var(--accent);
+}
+.radio-grid input { margin-top: 3px; }
+.radio-grid span { font-size: 13px; line-height: 1.35; }
+.radio-grid small { color: var(--muted); font-size: 11.5px; }
+
+
+/* ========================================
+   Advanced details
+   ======================================== */
+.advanced {
+  margin-top: 10px;
+  font-size: 13px;
+}
+.advanced summary {
+  cursor: pointer;
+  color: var(--muted);
+  padding: 4px 0;
+}
+.advanced[open] summary { color: var(--accent-dk); font-weight: 500; }
+
+
+/* ========================================
+   Actions
+   ======================================== */
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 16px 0;
+  flex-wrap: wrap;
+}
+button {
+  padding: 10px 18px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s, transform 0.05s;
+}
+button:hover { border-color: var(--accent); }
+button:active { transform: scale(0.98); }
+
+button.primary {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+  font-weight: 500;
+}
+button.primary:hover { background: var(--accent-dk); border-color: var(--accent-dk); }
+
+button.secondary {
+  background: var(--accent-lt);
+  color: var(--accent-dk);
+  border-color: var(--accent-lt);
+}
+button.secondary:hover { background: #c5e8e6; }
+
+button.ghost {
+  background: transparent;
+  color: var(--muted);
+}
+
+
+/* ========================================
+   Preview
+   ======================================== */
+.preview {
+  position: sticky;
+  top: 24px;
+  max-height: calc(100vh - 48px);
+  background: var(--code-bg);
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.preview-head {
+  background: #1F1F2D;
+  color: white;
+  padding: 12px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #3A3A4D;
+}
+.preview-head h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+.preview-head .status {
+  font-size: 11.5px;
+  color: #8CDBA9;
+  font-family: monospace;
+}
+.preview pre {
+  margin: 0;
+  padding: 18px;
+  overflow: auto;
+  flex: 1;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--code-tx);
+  white-space: pre;
+  word-wrap: normal;
+  scrollbar-width: thin;
+  scrollbar-color: #4A4A60 transparent;
+}
+.preview pre::-webkit-scrollbar { width: 8px; height: 8px; }
+.preview pre::-webkit-scrollbar-thumb {
+  background: #4A4A60;
+  border-radius: 4px;
+}
+
+
+/* ========================================
+   Footer
+   ======================================== */
+.footer {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 16px 0;
+  margin-top: 24px;
+}
+.footer .wrap {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.footer code {
+  background: #F0F2F5;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 11.5px;
+  color: var(--accent-dk);
+}

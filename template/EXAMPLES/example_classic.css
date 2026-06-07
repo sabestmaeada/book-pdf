@@ -1,0 +1,483 @@
+/* =========================================================
+   example_classic.css — Classic Thai Burgundy
+   ---------------------------------------------------------
+   มู้ด:    คลาสสิก-ทางการ (วรรณกรรม ตำราสำคัญ ประวัติศาสตร์)
+   สี:     แดงเบอร์กันดี #8B1538 + ครีม + ดำ
+   ฟอนต์:  Sarabun (heading + body), JetBrains Mono (code)
+   จุดเด่น: เส้นใต้ h2 คู่ (double line), drop cap ใหญ่,
+            note formal กรอบรอบ, OL ตัวเลข decimal classic
+   ========================================================= */
+
+
+/* ========================================
+   1. Fonts
+   ======================================== */
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+
+/* ========================================
+   2. Variables
+   ======================================== */
+:root {
+  --tpl-hd: 'Sarabun', 'IBM Plex Sans Thai', serif !important;
+  --tpl-bd: 'Sarabun', 'IBM Plex Sans Thai Looped', sans-serif !important;
+  --tpl-cd: 'JetBrains Mono', 'IBM Plex Mono', monospace !important;
+
+  --tpl-accent:    #8B1538 !important;   /* Burgundy — สีหลัก */
+  --tpl-accent-dk: #5E0E25 !important;   /* Dark burgundy */
+  --tpl-accent-lt: #FAEEF1 !important;   /* Light burgundy bg */
+
+  --tpl-text:      #1A1A1A !important;   /* ดำ-น้ำตาลเล็กน้อย */
+  --tpl-muted:     #6B5B53 !important;   /* น้ำตาลอ่อน */
+  --tpl-border:    #C4A89E !important;   /* น้ำตาล beige */
+
+  --tpl-note-bg:   #FAEEF1 !important;
+  --tpl-note-bd:   #8B1538 !important;
+  --tpl-code-bg:   #F7F2EE !important;   /* ครีมอ่อน */
+}
+
+
+/* ========================================
+   3. Body
+   ======================================== */
+html, body {
+  font-family: var(--tpl-bd) !important;
+  font-size: 9.6pt !important;
+  line-height: 1.55 !important;
+  color: var(--tpl-text) !important;
+}
+
+.content p {
+  font-family: var(--tpl-bd) !important;
+  font-size: 9.6pt !important;
+  font-weight: 400 !important;
+  line-height: 1.55 !important;
+  text-align: justify !important;             /* classic justify */
+  text-indent: 1.6em !important;
+  margin: 0 0 6pt 0 !important;
+  hyphens: auto !important;
+  color: var(--tpl-text) !important;
+}
+
+.content ul, .content ol {
+  font-family: var(--tpl-bd) !important;
+  font-size: 9.6pt !important;
+  font-weight: 400 !important;
+  line-height: 1.55 !important;
+  color: var(--tpl-text) !important;
+}
+
+.content li, .content li > p {
+  font-family: var(--tpl-bd) !important;
+  font-size: 9.6pt !important;
+  font-weight: 400 !important;
+  line-height: 1.55 !important;
+  color: var(--tpl-text) !important;
+}
+
+
+/* ========================================
+   4. Headings — classic serif feel
+   ======================================== */
+.content h1 {
+  font-family: var(--tpl-hd) !important;
+  font-size: 17pt !important;
+  font-weight: 700 !important;
+  color: var(--tpl-accent-dk) !important;
+  margin: 22pt 0 10pt 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  text-align: center !important;             /* center สำหรับ classic */
+  line-height: 1.3 !important;
+}
+
+.content h2 {
+  font-family: var(--tpl-hd) !important;
+  font-size: 14pt !important;
+  font-weight: 700 !important;
+  color: var(--tpl-accent) !important;
+  background: transparent !important;
+  margin: 20pt 0 10pt 0 !important;
+  padding: 0 0 4pt 0 !important;
+  border: none !important;
+  border-bottom: 0.6pt solid var(--tpl-border) !important;     /* double line ผ่าน 2 borders */
+  box-shadow: none !important;
+  display: block !important;
+  line-height: 1.3 !important;
+}
+.content h2::before { content: none !important; }
+.content h2::after {
+  content: "" !important;
+  display: block !important;
+  height: 1.2pt !important;
+  background: var(--tpl-accent) !important;     /* second line สีเข้ม */
+  margin-top: 2pt !important;
+  margin-bottom: -1pt !important;
+}
+
+.content h3 {
+  font-family: var(--tpl-hd) !important;
+  font-size: 12pt !important;
+  font-weight: 600 !important;
+  color: var(--tpl-accent-dk) !important;
+  background: transparent !important;
+  margin: 14pt 0 6pt 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  position: static !important;
+  line-height: 1.35 !important;
+}
+.content h3::before { content: none !important; }
+
+.content h4 {
+  font-family: var(--tpl-hd) !important;
+  font-size: 10.5pt !important;
+  font-weight: 700 !important;
+  color: var(--tpl-text) !important;
+  background: transparent !important;
+  font-style: italic !important;             /* italic for classic */
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  padding: 0 !important;
+  margin: 12pt 0 5pt 0 !important;
+  border: none !important;
+  position: static !important;
+  line-height: 1.4 !important;
+}
+.content h4::before { content: none !important; }
+
+
+/* ========================================
+   5. Heading → p spacing
+   ======================================== */
+.content h2 + p { margin-top: 5pt !important; }
+.content h3 + p { margin-top: 4pt !important; }
+.content h4 + p { margin-top: 3pt !important; }
+
+
+/* ========================================
+   6. Chapter header — classic centered
+   ======================================== */
+.ch-hdr {
+  display: block !important;
+  text-align: center !important;
+  padding: 16pt 0 20pt 0 !important;
+  margin: 0 0 30pt 0 !important;
+  border: none !important;
+  border-bottom: 0.6pt solid var(--tpl-border) !important;
+  background: transparent !important;
+  position: relative !important;
+  min-height: auto !important;
+}
+.ch-hdr::after {
+  content: "" !important;
+  position: absolute !important;
+  left: 50% !important;
+  bottom: -1pt !important;
+  width: 50pt !important;
+  height: 1.5pt !important;
+  background: var(--tpl-accent) !important;
+  margin-left: -25pt !important;
+}
+
+.ch-num {
+  display: block !important;
+  font-family: var(--tpl-hd) !important;
+  font-size: 11pt !important;
+  font-weight: 400 !important;
+  font-style: italic !important;
+  color: var(--tpl-muted) !important;
+  text-transform: none !important;
+  letter-spacing: 1pt !important;
+  margin: 0 0 8pt 0 !important;
+  padding: 0 !important;
+  min-width: 0 !important;
+  line-height: 1.4 !important;
+}
+.ch-num::before { content: none !important; }
+.ch-num::after  { content: none !important; }
+
+.ch-title {
+  display: block !important;
+  font-family: var(--tpl-hd) !important;
+  font-size: 24pt !important;
+  font-weight: 700 !important;
+  color: var(--tpl-accent-dk) !important;
+  line-height: 1.2 !important;
+  padding: 0 !important;
+  border: none !important;
+  border-left: none !important;
+  margin: 0 !important;
+}
+
+
+/* ========================================
+   7. Inline elements
+   ======================================== */
+.content strong, .content b {
+  font-weight: 700 !important;
+  color: var(--tpl-text) !important;
+}
+.content em, .content i {
+  font-style: italic !important;
+  color: var(--tpl-accent-dk) !important;
+}
+.content a {
+  color: var(--tpl-accent) !important;
+  text-decoration: underline !important;
+}
+.content mark {
+  background: var(--tpl-accent-lt) !important;
+  color: var(--tpl-accent-dk) !important;
+  padding: 0 2pt !important;
+}
+
+
+/* ========================================
+   8. OL counter — classic decimal + dot accent
+   ======================================== */
+.content ol {
+  padding-left: 22pt !important;
+}
+.content ol li {
+  padding-left: 4pt !important;
+  margin: 0 0 4pt 0 !important;
+}
+.content ol li::before,
+.content ol[style*="--ol-marker: lower-alpha"] li::before,
+.content ol[style*="--ol-marker:lower-alpha"]  li::before,
+.content ol[style*="--ol-marker: upper-alpha"] li::before,
+.content ol[style*="--ol-marker:upper-alpha"]  li::before,
+.content ol[style*="--ol-marker: thai-alpha"]  li::before,
+.content ol[style*="--ol-marker:thai-alpha"]   li::before,
+.content ol[style*="--ol-marker: decimal"]     li::before,
+.content ol[style*="--ol-marker:decimal"]      li::before {
+  content: counter(ol-counter, var(--ol-marker, decimal)) "." !important;
+  position: absolute !important;
+  left: -20pt !important;
+  top: 0 !important;
+  width: 16pt !important;
+  text-align: right !important;
+  color: var(--tpl-accent) !important;
+  font-family: var(--tpl-hd) !important;
+  font-weight: 700 !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+}
+
+.content ul li::marker {
+  color: var(--tpl-accent) !important;
+}
+
+
+/* ========================================
+   9. Quiz reset (ใช้ counter mode เหมือน ol ปกติ)
+   ======================================== */
+.bd-grid.quiz ol li::before,
+.bd-grid.quiz ol[style*="--ol-marker"] li::before {
+  position: static !important;
+  display: inline !important;
+  width: auto !important;
+  text-align: left !important;
+  color: var(--tpl-accent-dk) !important;
+  font-weight: 700 !important;
+  margin-right: 4pt !important;
+}
+.bd-grid.quiz li {
+  padding: 0 10.5pt !important;
+}
+
+
+/* ========================================
+   10. Drop cap — large classic burgundy
+   ======================================== */
+.drop-cap::first-letter {
+  font-family: var(--tpl-hd) !important;
+  font-size: 38pt !important;
+  font-weight: 700 !important;
+  color: var(--tpl-accent) !important;
+  float: left !important;
+  line-height: 0.85 !important;
+  margin: 2pt 5pt 0 0 !important;
+}
+
+
+/* ========================================
+   11. Code blocks — cream bg + serif fallback feel
+   ======================================== */
+.code-block {
+  background: var(--tpl-code-bg) !important;
+  border: 0.5pt solid var(--tpl-border) !important;
+  border-radius: 0 !important;             /* sharp corners — classic */
+}
+.code-header {
+  background: #EFE8E2 !important;
+  border-bottom: 0.5pt solid var(--tpl-border) !important;
+}
+.code-lang-badge {
+  font-family: var(--tpl-cd) !important;
+  background: var(--tpl-accent) !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+}
+.code-filename, .code-linecount {
+  font-family: var(--tpl-cd) !important;
+}
+.code-block code, .line {
+  font-family: var(--tpl-cd) !important;
+  font-size: 9pt !important;
+  line-height: 1.4 !important;
+  color: var(--tpl-text) !important;
+}
+.line::before {
+  background: #EFE8E2 !important;
+  color: var(--tpl-muted) !important;
+  font-size: 7.5pt !important;
+}
+.inline-code,
+.content code:not(.line):not(pre code) {
+  font-family: var(--tpl-cd) !important;
+  font-size: 9pt !important;
+  background: var(--tpl-code-bg) !important;
+  color: var(--tpl-accent-dk) !important;
+  border: 0.5pt solid var(--tpl-border) !important;
+  padding: 0.5pt 2.5pt !important;
+}
+
+
+/* ========================================
+   12. Note — formal bordered box
+   ======================================== */
+.note {
+  background: var(--tpl-note-bg) !important;
+  border: 0.6pt solid var(--tpl-note-bd) !important;
+  border-left: 2.5pt solid var(--tpl-note-bd) !important;
+  border-radius: 0 !important;             /* sharp */
+  color: var(--tpl-text) !important;
+  font-size: 9.6pt !important;
+  line-height: 1.55 !important;
+  padding: 7pt 9pt !important;
+}
+.note-label {
+  font-family: var(--tpl-hd) !important;
+  color: var(--tpl-accent-dk) !important;
+  font-weight: 700 !important;
+  font-size: 9.5pt !important;
+  font-style: italic !important;
+  text-transform: none !important;
+  letter-spacing: 0.2pt !important;
+  line-height: 1.3 !important;
+}
+.note p, .note li, .note span, .note strong, .note b,
+.note ul, .note ol {
+  font-size: 9.6pt !important;
+  line-height: 1.55 !important;
+}
+
+
+/* ========================================
+   13. Blockquote — classic italic indent
+   ======================================== */
+blockquote {
+  border-left: 2.5pt solid var(--tpl-accent) !important;
+  background: transparent !important;
+  color: var(--tpl-text) !important;
+  font-style: italic !important;
+  padding: 4pt 0 4pt 12pt !important;
+  margin: 10pt 0 10pt 12pt !important;
+}
+
+
+/* ========================================
+   14. Tables — classic with double border header
+   ======================================== */
+.table-wrap {
+  border: 0.6pt solid var(--tpl-text) !important;
+  border-radius: 0 !important;
+}
+thead {
+  background: var(--tpl-accent-lt) !important;
+}
+th {
+  font-family: var(--tpl-hd) !important;
+  color: var(--tpl-accent-dk) !important;
+  border-bottom: 1.5pt double var(--tpl-accent) !important;
+  font-weight: 700 !important;
+}
+td {
+  color: var(--tpl-text) !important;
+  border-bottom: 0.5pt solid var(--tpl-border) !important;
+}
+
+
+/* ========================================
+   15. TOC — classic centered with leaders
+   ======================================== */
+.toc-title {
+  font-family: var(--tpl-hd) !important;
+  font-size: 18pt !important;
+  color: var(--tpl-accent-dk) !important;
+  text-align: center !important;
+}
+.toc-item {
+  border-bottom: 0.4pt dotted var(--tpl-border) !important;
+  color: var(--tpl-text) !important;
+}
+.toc-num {
+  font-family: var(--tpl-hd) !important;
+  color: var(--tpl-accent) !important;
+  font-weight: 700 !important;
+  font-style: italic !important;
+}
+.toc-name {
+  font-family: var(--tpl-bd) !important;
+  font-weight: 500 !important;
+}
+.toc-leader {
+  border-bottom: 0.4pt dotted var(--tpl-muted) !important;
+}
+a.toc-item::after {
+  font-family: var(--tpl-hd) !important;
+  color: var(--tpl-muted) !important;
+  font-style: italic !important;
+}
+
+
+/* ========================================
+   16. Preface — formal centered
+   ======================================== */
+.preface-title {
+  font-family: var(--tpl-hd) !important;
+  font-size: 18pt !important;
+  color: var(--tpl-accent-dk) !important;
+  font-weight: 700 !important;
+}
+.preface-content p {
+  font-family: var(--tpl-bd) !important;
+  color: var(--tpl-text) !important;
+  text-align: justify !important;
+}
+
+
+/* ========================================
+   17. Image markers + figure caption + hr
+   ======================================== */
+.img-marker {
+  background: var(--tpl-accent) !important;
+  color: #FFFFFF !important;
+  border: 2px solid #FFFFFF !important;
+  font-family: var(--tpl-hd) !important;
+}
+.book-img img {
+  border: 0.6pt solid var(--tpl-border) !important;
+  border-radius: 0 !important;
+}
+.book-img figcaption {
+  font-family: var(--tpl-hd) !important;
+  color: var(--tpl-muted) !important;
+  font-style: italic !important;
+}
+hr {
+  background: var(--tpl-border) !important;
+}
