@@ -53,13 +53,23 @@ function lighten(hex, amount = 0.85) {
   return rgbToHex(r + (255 - r) * amount, g + (255 - g) * amount, b + (255 - b) * amount);
 }
 
-// Blend hex color toward black by percent (0 = pure hex, 100 = pure black)
-// ใช้สำหรับ heading ที่ต้องการให้เข้มขึ้น (กัน "จาง" ตอนพิมพ์ขาวดำ)
-function blendToBlack(hex, percent) {
+// Smart darkness: ผลลัพธ์ขึ้นกับ accent + forceGrayscale flag
+// forceGrayscale = true (toggle "พิมพ์ขาวดำ" ON) → บังคับ K-level ทุก accent
+// forceGrayscale = false:
+//   - accent สี (R≠G≠B): blend accent → black
+//   - accent เทา/ดำ (R=G=B): K-level mapping
+function blendToBlack(hex, percent, forceGrayscale = false) {
   hex = safeColor(hex);
   const [r, g, b] = hexToRgb(hex);
   const p = +percent || 0;
   const t = Math.max(0, Math.min(100, p)) / 100;
+  const isGrayscale = forceGrayscale || (r === g && g === b);
+  if (isGrayscale) {
+    // K-level: 100% → K100 (#000000), 50% → K50 (#808080), 0% → K0 (#FFFFFF)
+    const v = Math.round(255 * (1 - t));
+    return rgbToHex(v, v, v);
+  }
+  // Color accent: blend accent → black
   return rgbToHex(r * (1 - t), g * (1 - t), b * (1 - t));
 }
 
@@ -244,10 +254,11 @@ function genHeadings(c) {
 
   // Blend accent-dk → black ตามความเข้มที่กำหนดต่อ heading
   // 0% = pure accent-dk (สด, อาจจางใน B&W) / 100% = pure black K100 (เข้มสุด)
-  const h1color = blendToBlack(c.accentDk, c.h1dark);
-  const h2color = blendToBlack(c.accentDk, c.h2dark);
-  const h3color = blendToBlack(c.accentDk, c.h3dark);
-  const h4color = blendToBlack(c.accentDk, c.h4dark);
+  // ถ้า printGray ON → บังคับ K-level mapping ทุก heading
+  const h1color = blendToBlack(c.accentDk, c.h1dark, c.printGray);
+  const h2color = blendToBlack(c.accentDk, c.h2dark, c.printGray);
+  const h3color = blendToBlack(c.accentDk, c.h3dark, c.printGray);
+  const h4color = blendToBlack(c.accentDk, c.h4dark, c.printGray);
 
   return `/* === HEADINGS ===
    Color blend: 0%=accent-dk / 100%=K100 (per-heading darkness)
@@ -684,7 +695,7 @@ function genDropCap(c) {
 
 function genTOC(c) {
   // toc-title ใช้ blend เหมือน h1 — B&W toggle จะดันให้เข้มอัตโนมัติ
-  const titleColor = blendToBlack(c.accentDk, c.h1dark);
+  const titleColor = blendToBlack(c.accentDk, c.h1dark, c.printGray);
   return `/* === TOC (สารบัญ) ===
    toc-title blend ตาม h1 darkness (${c.h1dark}%) */
 .toc-title {
@@ -719,7 +730,7 @@ a.toc-item::after {
 
 function genPreface(c) {
   // preface-title blend ตาม h1 — สอดคล้องกัน (คำนำ = heading level 1)
-  const titleColor = blendToBlack(c.accentDk, c.h1dark);
+  const titleColor = blendToBlack(c.accentDk, c.h1dark, c.printGray);
   return `/* === Preface (คำนำ) ===
    preface-title blend ตาม h1 darkness (${c.h1dark}%) */
 .preface-title {
@@ -760,8 +771,11 @@ th { color: var(--tpl-accent-dk) !important; border-bottom: 0.8pt solid var(--tp
 function generate() {
   const c = readConfig();
 
+  // ⚠ @import ต้องอยู่ "ต้นสุด" ของไฟล์ CSS เสมอ (ไม่งั้น WeasyPrint ignore)
+  // → แยกออกจาก sections อื่น → put first ใน output
+  const fontImport = genGoogleImport(c);
+
   const sections = [
-    genGoogleImport(c),
     genVariables(c),
     genBody(c),
     genHeadings(c),
@@ -788,13 +802,22 @@ function generate() {
 
   let output;
   if (STATE.baseCSS) {
-    output = STATE.baseCSS +
+    // ตัด @import เดิมออกจาก baseCSS ถ้ามี → จะรวมกับของเราที่ต้นไฟล์
+    // (ห้ามมี @import กลางไฟล์ — invalid)
+    const baseImports = [];
+    const baseStripped = STATE.baseCSS.replace(/@import\s+(?:url\([^)]+\)|"[^"]+"|'[^']+')[^;]*;/g, (match) => {
+      baseImports.push(match);
+      return ''; // remove from base
+    });
+    output = fontImport + '\n' +
+      baseImports.join('\n') + (baseImports.length ? '\n\n' : '\n') +
+      baseStripped.trim() +
       '\n\n\n/* ============================================================\n' +
       '   FORM ADJUSTMENTS — appended by make_style_form\n' +
       '   ============================================================ */\n\n' +
       sections;
   } else {
-    output = header + '\n\n\n' + sections;
+    output = header + '\n\n\n' + fontImport + '\n\n\n' + sections;
   }
 
   // update preview
@@ -844,10 +867,18 @@ function handleInputChange() {
   document.getElementById('sinkVal').textContent =
     document.getElementById('sinkAmount').value;
 
-  // sync heading darkness slider values
+  // sync heading darkness slider values + live color preview
+  const accentDk = autoDerive ? darken(accent, 0.30) : document.getElementById('accentDk').value;
+  const printGray = document.getElementById('printGrayMode').checked;
   ['h1', 'h2', 'h3', 'h4'].forEach(h => {
-    const val = document.getElementById(h + 'dark').value;
+    const val = +document.getElementById(h + 'dark').value;
     document.getElementById(h + 'darkVal').textContent = val;
+    // ⭐ Live color preview — แสดงสีจริงที่จะใช้ใน CSS
+    // ถ้า printGray ON → บังคับ K-level mapping (ไม่ดูว่า accent เป็นสีอะไร)
+    const blended = blendToBlack(accentDk, val, printGray);
+    const colorChip = document.getElementById(h + 'darkColor');
+    colorChip.style.background = blended;
+    colorChip.title = `สีจริงใน CSS: ${blended} (${val}%${printGray ? ' K-level' : ''})`;
   });
 
   // toggle sinkage row
@@ -877,7 +908,21 @@ function bindGrayModeToggle() {
 function bindSwatches() {
   document.querySelectorAll('.swatch').forEach(s => {
     s.addEventListener('click', () => {
-      document.getElementById('accent').value = s.dataset.hex;
+      const hex = s.dataset.hex;
+      document.getElementById('accent').value = hex;
+      // Auto: ถ้าเป็น grayscale accent (R=G=B) + sliders ยังอยู่ที่ 0
+      //       → set 100/100/85/70 ทันที (ไม่งั้น heading จะเป็น white มองไม่เห็น)
+      const [r, g, b] = hexToRgb(hex);
+      if (r === g && g === b) {
+        const allZero = ['h1', 'h2', 'h3', 'h4']
+          .every(h => +document.getElementById(h + 'dark').value === 0);
+        if (allZero) {
+          document.getElementById('h1dark').value = 100;
+          document.getElementById('h2dark').value = 100;
+          document.getElementById('h3dark').value = 85;
+          document.getElementById('h4dark').value = 70;
+        }
+      }
       handleInputChange();
       generate();
     });

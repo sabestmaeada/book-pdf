@@ -83,26 +83,34 @@
       </label>
       <details class="advanced">
         <summary>ปรับความเข้ม heading รายข้อ (advanced)</summary>
-        <p class="hint">0% = สี accent (สด), 100% = ดำสนิท K100 — blend แบบเรียบ</p>
+        <p class="hint" id="darknessHint">
+          <strong>Accent สี:</strong> 0% = accent / 100% = K100<br>
+          <strong>Accent เทา/ดำ:</strong> 0% = K0 (ขาว) / 100% = K100 — slider = K level โดยตรง<br>
+          <em>tip: accent เทา/ดำ → ตั้ง 100/100/85/70 สำหรับ hierarchy สีเทา</em>
+        </p>
         <label class="range-row">
           <span class="darkness-label">h1</span>
           <input type="range" id="h1dark" min="0" max="100" value="0" step="5">
           <span id="h1darkVal" class="darkness-val">0</span>%
+          <span id="h1darkColor" class="darkness-color" title="สีที่ออกใน CSS"></span>
         </label>
         <label class="range-row">
           <span class="darkness-label">h2</span>
           <input type="range" id="h2dark" min="0" max="100" value="0" step="5">
           <span id="h2darkVal" class="darkness-val">0</span>%
+          <span id="h2darkColor" class="darkness-color" title="สีที่ออกใน CSS"></span>
         </label>
         <label class="range-row">
           <span class="darkness-label">h3</span>
           <input type="range" id="h3dark" min="0" max="100" value="0" step="5">
           <span id="h3darkVal" class="darkness-val">0</span>%
+          <span id="h3darkColor" class="darkness-color" title="สีที่ออกใน CSS"></span>
         </label>
         <label class="range-row">
           <span class="darkness-label">h4</span>
           <input type="range" id="h4dark" min="0" max="100" value="0" step="5">
           <span id="h4darkVal" class="darkness-val">0</span>%
+          <span id="h4darkColor" class="darkness-color" title="สีที่ออกใน CSS"></span>
         </label>
       </details>
     </fieldset>
