@@ -1052,14 +1052,14 @@ tr:last-child td {
    8d. Column layout — .bd-grid / .bd-row / .bd-col-N (12-grid, table-based)
    ใช้ display:table ที่ WeasyPrint รองรับเต็ม (browser comment: "WeasyPrint-safe")
    ========================================= */
-.bd-grid { margin: 8pt 0; }
+.bd-grid { margin: 4pt 0; }
 .bd-grid > .bd-row { margin: 0; }
 .bd-grid > .bd-row + .bd-row { margin-top: 6pt; }
 .bd-row {
   display: table;
   table-layout: fixed;
   width: 100%;
-  margin: 8pt 0;
+  margin: 4pt 0;
   border-spacing: 0;
 }
 .bd-col {
@@ -1084,16 +1084,16 @@ tr:last-child td {
 .bd-col-11 { width: 91.667%; }
 .bd-col-12 { width: 100%; }
 
-/* Quiz cards — .bd-grid.quiz = ตัวเลือก 4 คำตอบ (2×2) */
-.bd-grid.quiz .bd-col { padding-top: 4.5pt; padding-bottom: 4.5pt; }
+/* Quiz cards — .bd-grid.quiz = ตัวเลือก 4 คำตอบ (2×2)
+   ระยะระหว่างแถว = 0 (compact) — ปรับใน template-print.css ของแต่ละเล่ม */
+.bd-grid.quiz .bd-col { padding-top: 0; padding-bottom: 0; }
+.bd-grid.quiz > .bd-row + .bd-row { margin-top: 0; }   /* override 6pt จาก generic .bd-grid */
 .bd-grid.quiz ol,
 .bd-grid.quiz ul { margin: 0; padding-left: 21pt; }
 .bd-grid.quiz li {
-  margin: 0 0 7.5pt 0;
-  padding: 7.5pt 10.5pt;
-  background: var(--accent-lt);
-  border: 0.5pt solid var(--border);
-  border-radius: 7.5pt;
+  margin: 0;                                            /* ไม่มี gap ด้านล่าง */
+  padding: 0 10.5pt;
+  /* default minimal — bg/border/radius ปรับใน template-print.css ของแต่ละเล่ม */
   break-inside: avoid;
   page-break-inside: avoid;
   min-width: 0;
@@ -1121,8 +1121,8 @@ tr:last-child td {
    ⚠ counter-reset ห้ามใส่ !important — inline ของ editor ต้องทับได้
    ========================================= */
 .content ol {
-  list-style: none;
-  counter-reset: ol-counter;          /* ห้ามมี !important — กัน inline ของ editor ถูกทับ */
+  list-style: none !important;        /* ⚠ ต้อง !important — กัน native marker ของ inline list-style-type ซ้อนกับ ::before */
+  counter-reset: ol-counter;          /* ห้ามมี !important — กัน inline counter-reset ของ editor ถูกทับ */
   padding-left: 20pt !important;      /* override 7pt จาก normalization patch */
   margin-left: 0 !important;
 }
@@ -1140,23 +1140,32 @@ tr:last-child td {
   color: var(--accent);
   font-weight: 600;
 }
-/* Fallback — กรณี WeasyPrint รุ่นเก่าไม่รองรับ var() ใน counter() */
-.content ol[style*="lower-alpha"] li::before { content: counter(ol-counter, lower-alpha) "."; }
-.content ol[style*="upper-alpha"] li::before { content: counter(ol-counter, upper-alpha) "."; }
-.content ol[style*="thai-alpha"]  li::before { content: counter(ol-counter, thai-alpha)  "."; }
-.content ol[style*="decimal"]     li::before { content: counter(ol-counter, decimal)     "."; }
+/* Fallback — กรณี WeasyPrint รุ่นเก่าไม่รองรับ var() ใน counter()
+   ⚠ ต้อง match `--ol-marker:` เท่านั้น (ไม่งั้นไปชนกับ list-style-type ที่ editor ใส่มาด้วย) */
+.content ol[style*="--ol-marker: lower-alpha"] li::before,
+.content ol[style*="--ol-marker:lower-alpha"]  li::before { content: counter(ol-counter, lower-alpha) "."; }
+.content ol[style*="--ol-marker: upper-alpha"] li::before,
+.content ol[style*="--ol-marker:upper-alpha"]  li::before { content: counter(ol-counter, upper-alpha) "."; }
+.content ol[style*="--ol-marker: thai-alpha"]  li::before,
+.content ol[style*="--ol-marker:thai-alpha"]   li::before { content: counter(ol-counter, thai-alpha)  "."; }
+.content ol[style*="--ol-marker: decimal"]     li::before,
+.content ol[style*="--ol-marker:decimal"]      li::before { content: counter(ol-counter, decimal)     "."; }
 
-/* Quiz cards: เก็บ native ::marker ไว้ (ไม่ใช้ counter overlay) */
+/* Quiz cards: ใช้ counter mode เหมือนกัน (unify) — marker render inline ใน card
+   editor ใส่ counter-reset + --ol-marker ใน inline ของ <ol> แต่ละช่อง → counter() อ่านได้ตรง */
 .bd-grid.quiz ol {
-  list-style: decimal;
-  counter-reset: none;
-  padding-left: 21pt !important;
-}
-.bd-grid.quiz li {
-  position: static;
+  padding-left: 0 !important;          /* ทับ 20pt จาก .content ol — marker อยู่ใน li แล้ว */
 }
 .bd-grid.quiz li::before {
-  content: none;
+  /* ทับ position absolute ของ .content ol li::before → render inline ก่อนข้อความใน card */
+  position: static !important;
+  display: inline !important;
+  left: auto !important;
+  width: auto !important;
+  margin-right: 4pt !important;
+  text-align: left !important;
+  color: var(--accent-dk) !important;
+  font-weight: 700 !important;
 }
 
 /* =========================================
@@ -1504,8 +1513,9 @@ body {
   margin-top: 0 !important;
 }
 /* Heading → p spacing override — เพิ่มช่องว่างเล็กน้อยเฉพาะ h2/h3 */
-.content h2 + p { margin-top: 1pt !important; }
-.content h3 + p { margin-top: 0.8pt !important; }
+.content h2 + p { margin-top: 5pt !important; }
+.content h3 + p { margin-top: 5pt !important; }
+.content h4 + p { margin-top: 4pt !important; }
 
 .content ul,
 .content ol {
