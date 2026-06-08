@@ -886,11 +886,21 @@ blockquote {
 function genImage(c) {
   const parts = [];
   if (c.imgFullWidth) {
-    // Base style_bw.css คุม max-width: 62% — override เป็น 100%
-    // ใช้ width: auto กัน max-width ของ base พังถ้ามี !important higher
-    parts.push(`.book-img img {
+    // Base style_bw.css คุม max-width: 62% — override เป็น 100% ทั้ง frame และ img
+    // ─── ปัญหาที่เจอ ───
+    // 1) `.img-frame` เป็น display:inline-block → WeasyPrint sizes ตาม content
+    //    → ถ้า img natural smaller than column → frame ก็เล็กตาม → img ไม่เต็ม
+    //    → fix: บังคับ display:block + width:100% → frame เต็ม column
+    // 2) `.book-img img` ปกติ max-width:100% + width:auto → img ใช้ natural size
+    //    → fix: เปลี่ยน width:auto → width:100% → บังคับเต็ม frame
+    parts.push(`.book-img .img-frame {
+  display: block !important;
+  width: 100% !important;
+}
+.book-img img {
+  width: 100% !important;
   max-width: 100% !important;
-  width: auto !important;
+  height: auto !important;
 }`);
   }
   if (c.fixCalloutFill) {

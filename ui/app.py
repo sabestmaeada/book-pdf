@@ -135,6 +135,10 @@ STYLES_DIR = CSS_DIR / "styles"
 PROFILES_DIR = ROOT / "profiles"
 SYNC_SCRIPT = ROOT / "sync_toc.py"
 NORMALIZE_SCRIPT = ROOT / "normalize_images.py"
+FIX_CALLOUT_SCRIPT = ROOT / "fix_callout.py"
+
+# ค่ามาตรฐานสำหรับพิมพ์ — โหลดเมื่อ user ไม่ upload Template CSS ส่วนตัว
+DEFAULT_PRINT_CSS = ROOT / "template" / "_default_print.css"
 
 # margin constants (mm) — match @page rule ใน size_*.css
 # text column width = trim_width − INNER_GUTTER − OUTER_MARGIN
@@ -460,6 +464,22 @@ def build_pipeline(
                 f"({len(template_css[1])} bytes) → {tpl_path.relative_to(ROOT)}"
             )
 
+        # 2c) ตรวจ CSS ที่อยู่ใน zip (มักเป็น browser CSS — display: flex, vh, box-shadow ฯลฯ)
+        #     ไม่โหลดอัตโนมัติ เพราะ browser CSS ไม่ออกแบบมาสำหรับ WeasyPrint
+        #     → แจ้ง user ว่าควรใช้ make_style_form generate template CSS แยกสำหรับ print
+        zip_css_files = sorted([
+            p for p in INPUT_DIR.rglob('*.css')
+            if p.name != TEMPLATE_CSS_NAME and not p.name.startswith('.')
+        ])
+        if zip_css_files and template_css is None:
+            names = ", ".join(p.relative_to(INPUT_DIR).as_posix() for p in zip_css_files)
+            q.put(
+                f"⚠ พบ CSS ใน zip ({names}) แต่ไม่ได้โหลด — "
+                f"browser CSS ไม่เข้ากับ WeasyPrint (flex/vh/box-shadow)\n"
+                f"  → ใช้ make_style_form generate template-print.css "
+                f"แล้ว upload ผ่านช่อง 'Template CSS ส่วนตัว'"
+            )
+
         # 3) Step 1/3 — sync_toc
         # เขียน synced ไว้ข้างไฟล์ต้นฉบับ เพื่อให้ relative path (./images/...) resolve ถูก
         q.put("\n[1/3] sync_toc.py")
@@ -484,17 +504,35 @@ def build_pipeline(
             q.put(json.dumps({"__error__": f"normalize_images failed (exit {rc})"}))
             return
 
+        # 3c) fix_callout — เติม fill="none" stroke="transparent" ลง <path class="img-line-hit">
+        #     ⚠ จำเป็น: WeasyPrint v68.x ไม่รองรับ fill/stroke เป็น CSS property
+        #              → CSS override ไม่ทำงาน → ต้องแก้ inline ที่ HTML
+        #     idempotent — รันซ้ำได้ + ปลอดภัยถ้า editor แก้แล้ว
+        q.put("\n[1c/3] fix_callout.py")
+        rc = stream_subprocess(
+            ["python3", str(FIX_CALLOUT_SCRIPT), str(synced_html), "-o", str(synced_html)],
+            cwd=ROOT, output_queue=q,
+        )
+        if rc != 0:
+            q.put(json.dumps({"__error__": f"fix_callout failed (exit {rc})"}))
+            return
+
         # 4) Step 2/3 — weasyprint
         q.put("\n[2/3] weasyprint")
         rgb_pdf = OUTPUT_DIR / "book_rgb_bw_nomarks.pdf"
         (ROOT / ".weasy-cache").mkdir(parents=True, exist_ok=True)
-        # Order: size (geometry) → style (typography) → template (per-book override)
-        #        → graphics → no-marks override
+        # Order: size → style (base) → default-print (auto-fallback) → template (user override)
+        #        → graphics → no-marks
+        # ⚠ ไม่โหลด zip CSS อัตโนมัติ — มักเป็น browser CSS (flex/vh/box-shadow) ไม่เข้ากับ WeasyPrint
         weasy_cmd: list[str] = [
             "weasyprint",
             "-s", f"css/{size_css}",
             "-s", f"css/{style_css}",
         ]
+        # ถ้า user ไม่ upload template → ใช้ค่ามาตรฐานจาก template/_default_print.css
+        if template_css is None and DEFAULT_PRINT_CSS.is_file():
+            weasy_cmd += ["-s", str(DEFAULT_PRINT_CSS.relative_to(ROOT))]
+            q.put(f"✓ ใช้ค่ามาตรฐาน: template/{DEFAULT_PRINT_CSS.name} (ไม่ได้ upload Template CSS)")
         if template_css is not None:
             weasy_cmd += ["-s", f"input/{TEMPLATE_CSS_NAME}"]
         if left_graphic is not None:

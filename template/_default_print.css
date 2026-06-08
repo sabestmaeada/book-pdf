@@ -1,0 +1,47 @@
+/* =========================================================
+   _default_print.css — Standard print fixes
+   ---------------------------------------------------------
+   โหลดอัตโนมัติเมื่อ user ไม่ได้อัปโหลด Template CSS ส่วนตัว
+   เพื่อให้ผลลัพธ์ PDF ใช้งานได้ทันทีโดยไม่ต้องตั้งค่า
+
+   หลักการ:
+   - แก้เฉพาะปัญหา layout ที่ pipeline ต้องการ
+   - ไม่ opinionated เรื่อง color / font / sizes
+     (base style_bw.css หรือ style_cmyk.css คุมส่วนนั้นอยู่แล้ว)
+   - User สามารถ override โดย upload Template CSS ของตัวเอง
+
+   ถ้าอยากปรับเพิ่ม → ใช้ make_style_form generate
+   ========================================================= */
+
+
+/* =========================================
+   1. รูปภาพเต็มความกว้าง column
+   base style_bw.css มี max-width: 62% (สำหรับงานเก่า)
+   แต่ user ส่วนใหญ่ต้องการรูป 100% column เป็นค่ามาตรฐาน
+   ========================================= */
+.book-img {
+  display: block !important;
+  text-align: left !important;
+}
+.book-img .img-frame {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+.book-img img {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  max-height: none !important;          /* override base 105mm cap */
+  margin: 0 !important;                  /* ลบ margin: 0 auto */
+}
+
+
+/* =========================================
+   2. Callout SVG hit-zone (kebabsafe ผ่าน fix_callout.py แล้ว)
+   แต่เก็บ CSS rule ไว้ด้วย เผื่อบางกรณี WeasyPrint รุ่นใหม่จะ honor
+   ========================================= */
+.img-line-hit {
+  fill: none;
+  stroke: transparent;
+}
