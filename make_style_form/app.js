@@ -125,6 +125,8 @@ function readConfig() {
     h4Indent: document.getElementById('h4Indent').checked,
     noIndentBody: document.getElementById('noIndentBody').checked,
     noIndentGrid: document.getElementById('noIndentGrid').checked,
+    imgFullWidth: document.getElementById('imgFullWidth').checked,
+    fixCalloutFill: document.getElementById('fixCalloutFill').checked,
   };
 }
 
@@ -881,6 +883,32 @@ blockquote {
 }`;
 }
 
+function genImage(c) {
+  const parts = [];
+  if (c.imgFullWidth) {
+    // Base style_bw.css คุม max-width: 62% — override เป็น 100%
+    // ใช้ width: auto กัน max-width ของ base พังถ้ามี !important higher
+    parts.push(`.book-img img {
+  max-width: 100% !important;
+  width: auto !important;
+}`);
+  }
+  if (c.fixCalloutFill) {
+    // ⚠ Editor ไม่ใส่ fill="none" ใน <path class="img-line-hit"> inline
+    //   → SVG default fill = "black" → เส้นโค้ง (Q) และเส้นมุม (L) สร้าง
+    //     closed area → ระบายดำ
+    // Fix: ใช้ CSS บังคับ fill: none + stroke: transparent
+    parts.push(`.img-line-hit {
+  fill: none !important;
+  stroke: transparent !important;
+}`);
+  }
+  if (parts.length === 0) return '';
+  return `/* === IMAGE & CALLOUT ===
+   imgFullWidth: ${c.imgFullWidth} / fixCalloutFill: ${c.fixCalloutFill} */
+${parts.join('\n\n')}`;
+}
+
 
 // ============================================================
 // MAIN — generate full CSS
@@ -907,6 +935,7 @@ function generate() {
     genTOC(c),
     genPreface(c),
     genMisc(),
+    genImage(c),
   ].filter(Boolean).join('\n\n\n');
 
   const header = `/* =========================================================
@@ -1145,6 +1174,8 @@ function bindReset() {
     document.getElementById('h4Indent').checked = true;     // default ON
     document.getElementById('noIndentBody').checked = false;
     document.getElementById('noIndentGrid').checked = true;     // default ON
+    document.getElementById('imgFullWidth').checked = true;     // default ON
+    document.getElementById('fixCalloutFill').checked = true;   // default ON
     document.getElementById('printGrayMode').checked = false;
     document.getElementById('h1dark').value = 0;
     document.getElementById('h2dark').value = 0;
