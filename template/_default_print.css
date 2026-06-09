@@ -36,12 +36,7 @@
   margin: 0 !important;                  /* ลบ margin: 0 auto */
 }
 
-
-/* =========================================
-   2. Callout SVG hit-zone (kebabsafe ผ่าน fix_callout.py แล้ว)
-   แต่เก็บ CSS rule ไว้ด้วย เผื่อบางกรณี WeasyPrint รุ่นใหม่จะ honor
-   ========================================= */
-.img-line-hit {
-  fill: none;
-  stroke: transparent;
-}
+/* หมายเหตุ: callout hit-zone (.img-line-hit) แก้พื้นหลังดำผ่าน fix_callout.py
+   (เติม fill="none" stroke="transparent" inline ใน HTML)
+   ⚠ ไม่ใส่เป็น CSS rule — WeasyPrint ไม่รองรับ fill/stroke เป็น CSS property
+     (จะขึ้น warning "Ignored fill/stroke, unknown property") */

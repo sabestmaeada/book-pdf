@@ -70,6 +70,14 @@
 @page credits:right { margin: 10mm 12mm 10mm 22mm; }  /* spine ซ้าย */
 @page credits:left  { margin: 10mm 22mm 10mm 12mm; }  /* spine ขวา */
 
+/* --- Part divider — เต็มหน้า (margin 0) เผื่อ background ถึงขอบ --- */
+@page part {
+  size: 170mm 228mm;
+  margin: 0;
+  bleed: 3mm;
+  marks: crop;
+}
+
 /* --- Cover / back-cover dimensions (trim + 6mm bleed สำหรับ image) --- */
 .cover,
 .cover.cover-has-image {
@@ -103,4 +111,11 @@
 /* --- Credits page min-height = trim_h − margin_top × 2 --- */
 .credits-page {
   min-height: 208mm;  /* = 228mm − 10mm × 2 */
+}
+
+/* --- Part divider dimensions (เต็ม trim — center content ใน style_*.css) --- */
+.part-divider {
+  width: 170mm;
+  height: 228mm;
+  min-height: 228mm;
 }

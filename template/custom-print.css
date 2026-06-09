@@ -1,0 +1,212 @@
+/* =========================================================
+   custom-print.css — Sparkle Editorial Style
+   ---------------------------------------------------------
+   - h1-h4: override ตามต้นฉบับ (h2 border-left, h3 ✦, h4 ✧ rotated)
+   - chapter header: เพิ่มแค่ "ดาวตกแต่ง" ไม่แตะ layout ของ base
+     (base คุม "บทที่" + counter "01" + flex layout ต่อ)
+
+   ---------------------------------------------------------
+   สี hardcoded — ไม่ต้องพึ่ง CSS variables
+   ========================================================= */
+
+
+/* ========================================
+   Chapter header — เพิ่ม "ดาว" decoration (ไม่แตะ layout)
+   ========================================
+   ⚠ ห้ามแตะ:
+   - .ch-hdr display: flex (base ใช้ flex layout)
+   - .ch-num::before content (base ใช้ "บทที่")
+   - .ch-num::after content (base ใช้ counter)
+   - .ch-title border-left (base ใช้ vertical divider)
+
+   เพิ่ม:
+   - .ch-hdr::after = SVG sparkle ตกแต่งมุมขวาบน
+   ======================================== */
+.ch-hdr {
+  position: relative !important;     /* เผื่อ ::after absolute */
+  /* หมอกฟุ้ง — PNG fog ฝัง base64 (raster — ผ่าน mutool recolor ได้)
+     ⚠ ห้ามใช้ CSS gradient: ทำ mutool recolor segfault
+     ⚠ ปรับสี/ความเข้ม → รัน template/make_fog.py ใหม่ แล้วแทน URI ด้านล่าง */
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAjAAAACWCAYAAADAK7K1AAAQ2UlEQVR42u2da47jOg5GzUZvabY0a57daP42CpVYD5L6KJ0DXNyuqiS2ZYk6oR62//33Pw8AAABAJf5QBAAAAIDAAAAAACAwAAAAAAgMAAAAIDAAAAAAufylCJYwiqA0jSIAAEBgEBDg/iNlAAAIDJ0TAPUeyQOAEwWGYA0A1eMGQgVwuMBUlhVEi4ANEBUfaE+AwNDpIyKUIx0GIEAACEytjg05AfW6QkcDCBCAkMDY4cdDkgh+VeoP9wIAEBiRzvyUY9ApI1QINvf+1HpDuUMZgTE+V/bYBJKYMqdc77r33O/xcqfMQFpg1AXDxK+Tb+B1OwqkCBHi3s6VGfUctguMiX2eCV3L2+fTgPfci3bxtdPh0plXq+fUQQRGOtBawfcqvL8aKoHIDr2uU2Xqhg6MzryvbJAZBKa0uFiBYxGo9nWGTfi6CL469aYdWhbUMUBggoOJJRzTkq7pxAnGlTsB5c7OLr0np0pRxfrfDrlv1HMEJr3RR4qLBV6DyiRgtUabKVmtwHW2y+7J7dJENkSz7Cl3BGZrYPWUkehMjImW4WkdmBU4dxMpq9Ol6ZQVak38Xp00zIbUXC4wGXNPvMTFNp5bJfHwClomfG5e584w0rnC1ASvQzWbd9rcIcTmAoGJlhePTIoln09FOYm+niZ2bk2kXNTL6XaJUqzzt2bzdtx7yvFwgYlqgBnisiNbc4LcqGZi2sbz2ZWFqRhgK2flZq7zlk6QSbRQSmCiOu5I8ciSGo9AfUonqyolO7Iw3sHdNtYDvkHr1sudc2yYwAzyAhMhL6tyY5ukpcqwUqWhjozgv0M6FNL/Nz1Is+JzjjJ25VYUHNWl5wjXgQKTLS/e4hKZpYkSPKVOQ3V1SYTwZIvfDcNI1ToJMl3UA7hUYLLlJVN2RoKb0jff3efSgs/XW3g8h98YRsqvjwrLktvF97eyxPC4gsMExnPIxDNL4iknGUKjJjWZnUN0UPbe08KSP+u2YaToa1cYSsrsnFcn1LIZHDJzrMBkBBUPeRmVk5FjrghOT2OotAGYJR2zQhbGEj/n1E5FeSjBirSVyLKMnsNSZTUTMlNQYLyyC15ZkajXjkiL55yZXY13x6MMbs3C2OZrrRB0lXdX3rWqyCObkjU5N6Kcq9RXZEZYYNTlxVtydg0x7UzxZ+/zorBUunoWhqC5LyNRqSOuvMS5itCwH84BAuPZuFakYuZ3kUNParJSVX4iViWpycnN82Aiy6Hq06Yz5MNz4nF2/VWd/IvIiAiMx2qbiGGcSHHJlpmIjECFji1yPkx2FsYreI8EwNOeZh5dHz22EYhaVcTE27OEBpEREZioQBQtL17i4ikzXoE5UjZOeXijtwxmr2ix5DIi0O6T6JNExAqfOyJzqcBY0OeY02v+/V1kNmemXNS+RWc+yG70G+3ODet2PJJh506wKqg9gHOlvmYPzWS/D6FBZKQEJuq5Pl5iMvqaSEHykJmZ10c0jMzNtzI7kFXRyV5pNNORqD5LayWGKAX91WGkKh1YlHhEC416GSMyiQKT9U3PQyxGsi4RmZ3RjsQSynVHEIjucEfPTfGxAdH3NSJrobyKppqUrZbBqsR7DRO3jddVHR6hICIwsx24p+CsZF285MajLJRWSqykn5U6FeUhokqdbbXHUER2HisTcj3q4+p8Ga9N6byzKXTqkC4w3nISJS9R4pIxnFSpo/H8hqfY8XkccyRQK85N2bWcWGk+zIqkzEpG5Ps8hIThEYTtCIGZzTh4/WzBx/GUmahOasfuo6sNM2JuiDl/ZoXJvNGBserO0QoiRsdMpw4iAhP5gMcMeVEeTvKQCI8gfcJKGMWO9oQgXWHvILhToKgrlwuMJVUyj/f2yMuurMzbtWaU844H0allYbwm83plaqoPI+2UXIWOaUeWgewEIoPAbBAT7+yLp7yoDScpdlrqzx+p3BmfkHWo2lHsfPr77ETcmbK+XZgQGQTGtfGvDD2NPr8oSmxGRGtnBsYjENmm46p27jt25W2CZb/rmFa0/vQuGe5ZJTQ6WZdOnDJAYBKC0eozlTLkJWo4KVJsVjuXrHR51OurdnqVMgyZEtMEzjdbEt+O1yM1oyuNZjt9j+dGteJ1FIoJzMzw0WwAtg7xiJSckevdnYHZHaxVhsMyOz3PnXuriVbWU4krd0JZwzpvMjCTFWpOx94pMmRjEJjlzmw2+2JOwnJbFmaXxFQY/hg9dvYwEkCGdEfIjLrINPH7Ao/uENKM6HgIS+bcmJ5rsIPrXta+JJnnQdDZH5hN4Fzf3tsK378RmckSmRMlBpIFJiKDMPqZM5IyI0s//+adiak2CTVzoqb3M49uEwIreM6niaQddj27RSYqG4PEXCQwsw11Zr6KZ8c7Kjz2+A8rfTpm29Dp3Lh/RxVRPKWDz8i+Ve70ZybZKl9zpsggMQiMbODtzWhE/HtUXjz2hqk0qUyxoWc/jXvHhnagWacj7+GnoRz1eBGx0SQSg8DwTbXzfKLnxHx7bStSTmqdSgv4TKBTUIyT7UVwbqkjSMwl/CnYSEde6/Fvc5YX+yIp9nKv/vw4H9tc1ieKKpxx76lXfXHFksvXRI9DnSrI3w2NqbfjHxEUSzrfEWHq+fntGKPZGL5VAxKTTytUzq1oHSETA9sFRiFI9v57dUVT5J4wNCI65JW6oFZ/mvj9XN18UOn+/CYyFeIJD7uEMIGxoEa28hr1oRDlBzvS6NfKhbKr3el5H9+S6sfKJNmTJYb4eCh/DriGmWGot8+Izr6sZF6i58DskNnIcXHFJ32b2PlUrDPVr9cEy90OvRfMXUFgpCqfiX2uxyS5t8+w5MZJowc4X2Ro50gXApN0A6xApZgZ2loVICo7QN22oZb5IAtDzL1eYE6r4EaZhL6PgED7O/Hc7MDyALheYKzwcU6ZewIAtGFiByAwAARdAABAYOgI6dRrlnGF3YzJIgIAAgMInninqriUGoDYgOQCAkNjoIED0CZo/4DAAIBCR0NnBACAwNA5AgAAIDAAAAAACAwAAAAAAgMAAAAIDAAAAAACAwAAAIDAAAAAAAIDAAAAgMAAAAAAIDAAAACAwAAAAAAgMAAAAAAIDAAAAAACAwAAAAgMAAAAAAIDALBK41oBEBgAAIAVWWobjgkIDACAXIcIAAgMAAAAAAJz6re6duE1A8CZ7ZZ4AQgMwQXAtT4x+bT+ubUDywPgeIFRzHw0gXNsg+9pAuUOgBjFnmOjzEpdE3H2cIGJrChNrAJ6CMjbZ1RLLzehoNA2Hx9AVVyo84g3AiNyo1c6zdbxmb3HaoM/955/6/gP9geWJnhOygGyXViHmmC5nxpDiIuH8ndzpbKJv3l8fvb1jLx+5byVhu2iO9WI1zIvhY4r4vhN8HpbwXrdOA+IEJhsWVg5v9/+/fP/z8S/38rkt9d+k5hnQoigToDzlKXqGZhT76XiBN5WtC4wGRrCBMZDdHol6E02siXs23n0SszzIjLPs0cQT5j/Avd+q27i50fWoJ68EKeE+HNgBV6dy+L5nk8/f/oW1DORl7kvgLzQ0YyUQwsop6z3IS/wkb/iDc8Ejtk7fPT2t6fjd99+n92osve+YLk48gI+5Xh71gh5QWBShGJ12GZlzsq3f38TiBGJeZ75IaSfDcaKNCo1eWkbXsfQBZK1I7t00g7hyAu4CkyGoESvTOqVkZ9SMZptefv5ecYzL41GVSIAZ0/grVgXWvHPzz736qvjsuoy8oLApFRmc3yt58qhb0KxKjHPoMg8X4RGuQNg+EhfBlqx873pnrVL66Zitou6epHAeKziGXlthtyMSszzvA8hffrdLlk5vcGzB8xd9aMJfE67/P5lZg+RFwRGrpG8zRv5+beZvVlWJGbl50+/+63R2IYGReCOLz/KCU6rq9lZ1JNXsBEfhARmZAO32c/rFZURoflNQp7Hd+7L23BRexGeG7+Vt0sCwWnPb2qHHEPx/L3bkPIGiiy9h1SBmZGSkSxMz3tWlj9/2rX3m+i8ic+bsNAJ1P0mqnQslXt80yRjtbKNqG/twHJFXhCYtL1bVrf2X5GYn9jjM//leTnOk1C26pN31QMNw0f7rrcdXj5KIkL9hCMFZkRsZoZgRjMsq6LS83ObuO5PMjK6lPq2hhwVoFvx60QodM57R5ahiR8LcQEJgVF/aKOHqKzMaxlZZbQylGQHBAOVlHDlVUo8c0rrmqrIy81QXhcLjLfkRGVhRv7WIzW9kvI2z6Xn9z2S0i5s1DvT4+2ysub6gHoJVwrMqthESszz5GRbZqTFCja4E5Zc3zaB97QOgo7p/PrBPYbtArMqNr2SsyvbEjVsZASVEpMTqxzz1p1ed5fNzudj7WznyAflVU5gPkmJVxbGU2I+/TwrMjMy801WGg007PMV56xUmsCLDOl8GVARDeoYlBcYL+F5e43n84lWsy0Zw0YmFBhUMzC7AuhNe6s0kZjBt/WzZOX2e0udThCY1ZVIvdmZ3h18PZ5PNPrgxZEN6mYeDxC9jLrSfIUKQbLK3BaWwOqdD886Y5M6xCVRYLJEZ1VifsqFZ2blLdsyKi1Gg5M9r3ZIubJMV+P6WtH7yUo8xOUqgZmRm1lh6fndjPiMSEvv70eFxQ5pLKdmX3o/r1IHQGC9IzNBR015IDATohIpMd8ExDvTMistI0NHp6TLK3a6rfDnsGGd/jkhPnddP+IiIjDRO/KuCEvP+1WkhaGjPcdSzIYwR4brVTrvduG5Us8uERgv2Rn922jW5k1SvKXlTUiyh47aJQ1Yfe7LSZKDvJxx/xr3jvNEYPZIzPOsZ2PeRGZVZkaE5eShI7Vj3SAm7M+CBO0835vrM9JSRGA8h5G85sqsSk9vNsV7rstopbciDahq+pjsC51B9LmdsG8Qk8mRlrIC4y08bxLzqeO3wdd/Eo3e1478bUZYbLLBsGKh7jdD5r/cdZ2Vspl0zpTLsQIzmoVZkZg30RgRmd/+5iUsI8NB6kNH7dJAUnm4rHpgZfUUnabqtSIthwlMhPT0/P0JEJkZmen5u4esVHtG0g3Bp11enggzUMZQXmA8niY9Ihy9lb9XVkZkpldYRoXDBBv0rUsT24XlfEOH0ThnuXJhci5sF5goiXl7zZvk9P59VHa8h4xOahxsILW/LAi0umVy2xcR6iKUEJhI8YkWlVGZ+fm6ykuj6WD070/jvnOdXC9ArMDMLqvufd+qyMzIzMjrfr7Wc2k0QaveebEElE6Ze8e9hyICsyoxvZ24R8Zl9nWjr30mrovAwDkTPCm3KtfBpolwjMBkCpBXxiVDUkYahtFgCfzcD8qFc+IaIV9gVnfondlbpqfj75WZT5V7ZaWQ0bCuuU5WVgBlTNlDUYHxkpiVjn9UNlaGeCKGh4xGTZDjXlH+XBfXB/kC4yExsyIzIygzGZfexmI0QAIS95cypSwA6giMl8T8bJCW9P6VjMtKMLGAewCUIeVDOVM2gMBMViwLqKge2Q1vITEaIoGM6wXuKWUB9QXm34oYmV0w5wZiSQ2u0v4vBBPKELjHlBlcJzD/VlJLagAW1KCMhktgBe41UO5wj8D8VmGzV9xYcoMzqhkBjXsA1BWAMwTmt8pvmxub0biBDgMAAIFZDcq2+fg7zwWQCQDqMEARgVETmpUGjvAQSAFoNwCXCkxPI7VC5woAQLwAuFBgRho+GRAAQBgAEJhjAxSiA3TSAAAIzHVBHgGiPgAAAAJDhwcAAADv/KEIAAAAAIEBAAAAQGAAAAAAEBgAAAAozv8BYk4w6LA1GkYAAAAASUVORK5CYII=") !important;
+  background-size: 100% 100% !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+.ch-hdr::after {
+  content: "" !important;
+  position: absolute !important;
+  right: 18pt !important;
+  top: 6pt !important;
+  width: 78pt !important;       /* รองรับ 2 ดาว แยกกัน */
+  height: 62pt !important;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-15 -10 113 90'%3E%3Cg fill='none' stroke='%23999999' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M34 2c3 17 13 27 31 31-18 4-28 14-31 31C30 47 20 37 2 33 20 29 30 19 34 2z' transform='translate(-15 5) rotate(12 34 34)'/%3E%3Cpath d='M60 4c1 8 6 13 14 15-8 2-13 7-14 15-2-8-7-13-15-15 8-2 13-7 15-15z' transform='translate(38 3) scale(.62) rotate(-25 60 19)'/%3E%3C/g%3E%3C/svg%3E") no-repeat center / contain !important;
+  opacity: 0.55 !important;
+  pointer-events: none !important;
+  /* ⚠ ไม่ใช้ CSS transform: rotate — จะทำให้ background ถูก clip
+     หมุนต่อดาวใน SVG transform แทน — ดาวใหญ่ +12° / ดาวเล็ก -25° */
+}
+
+
+/* ดาว ✦ (solid 4-point) ก่อน "บทที่" — base ใช้ content "บทที่" → เปลี่ยนเป็น "✦ บทที่" */
+.ch-num::before {
+  content: "✦  บทที่" !important;
+}
+
+/* เลขบท "01" — เปลี่ยนสีจาก base #000000 ให้ตรงกับสี h2 */
+.ch-num::after {
+  color: #8F3E16 !important;
+}
+
+
+.content h1 {
+  font-family: 'Prompt', 'IBM Plex Sans Thai', sans-serif !important;
+  color: #1A1A1A !important;
+  font-size: 17pt !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+}
+
+
+/* h2: 4 diamond (2x2) prefix + K90 underline */
+.content h2 {
+  font-family: 'Prompt', 'IBM Plex Sans Thai', sans-serif !important;
+  color: #8F3E16 !important;
+  font-size: 14.4pt !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  margin: 22pt 0 11pt 0 !important;
+  padding: 0 !important;             /* ลบ padding ซ้าย */
+  background: transparent !important;
+  border: none !important;
+  border-left: none !important;      /* ลบเส้น | */
+  line-height: 1.25 !important;
+  page-break-after: avoid !important;
+  display: block !important;
+}
+
+/* 4 diamond ข้าวหลามตัด (2×2) นำหน้า */
+.content h2::before {
+  content: "" !important;
+  display: inline-block !important;
+  width: 14pt !important;
+  height: 14pt !important;
+  margin: 0 8pt 0 0 !important;
+  vertical-align: -2pt !important;   /* ปรับ baseline ให้ตรงกับข้อความ */
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 2 L10 6 L6 10 L2 6 Z' fill='%231A1A1A'/%3E%3Cpath d='M18 2 L22 6 L18 10 L14 6 Z' fill='%231A1A1A'/%3E%3Cpath d='M6 14 L10 18 L6 22 L2 18 Z' fill='%231A1A1A'/%3E%3Cpath d='M18 14 L22 18 L18 22 L14 18 Z' fill='%231A1A1A'/%3E%3C/svg%3E") no-repeat center / contain !important;
+}
+
+/* เส้นใต้ K90 = #1A1A1A */
+.content h2::after {
+  content: "" !important;
+  display: block !important;
+  width: 100% !important;
+  height: 2pt !important;
+  margin-top: 6pt !important;
+  background: #1A1A1A !important;    /* K90 (ดำ 90% — ไม่ใช่ K100) */
+  border-radius: 2pt !important;
+}
+
+
+/* h3: ✦ orange prefix */
+.content h3 {
+  font-family: 'Prompt', 'IBM Plex Sans Thai', sans-serif !important;
+  color: #342F2D !important;
+  font-size: 12.6pt !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  margin: 18pt 0 8pt 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  position: static !important;
+  line-height: 1.32 !important;
+}
+
+.content h3::before {
+  content: "✦" !important;
+  display: inline-block !important;
+  position: static !important;
+  margin-right: 7pt !important;
+  color: #D86635 !important;
+  font-size: 10.5pt !important;
+  line-height: 1 !important;
+  vertical-align: baseline !important;
+}
+
+
+/* h4: ✧ rotated 45° prefix + indent */
+.content h4 {
+  font-family: 'Prompt', 'IBM Plex Sans Thai', sans-serif !important;
+  color: #1A1A1A !important;
+  font-size: 11.2pt !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  margin: 13pt 0 5pt 1.65em !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  position: static !important;
+  line-height: 1.4 !important;
+}
+
+.content h4::before {
+  content: "✧" !important;
+  display: inline-block !important;
+  position: static !important;
+  margin: 0 7pt 0 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  color: #D86635 !important;
+  font-size: 10pt !important;
+  font-weight: 400 !important;
+  line-height: 1 !important;
+  transform: rotate(45deg) !important;
+  transform-origin: center !important;
+  vertical-align: 0.05em !important;
+}
+
+
+/* ========================================
+   PART — หน้า part divider + สารบัญ (เข้าธีม Sparkle)
+   ======================================== */
+
+/* สารบัญ — toc-part ใช้สีธีมส้ม (override base #000) */
+.toc-part {
+  color: #8F3E16 !important;
+  border-bottom: 1pt solid #8F3E16 !important;
+}
+
+/* หน้า part — kicker ส้ม accent / title K90 (เหมือน ch-title) */
+.part-kicker {
+  color: #D86635 !important;
+}
+.part-divider .part-title {
+  color: #1A1A1A !important;
+}
+
+/* หน้า part — fog ก้อนกลาง (raster PNG ผ่าน mutool ได้)
+   ⚠ ปรับ → python3 template/make_fog.py --preset part แล้วแทน URI */
+.part-divider {
+  background-image: url("data:image/png;base64,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") !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: 130mm auto !important;
+}
+
+/* หน้า part — ดาวใหญ่+เล็ก (เหมือนหัวบท) กึ่งกลางเหนือ kicker
+   ::before = flex item แรกใน .part-divider (flex column, align-items center) */
+.part-divider::before {
+  content: "" !important;
+  display: block !important;
+  flex: none !important;
+  width: 72pt !important;
+  height: 52pt !important;
+  margin: 0 0 22pt 0 !important;
+  opacity: 0.7 !important;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-15 -10 113 90'%3E%3Cg fill='none' stroke='%23999999' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M34 2c3 17 13 27 31 31-18 4-28 14-31 31C30 47 20 37 2 33 20 29 30 19 34 2z' transform='translate(-15 5) rotate(12 34 34)'/%3E%3Cpath d='M60 4c1 8 6 13 14 15-8 2-13 7-14 15-2-8-7-13-15-15 8-2 13-7 15-15z' transform='translate(38 3) scale(.62) rotate(-25 60 19)'/%3E%3C/g%3E%3C/svg%3E") no-repeat center / contain !important;
+}

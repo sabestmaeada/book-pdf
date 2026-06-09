@@ -529,10 +529,11 @@ def build_pipeline(
             "-s", f"css/{size_css}",
             "-s", f"css/{style_css}",
         ]
-        # ถ้า user ไม่ upload template → ใช้ค่ามาตรฐานจาก template/_default_print.css
-        if template_css is None and DEFAULT_PRINT_CSS.is_file():
+        # โหลด print defaults เสมอ (layout baseline: image 100%, callout fix ฯลฯ)
+        # → user template สามารถ override จุดที่ต้องการ แต่ image fix ไม่หาย
+        if DEFAULT_PRINT_CSS.is_file():
             weasy_cmd += ["-s", str(DEFAULT_PRINT_CSS.relative_to(ROOT))]
-            q.put(f"✓ ใช้ค่ามาตรฐาน: template/{DEFAULT_PRINT_CSS.name} (ไม่ได้ upload Template CSS)")
+            q.put(f"✓ baseline: template/{DEFAULT_PRINT_CSS.name}")
         if template_css is not None:
             weasy_cmd += ["-s", f"input/{TEMPLATE_CSS_NAME}"]
         if left_graphic is not None:

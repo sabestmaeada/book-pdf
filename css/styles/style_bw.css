@@ -160,6 +160,15 @@ body {
   @bottom-right { content: none; }
 }
 
+@page part {
+  @top-left    { content: none; }
+  @top-center  { content: none; }
+  @top-right   { content: none; }
+  @bottom-left { content: none; }
+  @bottom-center { content: none; }
+  @bottom-right { content: none; }
+}
+
 /* =========================================
    3. Page Assignment
    ========================================= */
@@ -176,6 +185,10 @@ body {
 
 .chapter {
   page: body;
+}
+
+.part-divider {
+  page: part;
 }
 
 .back-cover {
@@ -458,6 +471,23 @@ a.toc-item::after {
   margin-left: auto;
 }
 
+/* ----- TOC Part header — คั่นกลุ่มบทใน สารบัญ (markup: div.toc-part) ----- */
+.toc-part {
+  font-family: 'Prompt', 'IBM Plex Sans Thai', sans-serif;
+  font-size: 10.5pt;
+  font-weight: 700;
+  letter-spacing: 0.3pt;
+  color: #000000;                      /* BW: ดำ K100 เด่นในลิสต์ */
+  margin: 15pt 0 6pt 0;                /* เว้นบน = แยกจากบทกลุ่มก่อน */
+  padding: 0 0 4pt 0;
+  border-bottom: 1pt solid #000000;
+  break-after: avoid;                  /* ติดกับบทแรกของ part (ไม่ตกหน้า) */
+  page-break-after: avoid;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+.toc-part:first-child { margin-top: 0; }   /* ก้อนแรก = ไม่ต้องเว้นบน */
+
 .chapter {
   break-before: page;
   page-break-before: always;
@@ -569,6 +599,65 @@ a.toc-item::after {
   object-position: center center;
   border: none;
   border-radius: 0;
+}
+
+/* =========================================
+   6b. Part Divider — เต็มหน้า กึ่งกลาง (markup: section.part-divider)
+   width/height/min-height อยู่ใน size_*.css · page: part (margin 0)
+   center นิ่ง: ใช้ flex + height explicit (ไม่ใช่ min-height-with-margin)
+   ========================================= */
+.part-divider {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  box-sizing: border-box;
+  padding: 30mm 24mm;
+  background: #FFFFFF;
+  break-before: page;
+  page-break-before: always;
+  break-after: page;
+  page-break-after: always;
+  overflow: hidden;
+}
+
+.part-kicker {
+  font-family: 'Prompt', 'IBM Plex Sans Thai', sans-serif;
+  font-size: 12pt;
+  font-weight: 600;
+  letter-spacing: 4pt;
+  text-transform: uppercase;
+  color: #555555;            /* BW: เทาเข้ม */
+  margin: 0 0 16pt 0;
+  text-indent: 0;
+}
+
+.part-divider .part-title {
+  font-family: 'Prompt', 'IBM Plex Sans Thai', sans-serif !important;
+  font-size: 30pt !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  color: #000000 !important;
+  margin: 0 0 16pt 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  max-width: 130mm;
+  text-indent: 0 !important;
+  text-align: center !important;
+}
+
+.part-divider .part-desc {
+  font-family: 'IBM Plex Sans Thai Looped', 'Anuphan', sans-serif !important;
+  font-size: 12pt !important;
+  font-weight: 300 !important;
+  line-height: 1.6 !important;
+  color: #555555 !important;
+  margin: 0 !important;
+  max-width: 105mm;
+  text-indent: 0 !important;
+  text-align: center !important;
 }
 
 /* =========================================
@@ -898,7 +987,7 @@ tr:last-child td {
 }
 
 .book-img img {
-  max-width: 62%;
+  max-width: 100%;
   max-height: 105mm;
   display: block;
   margin: 0 auto;
