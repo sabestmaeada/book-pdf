@@ -249,7 +249,20 @@ TEMPLATE_CSS_NAME = "_template_print.css"
 TEMPLATE_CSS_MAX_BYTES = 1 * 1024 * 1024   # 1MB hard cap
 
 app = Flask(__name__)
-app.config["MAX_CONTENT_LENGTH"] = 500 * 1024 * 1024  # 500 MB
+# เพดานขนาด request ทั้งก้อน (zip + edge graphics + template CSS รวมกัน)
+# local app คนเดียว → ตั้งสูงได้ แต่ระวัง: zipfile.read() โหลดทั้งไฟล์เข้า RAM
+MAX_UPLOAD_MB = 2048  # 2 GB
+app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_MB * 1024 * 1024
+
+
+@app.errorhandler(413)
+def _too_large(_err):
+    # คืน JSON ภาษาไทยแทน HTML 413 ดิบ → frontend อ่าน .error ได้ตรงๆ
+    return jsonify(
+        error=f"ไฟล์ที่อัปโหลดใหญ่เกิน {MAX_UPLOAD_MB} MB "
+              f"(รวม zip + edge graphics + template CSS) — "
+              f"ลดขนาด/บีบอัดรูปในเล่ม หรือแยกไฟล์ แล้วลองใหม่"
+    ), 413
 
 
 # ICC header — bytes 16..19 คือ color space signature (4 ASCII chars)

@@ -28,12 +28,24 @@
   width: 100% !important;
   max-width: 100% !important;
 }
-.book-img img {
+/* รูปปกติ (ไม่ได้ crop) — เต็มความกว้าง column
+   ⚠ :not([data-crop]) สำคัญ: ห้าม height:auto/width:100% ทับรูป crop
+      ไม่งั้น inline height ของกรอบ crop หาย → object-fit:cover ไม่ตัด → โชว์เต็ม */
+.book-img img:not([data-crop]) {
   width: 100% !important;
   max-width: 100% !important;
   height: auto !important;
   max-height: none !important;          /* override base 105mm cap */
   margin: 0 !important;                  /* ลบ margin: 0 auto */
+}
+
+/* รูปที่ crop จาก editor — inline style คุม width/height/object-fit/object-position
+   ปล่อยให้ inline ทำงาน แค่ปลด cap + centering ของ base ออก
+   (อย่าแตะ height/object-fit/object-position — จะพังการ crop) */
+.book-img img[data-crop] {
+  max-width: 100% !important;            /* safety: กันล้น column */
+  max-height: none !important;           /* override base 105mm cap */
+  margin: 0 !important;                  /* ชิดซ้ายเหมือนรูปอื่น */
 }
 
 /* หมายเหตุ: callout hit-zone (.img-line-hit) แก้พื้นหลังดำผ่าน fix_callout.py
