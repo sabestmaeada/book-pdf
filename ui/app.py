@@ -136,6 +136,7 @@ PROFILES_DIR = ROOT / "profiles"
 SYNC_SCRIPT = ROOT / "sync_toc.py"
 NORMALIZE_SCRIPT = ROOT / "normalize_images.py"
 FIX_CALLOUT_SCRIPT = ROOT / "fix_callout.py"
+FIX_GRADIENT_SCRIPT = ROOT / "fix_gradient.py"
 
 # ค่ามาตรฐานสำหรับพิมพ์ — โหลดเมื่อ user ไม่ upload Template CSS ส่วนตัว
 DEFAULT_PRINT_CSS = ROOT / "template" / "_default_print.css"
@@ -528,6 +529,19 @@ def build_pipeline(
         )
         if rc != 0:
             q.put(json.dumps({"__error__": f"fix_callout failed (exit {rc})"}))
+            return
+
+        # 3d) fix_gradient — แทน inline CSS gradient ด้วยสีพื้น
+        #     ⚠ จำเป็น: mutool recolor 1.27.2 segfault (exit -11) ถ้า PDF มี gradient
+        #              gradient จาก inline style ไม่ผูกกับ @media → ต้องแก้ที่ HTML
+        #     idempotent — รันซ้ำได้ + ปลอดภัยถ้าไม่มี gradient
+        q.put("\n[1d/3] fix_gradient.py")
+        rc = stream_subprocess(
+            ["python3", str(FIX_GRADIENT_SCRIPT), str(synced_html), "-o", str(synced_html)],
+            cwd=ROOT, output_queue=q,
+        )
+        if rc != 0:
+            q.put(json.dumps({"__error__": f"fix_gradient failed (exit {rc})"}))
             return
 
         # 4) Step 2/3 — weasyprint
