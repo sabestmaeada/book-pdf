@@ -48,6 +48,16 @@
   margin: 0 !important;                  /* ชิดซ้ายเหมือนรูปอื่น */
 }
 
+/* =========================================
+   2. กล่องข้อความอธิบายภาพ (.img-textbox)
+   inline HTML กำหนด font-size:14px (=10.5pt) ทุกกล่อง → ใหญ่กว่าเนื้อหา p (9.6pt)
+   ลดให้เท่าเนื้อหา (annotation เป็นข้อความเสริม ไม่ควรเด่นกว่าเนื้อหาหลัก)
+   ⚠ ต้องใช้ !important เพื่อทับ inline 14px
+   ========================================= */
+.img-textbox {
+  font-size: 9.6pt !important;
+}
+
 /* หมายเหตุ: callout hit-zone (.img-line-hit) แก้พื้นหลังดำผ่าน fix_callout.py
    (เติม fill="none" stroke="transparent" inline ใน HTML)
    ⚠ ไม่ใส่เป็น CSS rule — WeasyPrint ไม่รองรับ fill/stroke เป็น CSS property
