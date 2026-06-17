@@ -35,6 +35,38 @@ PX_TO_PT = 0.75
 
 _WIDTH_PX_RE = re.compile(r"width\s*:\s*(\d+(?:\.\d+)?)\s*px", re.IGNORECASE)
 _HEIGHT_PX_RE = re.compile(r"height\s*:\s*(\d+(?:\.\d+)?)\s*px", re.IGNORECASE)
+# width เป็น % (ไม่จับ max-width) — ใช้แปลงรูปใน .img-frame เป็น pt สัมบูรณ์
+_WIDTH_PCT_RE = re.compile(r"(?<!-)\bwidth\s*:\s*(\d+(?:\.\d+)?)\s*%", re.IGNORECASE)
+# height หน่วยใดก็ได้ (px/pt/%) — ใช้แทนค่าตอนปรับ aspect
+_HEIGHT_ANY_RE = re.compile(r"(?<!-)\bheight\s*:\s*\d+(?:\.\d+)?\s*(?:px|pt|%)", re.IGNORECASE)
+# มี inline height ไหม (ไม่จับ max-height / line-height — (?<!-) กัน "-height")
+# ใช้แยก annotation 2 แบบ: มี height = "marker บนรูป" / ไม่มี = "callout ข้างรูป"
+_HAS_HEIGHT_RE = re.compile(r"(?<!-)\bheight\s*:", re.IGNORECASE)
+
+
+def _line_aspect(frame) -> float | None:
+    """อ่าน aspect (h/w) ของ svg.img-lines ใน frame → ใช้ปรับ height ให้กล่องรูปตรง viewBox
+    (preserveAspectRatio="none" สเกล x/y ตาม viewBox — ถ้า box aspect ไม่ตรง วงกลมปลายเส้นจะรี)"""
+    svg = frame.find("svg", class_="img-lines")
+    if svg is None:
+        return None
+    vb = svg.get("viewbox") or svg.get("viewBox")
+    if vb:
+        parts = vb.replace(",", " ").split()
+        if len(parts) == 4:
+            try:
+                w, h = float(parts[2]), float(parts[3])
+                if w > 0:
+                    return h / w
+            except ValueError:
+                pass
+    dh = svg.get("data-h")
+    if dh:
+        try:
+            return float(dh) / 100.0
+        except ValueError:
+            pass
+    return None
 
 
 def normalize(html: str, max_col_pt: float) -> tuple[str, list[dict]]:
@@ -45,9 +77,63 @@ def normalize(html: str, max_col_pt: float) -> tuple[str, list[dict]]:
     """
     soup = BeautifulSoup(html, "html.parser")
     actions: list[dict] = []
+    frame_actions: list[dict] = []
 
     for img in soup.find_all("img"):
         style = img.get("style") or ""
+
+        # รูปใน .img-frame (annotation) — แยก 2 รูปแบบด้วย "มี inline height ไหม"
+        # เพราะ overlay (เส้น/marker/textbox) อ้างอิงขนาด frame → frame ต้องถูกต้อง
+        frame = img.find_parent(class_="img-frame")
+        if frame is not None:
+            ar = _line_aspect(frame)   # aspect (h/w) จาก viewBox ของ svg เส้นชี้
+
+            if _HAS_HEIGHT_RE.search(style):
+                # ── Pattern B "marker บนรูป" (เช่น width:700px height:360px object-fit) ──
+                #   รูปใหญ่เต็ม frame, overlay อยู่บนรูป → frame หดเท่ารูป (inline-block)
+                #   width (% หรือ px) → pt cap ที่ column; height = width×ar
+                #   → box aspect = viewBox aspect → svg สเกล x/y เท่ากัน → cap กลม
+                w = None
+                m_pct = _WIDTH_PCT_RE.search(style)
+                m_px = _WIDTH_PX_RE.search(style)
+                if m_pct:
+                    w = min(float(m_pct.group(1)) / 100.0 * max_col_pt, max_col_pt)
+                    style = _WIDTH_PCT_RE.sub(f"width:{w:.2f}pt", style)
+                elif m_px:
+                    w = min(float(m_px.group(1)) * PX_TO_PT, max_col_pt)
+                    style = _WIDTH_PX_RE.sub(f"width:{w:.2f}pt", style)
+                if w is not None:
+                    if ar:
+                        style = _HEIGHT_ANY_RE.sub(f"height:{w * ar:.2f}pt", style)
+                    img["style"] = style
+                    frame_actions.append({"alt": img.get("alt", "(no alt)"), "mode": "on-image", "w_pt": w})
+
+            elif _WIDTH_PCT_RE.search(style):
+                # ── Pattern A "callout ข้างรูป" (% width, ไม่มี height) ──
+                #   รูปเล็ก (เช่น 30%) + กล่อง/เส้นอยู่ "ข้าง" รูป → frame ต้องกว้างเท่า column
+                m_pct = _WIDTH_PCT_RE.search(style)
+                if ar:
+                    #   frame = canvas: column กว้าง × (column×ar) สูง, รูปกึ่งกลาง (flex)
+                    #   image width คง % ไว้ (% ของ frame width ชัดเจน → ไม่ circular)
+                    fw, fh = max_col_pt, max_col_pt * ar
+                    fstyle = (frame.get("style") or "").rstrip("; ").strip()
+                    frame["style"] = (f"{fstyle};" if fstyle else "") + f"width:{fw:.2f}pt;height:{fh:.2f}pt"
+                    cls = frame.get("class", []) or []
+                    if "img-frame-canvas" not in cls:
+                        cls.append("img-frame-canvas")
+                        frame["class"] = cls
+                    frame_actions.append({"alt": img.get("alt", "(no alt)"), "mode": "canvas", "w_pt": fw, "h_pt": fh})
+                else:
+                    #   ไม่มีเส้นชี้ (ar=None) → กัน inline-block ยุบ: แค่ width %→pt
+                    w = min(float(m_pct.group(1)), 100.0) / 100.0 * max_col_pt
+                    img["style"] = _WIDTH_PCT_RE.sub(f"width:{w:.2f}pt", style)
+                    frame_actions.append({"alt": img.get("alt", "(no alt)"), "mode": "no-lines", "w_pt": w})
+
+            # else: plain (ไม่มี width) → คง inline-block, รูปเต็ม column ตามธรรมชาติ
+            #   frame = รูป (col × ส่วนสูงจริง) → overlay อยู่บนรูป, ไม่ต้อง canvas
+
+            continue   # รูปใน frame จบที่นี่ — ไม่เข้า px-overflow block ด้านล่าง
+
         if "object-fit" not in style.lower():
             continue  # ไม่ใช่ crop image — ปล่อย
 
@@ -79,7 +165,7 @@ def normalize(html: str, max_col_pt: float) -> tuple[str, list[dict]]:
             "k": k,
         })
 
-    return str(soup), actions
+    return str(soup), actions, frame_actions
 
 
 def main() -> int:
@@ -107,7 +193,7 @@ def main() -> int:
         print(f"✗ อ่านไฟล์ไม่ได้: {e}", file=sys.stderr)
         return 1
 
-    new_html, actions = normalize(html_text, args.max_col_pt)
+    new_html, actions, frame_actions = normalize(html_text, args.max_col_pt)
 
     try:
         out_path.write_text(new_html, encoding="utf-8")
@@ -117,6 +203,10 @@ def main() -> int:
 
     print(f"✓ normalize_images: ตรวจ {sum(1 for _ in BeautifulSoup(html_text, 'html.parser').find_all('img'))} <img>")
     print(f"  max-col: {args.max_col_pt:.1f}pt")
+    print(f"  annotation (รูปใน .img-frame): {len(frame_actions)} รูป")
+    for a in frame_actions[:10]:
+        print(f"    • {a['alt'][:40]:40} [{a['mode']}] w={a['w_pt']:.1f}pt"
+              + (f" h={a['h_pt']:.1f}pt" if a.get("h_pt") else ""))
     print(f"  scale: {len(actions)} รูป (uniform — aspect คงเดิม)")
     for a in actions[:10]:  # แสดงสูงสุด 10 ตัวแรก
         print(

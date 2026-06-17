@@ -496,6 +496,9 @@ def build_pipeline(
 
         # 3) Step 1/3 — sync_toc
         # เขียน synced ไว้ข้างไฟล์ต้นฉบับ เพื่อให้ relative path (./images/...) resolve ถูก
+        # ⚠ synced_html = "editor-safe": sync แค่ TOC, รูปยังเป็น % → เปิดใน editor ต่อได้
+        #    print transforms (normalize %→pt / callout / gradient) ทำบน print_html แยก
+        #    → ไม่เขียน px ทับไฟล์ที่ user เปิดใน editor (กันรูปเกินกรอบ)
         q.put("\n[1/3] sync_toc.py")
         synced_html = html_path.with_name(html_path.stem + ".synced.html")
         rc = stream_subprocess(
@@ -507,11 +510,15 @@ def build_pipeline(
             return
 
         # 3b) normalize_images — scale crop <img> ที่เกิน text column ให้พอดี (uniform)
+        #     อ่านจาก synced_html (% editor-safe) → เขียน print_html (px พร้อมพิมพ์)
+        #     print_html อยู่ใน input/ เพื่อให้ ./images/ resolve ถูก แต่เป็นไฟล์ build
+        #     (อย่าเปิดใน editor — รูปเป็น pt จะเกินกรอบ)
+        print_html = html_path.with_name(html_path.stem + ".print.html")
         max_col_pt = compute_text_column_pt(size_css)
         q.put(f"\n[1b/3] normalize_images.py (max-col {max_col_pt:.1f}pt)")
         rc = stream_subprocess(
             ["python3", str(NORMALIZE_SCRIPT), str(synced_html),
-             "-o", str(synced_html), "--max-col-pt", f"{max_col_pt:.2f}"],
+             "-o", str(print_html), "--max-col-pt", f"{max_col_pt:.2f}"],
             cwd=ROOT, output_queue=q,
         )
         if rc != 0:
@@ -524,7 +531,7 @@ def build_pipeline(
         #     idempotent — รันซ้ำได้ + ปลอดภัยถ้า editor แก้แล้ว
         q.put("\n[1c/3] fix_callout.py")
         rc = stream_subprocess(
-            ["python3", str(FIX_CALLOUT_SCRIPT), str(synced_html), "-o", str(synced_html)],
+            ["python3", str(FIX_CALLOUT_SCRIPT), str(print_html), "-o", str(print_html)],
             cwd=ROOT, output_queue=q,
         )
         if rc != 0:
@@ -537,7 +544,7 @@ def build_pipeline(
         #     idempotent — รันซ้ำได้ + ปลอดภัยถ้าไม่มี gradient
         q.put("\n[1d/3] fix_gradient.py")
         rc = stream_subprocess(
-            ["python3", str(FIX_GRADIENT_SCRIPT), str(synced_html), "-o", str(synced_html)],
+            ["python3", str(FIX_GRADIENT_SCRIPT), str(print_html), "-o", str(print_html)],
             cwd=ROOT, output_queue=q,
         )
         if rc != 0:
@@ -575,7 +582,7 @@ def build_pipeline(
             # (PDF โตขึ้น ~30-50% แต่ภาพคมเท่าต้นฉบับ)
             "-D", "300",
             "-c", ".weasy-cache",
-            str(synced_html),
+            str(print_html),
             str(rgb_pdf),
         ]
         rc = stream_subprocess(weasy_cmd, cwd=ROOT, output_queue=q)

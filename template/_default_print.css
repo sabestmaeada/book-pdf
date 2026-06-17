@@ -15,37 +15,61 @@
 
 
 /* =========================================
-   1. รูปภาพเต็มความกว้าง column
+   1. รูปภาพ + annotation frame (จัดกึ่งกลาง)
    base style_bw.css มี max-width: 62% (สำหรับงานเก่า)
    แต่ user ส่วนใหญ่ต้องการรูป 100% column เป็นค่ามาตรฐาน
    ========================================= */
 .book-img {
   display: block !important;
-  text-align: left !important;
+  text-align: center !important;         /* จัดกึ่งกลาง (frame inline-block + รูป) */
 }
+
+/* annotation frame = <span> ครอบ img + overlay (svg เส้น + markers/textbox)
+   overlay อ้างอิงขนาด frame → frame ต้องถูกต้องตามที่ normalize_images.py ตั้งไว้
+   มี 2 แบบ (normalize เลือกให้ตาม "มี inline height ไหม"):
+
+   แบบ B "marker บนรูป" (default) — frame = inline-block หดพอดีรูป (รูปใหญ่เต็ม frame)
+     normalize แปลง width%→pt + height=width×viewBox-aspect ให้รูป = box ที่ aspect ตรง
+     viewBox → svg สเกล x/y เท่ากัน → ตัวชี้/วงปลายเส้นไม่เบี้ยว */
 .book-img .img-frame {
-  display: block !important;
-  width: 100% !important;
+  display: inline-block !important;
+  position: relative !important;
   max-width: 100% !important;
 }
-/* รูปปกติ (ไม่ได้ crop) — เต็มความกว้าง column
-   ⚠ :not([data-crop]) สำคัญ: ห้าม height:auto/width:100% ทับรูป crop
-      ไม่งั้น inline height ของกรอบ crop หาย → object-fit:cover ไม่ตัด → โชว์เต็ม */
-.book-img img:not([data-crop]) {
-  width: 100% !important;
+
+/* แบบ A "callout ข้างรูป" / plain annotated — frame = canvas เต็ม column
+   normalize ตั้ง inline width:<col>pt height:<col×aspect>pt + เพิ่ม class นี้
+   รูปเล็กอยู่กึ่งกลาง (flex) → กล่อง/เส้นที่ตำแหน่ง % มีที่ "ข้าง" รูป (ไม่บีบทับ)
+   frame aspect = viewBox aspect → cap กลม */
+.book-img .img-frame.img-frame-canvas {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.book-img .img-frame.img-frame-canvas > img {
+  margin: 0 !important;                    /* flex จัดกึ่งกลางเอง */
+}
+
+/* รูปปกติ (editor ไม่ได้กำหนดขนาด — ไม่มี inline width) — เต็มความกว้าง column
+   ⚠ :not([style*="width"]) สำคัญมาก: รูปที่ editor crop/resize มี inline width/height
+      ถ้าเผลอบังคับ width:100%/height:auto ทับ → crop หาย (object-fit ไม่ตัด)
+      และ resize หาย (กลับเป็นเต็ม column)
+   ⚠ ใช้ max-width:100% (ไม่ใช่ width:100%) — รูปความละเอียดสูงจะเต็ม column อยู่แล้ว
+      ถ้าใช้ width:100% ในรูป annotation (frame=inline-block) จะ circular → ภาพยุบหาย */
+.book-img img:not([style*="width"]) {
   max-width: 100% !important;
   height: auto !important;
   max-height: none !important;          /* override base 105mm cap */
-  margin: 0 !important;                  /* ลบ margin: 0 auto */
+  margin: 0 auto !important;             /* กึ่งกลาง */
 }
 
-/* รูปที่ crop จาก editor — inline style คุม width/height/object-fit/object-position
-   ปล่อยให้ inline ทำงาน แค่ปลด cap + centering ของ base ออก
-   (อย่าแตะ height/object-fit/object-position — จะพังการ crop) */
-.book-img img[data-crop] {
+/* รูปที่ editor กำหนดขนาดเอง (crop หรือ resize — มี inline width/height/object-fit)
+   ปล่อยให้ inline คุม geometry, แค่ปลด cap ของ base + จัดกึ่งกลาง
+   (อย่าแตะ width/height/object-fit/object-position — จะพัง crop และ resize) */
+.book-img img[style*="width"] {
   max-width: 100% !important;            /* safety: กันล้น column */
   max-height: none !important;           /* override base 105mm cap */
-  margin: 0 !important;                  /* ชิดซ้ายเหมือนรูปอื่น */
+  margin: 0 auto !important;             /* กึ่งกลาง (เดิม margin:0 → ชิดซ้าย) */
 }
 
 /* =========================================
