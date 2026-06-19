@@ -48,6 +48,15 @@
 }
 .book-img .img-frame.img-frame-canvas > img {
   margin: 0 !important;                    /* flex จัดกึ่งกลางเอง */
+  position: relative !important;           /* ให้ z-index มีผล */
+  z-index: 0 !important;                    /* รูปอยู่ชั้นล่าง */
+}
+/* ⚠ จำเป็น: display:flex ทำให้ WeasyPrint วาดรูป (flex item) ทับ overlay
+   (svg/marker/textbox = position:absolute) → overlay ที่อยู่ "บนรูป" หาย
+   ดัน overlay ขึ้นชั้นบนด้วย z-index → โผล่เหนือรูป (เคส callout ข้างรูปไม่กระทบ) */
+.book-img .img-frame.img-frame-canvas .img-markers,
+.book-img .img-frame.img-frame-canvas .img-lines {
+  z-index: 5 !important;
 }
 
 /* รูปปกติ (editor ไม่ได้กำหนดขนาด — ไม่มี inline width) — เต็มความกว้าง column
