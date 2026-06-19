@@ -32,6 +32,9 @@ from bs4 import BeautifulSoup
 
 # 1px = 0.75pt ที่ 96dpi (WeasyPrint convention)
 PX_TO_PT = 0.75
+# ความกว้าง canvas ของ editor (px) — อนุมานจากรูป annotation ที่ใช้ width:700px = เต็ม canvas
+# ใช้สเกล height:px ของรูป crop (non-frame) ให้ box aspect ตรง editor ตอน column แคบลง
+EDITOR_COL_PX = 700
 
 _WIDTH_PX_RE = re.compile(r"width\s*:\s*(\d+(?:\.\d+)?)\s*px", re.IGNORECASE)
 _HEIGHT_PX_RE = re.compile(r"height\s*:\s*(\d+(?:\.\d+)?)\s*px", re.IGNORECASE)
@@ -136,6 +139,26 @@ def normalize(html: str, max_col_pt: float) -> tuple[str, list[dict]]:
 
         if "object-fit" not in style.lower():
             continue  # ไม่ใช่ crop image — ปล่อย
+
+        # รูป crop "ไม่มี frame" ที่ width:% + height:px → สเกล height ตามสัดส่วน column
+        #   width:% หดตาม column แต่ height:px คงที่ → พอ column แคบลง (editor 700px →
+        #   print 502px) box เตี้ย/จัตุรัสกว่า → object-fit:cover ตัดข้างเยอะกว่า editor
+        #   new_h = max_col × h_px / EDITOR_COL_PX → box aspect = editor → crop เท่ากัน
+        #   (annotation จัดการที่ frame block ด้านบนแล้ว — ตรงนี้เฉพาะรูปไม่มี frame)
+        m_pct = _WIDTH_PCT_RE.search(style)
+        m_hpx = _HEIGHT_PX_RE.search(style)
+        if m_pct and m_hpx:
+            new_h = max_col_pt * float(m_hpx.group(1)) / EDITOR_COL_PX
+            img["style"] = _HEIGHT_PX_RE.sub(f"height:{new_h:.2f}pt", style)
+            actions.append({
+                "alt": img.get("alt", "(no alt)"),
+                "w_before_pt": float(m_pct.group(1)) / 100.0 * max_col_pt,
+                "h_before_pt": float(m_hpx.group(1)) * PX_TO_PT,
+                "w_after_pt": float(m_pct.group(1)) / 100.0 * max_col_pt,
+                "h_after_pt": new_h,
+                "k": new_h / (float(m_hpx.group(1)) * PX_TO_PT),
+            })
+            continue
 
         m_w = _WIDTH_PX_RE.search(style)
         m_h = _HEIGHT_PX_RE.search(style)
