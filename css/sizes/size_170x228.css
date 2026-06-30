@@ -119,3 +119,12 @@
   height: 228mm;
   min-height: 228mm;
 }
+
+/* --- Full-page (full-bleed) dimensions --- */
+/* div ขยายจรด bleed canvas ทั้ง 4 ด้าน: trim 170×228 + bleed 3mm×2 = 176×234, margin -3mm */
+/* สีพื้น/รูปถึงขอบจริง (component อื่นๆ อยู่ใน style_*.css) */
+.full-page {
+  width: 176mm;
+  height: 234mm;
+  margin: -3mm;
+}

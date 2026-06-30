@@ -263,6 +263,34 @@ body {
 }
 
 /* =========================================
+   4b. Full Page (full-bleed) — สีพื้น และ/หรือ รูปเต็มหน้า จรดขอบ
+   แทรกกลางเล่มได้ (เป็นลูกของ .book-wrap) — dimensions (176×234/-3mm) อยู่ใน size_*.css
+   ใช้ @page inside-full ร่วมกับ .cover/.back-cover (margin:0 + bleed + marks)
+   ========================================= */
+.full-page {
+  page: inside-full;
+  display: block;
+  padding: 0;
+  overflow: hidden;                /* clip รูปให้พอดี div ที่ขยายเข้า bleed */
+  break-before: page;
+  page-break-before: always;
+  break-after: page;
+  page-break-after: always;
+  /* สีพื้น = inline background:#hex — WeasyPrint พิมพ์ background ของ element ให้ */
+}
+.full-page-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  max-width: none;
+  max-height: none;
+  object-fit: cover;               /* default — inline object-fit (cover/contain) ทับได้ */
+  object-position: center center;
+  border: 0;
+}
+
+/* =========================================
    5. Book Wrap & Sections
    ========================================= */
 .book-wrap {

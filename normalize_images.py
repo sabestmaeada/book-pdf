@@ -140,52 +140,40 @@ def normalize(html: str, max_col_pt: float) -> tuple[str, list[dict]]:
         if "object-fit" not in style.lower():
             continue  # ไม่ใช่ crop image — ปล่อย
 
-        # รูป crop "ไม่มี frame" ที่ width:% + height:px → สเกล height ตามสัดส่วน column
-        #   width:% หดตาม column แต่ height:px คงที่ → พอ column แคบลง (editor 700px →
-        #   print 502px) box เตี้ย/จัตุรัสกว่า → object-fit:cover ตัดข้างเยอะกว่า editor
-        #   new_h = max_col × h_px / EDITOR_COL_PX → box aspect = editor → crop เท่ากัน
-        #   (annotation จัดการที่ frame block ด้านบนแล้ว — ตรงนี้เฉพาะรูปไม่มี frame)
-        m_pct = _WIDTH_PCT_RE.search(style)
+        # รูป crop "ไม่มี frame": แปลงขนาดให้ตรง editor
+        #   หลักการ: px ทุกค่าสัมพัทธ์กับ editor column (700px) → print = (px/700)×max_col
+        #            width:% คงไว้ (สัมพัทธ์อยู่แล้ว) ; px → สเกล uniform editor→print
+        #   เหตุที่ต้องสเกล:
+        #     - width:px เกิน column: เดิม scale-to-fit เป็น "เต็ม column" (ผิด — editor ไม่เต็ม
+        #       เช่น 600px = 86% ของ editor 700px แต่ออกมาเต็ม 100%)
+        #     - width:% + height:px: width หดตาม column แต่ height:px คงที่ → box aspect เพี้ยน
+        #       → object-fit:cover ตัด crop ต่างจาก editor
+        #   สเกลทุก px ด้วยอัตราเดียว (editor→print) → ขนาด + box aspect ตรง editor
+        #   ⚠ annotation จัดการที่ frame block ด้านบนแล้ว (continue ก่อน) — ตรงนี้เฉพาะรูปไม่มี frame
+        m_wpx = _WIDTH_PX_RE.search(style)
         m_hpx = _HEIGHT_PX_RE.search(style)
-        if m_pct and m_hpx:
-            new_h = max_col_pt * float(m_hpx.group(1)) / EDITOR_COL_PX
-            img["style"] = _HEIGHT_PX_RE.sub(f"height:{new_h:.2f}pt", style)
-            actions.append({
-                "alt": img.get("alt", "(no alt)"),
-                "w_before_pt": float(m_pct.group(1)) / 100.0 * max_col_pt,
-                "h_before_pt": float(m_hpx.group(1)) * PX_TO_PT,
-                "w_after_pt": float(m_pct.group(1)) / 100.0 * max_col_pt,
-                "h_after_pt": new_h,
-                "k": new_h / (float(m_hpx.group(1)) * PX_TO_PT),
-            })
-            continue
+        if not (m_wpx or m_hpx):
+            continue  # ไม่มี px → width auto/%/pt อยู่แล้ว ไม่ต้องแปลง
 
-        m_w = _WIDTH_PX_RE.search(style)
-        m_h = _HEIGHT_PX_RE.search(style)
-        if not (m_w and m_h):
-            continue  # ไม่มี width/height px → อาจใช้ width auto หรือ pt อยู่แล้ว
-
-        w_pt = float(m_w.group(1)) * PX_TO_PT
-        h_pt = float(m_h.group(1)) * PX_TO_PT
-        if w_pt <= max_col_pt:
-            continue  # พอดี column อยู่แล้ว
-
-        k = max_col_pt / w_pt
-        new_w = w_pt * k        # = max_col_pt
-        new_h = h_pt * k        # คูณ k เท่ากัน → aspect คงเดิม
-
-        # เปลี่ยน px → pt ใน inline style (เก็บ key อื่นใน style ไว้เดิม)
-        new_style = _WIDTH_PX_RE.sub(f"width:{new_w:.2f}pt", style)
-        new_style = _HEIGHT_PX_RE.sub(f"height:{new_h:.2f}pt", new_style)
-        img["style"] = new_style
+        scale = max_col_pt / EDITOR_COL_PX
+        if m_wpx:
+            scale = min(scale, max_col_pt / float(m_wpx.group(1)))  # cap: width ไม่ล้น column
+        new_w = new_h = None
+        if m_wpx:
+            new_w = float(m_wpx.group(1)) * scale
+            style = _WIDTH_PX_RE.sub(f"width:{new_w:.2f}pt", style)
+        if m_hpx:
+            new_h = float(m_hpx.group(1)) * scale
+            style = _HEIGHT_PX_RE.sub(f"height:{new_h:.2f}pt", style)
+        img["style"] = style
 
         actions.append({
             "alt": img.get("alt", "(no alt)"),
-            "w_before_pt": w_pt,
-            "h_before_pt": h_pt,
-            "w_after_pt": new_w,
-            "h_after_pt": new_h,
-            "k": k,
+            "w_before_pt": (float(m_wpx.group(1)) * PX_TO_PT) if m_wpx else 0.0,
+            "h_before_pt": (float(m_hpx.group(1)) * PX_TO_PT) if m_hpx else 0.0,
+            "w_after_pt": new_w or 0.0,
+            "h_after_pt": new_h or 0.0,
+            "k": scale / PX_TO_PT,
         })
 
     return str(soup), actions, frame_actions
