@@ -188,9 +188,12 @@ body {
 }
 
 .copyright-page,
-.preface,
+.preface {
+  page: frontmatter;   /* คำนำ = frontmatter (margin-top 18mm) เหมือนเดิม */
+}
+
 .toc {
-  page: toc;
+  page: toc;            /* สารบัญ = page เฉพาะ (margin-top 32mm + title absolute) */
 }
 
 .chapter {
