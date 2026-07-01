@@ -8,7 +8,7 @@
    หมายเหตุ:
    - bleed, margin, ขนาดหน้า คงเดิมทั้งหมด
    - เปลี่ยนเฉพาะ marks: crop → marks: none
-   - ครอบคลุมทุก @page rule (default, :right, :left, inside-full,
+   - ครอบคลุมทุก @page rule (default, :right, :left, inside-full, part,
      frontmatter:right/left, body:right/left)
    ========================================================= */
 
@@ -16,8 +16,11 @@
 @page :right { marks: none; }
 @page :left { marks: none; }
 @page inside-full { marks: none; }
+@page part { marks: none; }
 @page frontmatter:right { marks: none; }
 @page frontmatter:left { marks: none; }
+@page toc:right { marks: none; }
+@page toc:left { marks: none; }
 @page body:right { marks: none; }
 @page body:left { marks: none; }
 @page credits { marks: none; }

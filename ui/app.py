@@ -68,6 +68,12 @@ def _force_k100_in_stream(data: bytes) -> tuple[bytes, int]:
         # คำนวณ K-only equivalent (subtractive blend approx)
         cmy_avg = (c + mm + y) / 3
         k_new = min(1.0, k + (1.0 - k) * cmy_avg)
+        # ⚠ แปลงเฉพาะสี "เข้ม" (near-black / dark gray) → K
+        #   สีอ่อน (pastel/tint) มี CMY น้อย → cmy diff ต่ำ → ดู "neutral" แต่จริงๆ เป็น "สี"
+        #   ที่ตั้งใจ (เช่น หน้าสีพื้น #FCEEF4 = K0.04) ถ้าแปลงจะกลายเป็นเทา
+        #   จับเฉพาะ k_new สูง = ดำ/เทาเข้มจริง (เป้าหมายคือกัน rich black ของ text)
+        if k_new < 0.5:
+            return m.group(0)
         if k_new > 0.95:
             k_new = 1.0
         count += 1
@@ -85,8 +91,9 @@ def _force_k100_in_stream(data: bytes) -> tuple[bytes, int]:
         # invert: RGB 1=white → K=0, RGB 0=black → K=1
         rgb_avg = (r + g + b) / 3
         k_new = 1.0 - rgb_avg
-        # white → ไม่ต้องแตะ (ทำให้มี 0 0 0 0 k ก็ไม่มีประโยชน์)
-        if k_new < 0.01:
+        # แปลงเฉพาะสีเข้ม (near-black) — สีอ่อน (white/pastel/tint, k_new ต่ำ) ไม่แตะ
+        # (เกณฑ์เดียวกับ cmyk_sub — กัน pastel กลายเป็นเทา)
+        if k_new < 0.5:
             return m.group(0)
         if k_new > 0.95:
             k_new = 1.0

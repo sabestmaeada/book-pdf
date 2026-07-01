@@ -46,6 +46,10 @@
   marks: crop;
 }
 
+/* --- TOC (สารบัญ) — margin-top 32mm เท่ากันทุกหน้า จองที่หัวข้อ "สารบัญ" (title เป็น absolute ลอยในพื้นที่นี้เฉพาะหน้าแรก ดู .toc-title ใน style_*.css) → รายการเริ่มระดับเดียวกันทุกหน้า --- */
+@page toc:right { size: 170mm 228mm; margin: 32mm 15mm 20mm 22mm; bleed: 3mm; marks: crop; }
+@page toc:left  { size: 170mm 228mm; margin: 32mm 22mm 20mm 15mm; bleed: 3mm; marks: crop; }
+
 @page body:right {
   size: 170mm 228mm;
   margin: 18mm 15mm 20mm 22mm;

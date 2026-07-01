@@ -106,6 +106,16 @@ body {
   @bottom-right { content: none; }
 }
 
+/* TOC ไม่มี running header/footer (เหมือนตอนเป็น frontmatter) */
+@page toc {
+  @top-left { content: none; }
+  @top-center { content: none; }
+  @top-right { content: none; }
+  @bottom-left { content: none; }
+  @bottom-center { content: none; }
+  @bottom-right { content: none; }
+}
+
 @page body:right {
   @top-left { content: none; }
   @top-right { content: none; }
@@ -182,7 +192,7 @@ body {
 .copyright-page,
 .preface,
 .toc {
-  page: frontmatter;
+  page: toc;
 }
 
 .chapter {
@@ -426,15 +436,23 @@ body {
   break-before: page;
   page-break-before: always;
   padding: 0;
+  position: relative;   /* กล่องอ้างอิงให้ .toc-title (absolute) */
 }
 
+/* .toc-title = absolute → ลอยในพื้นที่ margin บนของ "หน้าแรก" ไม่ดันรายการลง
+   ทำให้รายการเริ่มระดับเดียวกันทุกหน้า (หน้าต่อไม่มี title จึงเสมอ PART 1 หน้าแรก)
+   หมายเหตุ: top อิงกับ margin-top ของ @page toc (32mm) → title อยู่ที่ 32−14 = 18mm */
 .toc-title {
   font-family: var(--hd);
   font-size: 17pt;
   font-weight: 700;
   text-align: center;
-  margin: 0 0 18pt 0;
   color: var(--accent-dk);
+  position: absolute;
+  top: -14mm;
+  left: 0;
+  right: 0;
+  margin: 0;
 }
 
 .toc-list {
@@ -517,6 +535,36 @@ a.toc-item::after {
   page-break-inside: avoid;
 }
 .toc-part:first-child { margin-top: 0; }   /* ก้อนแรก = ไม่ต้องเว้นบน */
+
+/* ----- TOC sub-level h2 — สารบัญย่อย auto จาก sync_toc (markup: a.toc-item.toc-h2) ----- */
+.toc-item.toc-h2 {
+  padding: 1.5pt 0 1.5pt 20mm;    /* เยื้องใต้ชื่อบท */
+  border-bottom: none;            /* โปร่งกว่าบรรทัดบท ไม่มีเส้นประ */
+}
+.toc-item.toc-h2 .toc-name {
+  font-size: 9pt;
+  font-weight: 400;
+  color: #444444;
+}
+.toc-item.toc-h2::after {
+  font-size: 9pt;
+  color: #777777;
+}
+
+/* ----- TOC orphan/widow control -----
+   orphan: หัวบทต้องมี h2 ตามอย่างน้อย 2 ตัวในหน้าเดียวกัน ไม่งั้นดันทั้งบทขึ้นหน้าถัดไป
+   widow:  h2 ตัวสุดท้ายของบทห้ามโดดขึ้นหัวหน้าใหม่คนเดียว (ต้องยกไป ≥2) */
+.toc-item:not(.toc-h2) { break-after: avoid; page-break-after: avoid; }    /* หัวบท ↔ h2#1 */
+.toc-item.toc-h2-first { break-after: avoid; page-break-after: avoid; }    /* h2#1 ↔ h2#2 */
+.toc-item.toc-h2-last  { break-before: avoid; page-break-before: avoid; }  /* h2 สุดท้ายไม่โดด */
+
+/* ----- PDF bookmarks — outline ในตัวอ่าน PDF (คนละอย่างกับหน้าสารบัญที่พิมพ์) ----- */
+/* WeasyPrint ตั้ง h1-h6 เป็น bookmark หมดโดย default (รวม cover/credits/คำนำ) → ปิดก่อน */
+h1, h2, h3, h4, h5, h6 { bookmark-level: none; }
+/* เปิดเฉพาะ: part + บท (L1) และหัวข้อ h2 ในเนื้อหา (L2) */
+.part-title           { bookmark-level: 1; bookmark-label: content(text); }
+h1.ch-title           { bookmark-level: 1; bookmark-label: content(text); }
+.chapter .content h2  { bookmark-level: 2; bookmark-label: content(text); }
 
 .chapter {
   break-before: page;
