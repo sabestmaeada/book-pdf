@@ -1901,16 +1901,21 @@ body {
 /* simulate gap: 2mm ระหว่าง section ตรง ๆ ด้วย margin-top */
 .credits-page > * + * { margin-top: 2mm; }
 
-/* 1) Header */
-.credits-page .credits-header { text-align: left; }
-.credits-page .credits-header .book-title {
+/* 1) Header
+   alias: เครื่องมือ /tools/credits ออกคลาส .credits-page-header
+   ส่วนหนังสือเดิมบางเล่มใช้ .credits-header — จัดกลุ่ม selector ครอบทั้งสอง */
+.credits-page .credits-header,
+.credits-page .credits-page-header { text-align: left; }
+.credits-page .credits-header .book-title,
+.credits-page .credits-page-header .book-title {
   font-size: 14pt !important;
   font-weight: 700 !important;
   color: #000000 !important;
   margin: 0 0 2mm !important;
   line-height: 1.2 !important;
 }
-.credits-page .credits-header .meta-row {
+.credits-page .credits-header .meta-row,
+.credits-page .credits-page-header .meta-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 4mm;
@@ -1918,11 +1923,13 @@ body {
   line-height: 1.3 !important;
   margin: 0 0 1mm !important;
 }
-.credits-page .credits-header .meta-row .label {
+.credits-page .credits-header .meta-row .label,
+.credits-page .credits-page-header .meta-row .label {
   font-weight: 700 !important;
   color: #000000 !important;
 }
-.credits-page .credits-header .price {
+.credits-page .credits-header .price,
+.credits-page .credits-page-header .price {
   font-size: 9pt !important;
   font-weight: 700 !important;
   line-height: 1.3 !important;
@@ -1936,6 +1943,8 @@ body {
   grid-template-columns: 2fr 1fr;
   gap: 6mm;
 }
+/* ไม่ส่งข้อมูลหอสมุด (no-CIP): ตัดคอลัมน์ CIP → กล่องลิขสิทธิ์เต็มความกว้าง */
+.credits-page .row-cip-copyright.no-cip { display: block; }
 .credits-page .cip,
 .credits-page .copyright-block {
   border: 0.4mm solid #000000;
@@ -2055,6 +2064,7 @@ body {
   padding-top: 2mm;
   font-size: 7.5pt !important;
   line-height: 1.35 !important;
+  text-align: center;   /* จัดกึ่งกลาง (ร้านค้า + เบอร์โทร) — ใช้ทั้งแบบมี/ไม่มี CIP */
 }
 .credits-page .credits-footer .for-retail {
   font-weight: 700 !important;
