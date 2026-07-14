@@ -132,6 +132,34 @@ def enforce_k100_text(pdf_path: Path, q: Queue) -> None:
         pdf.save(pdf_path)
     q.put(f"  K100 enforce: replaced {total} near-black color ops ใน {pages_modified} pages")
 
+
+def fix_transparency_group_cs(pdf: pikepdf.Pdf, target_cs: pikepdf.Name, q: Queue) -> None:
+    """เขียน blending color space ของ transparency group ทุกอันให้ตรงกับ target
+
+    WeasyPrint ห่อ SVG background ทุกชิ้น + element ที่ opacity<1 ไว้ใน transparency
+    group ที่มี /CS /DeviceRGB เสมอ. mutool recolor แปลง "หมึกข้างใน group" เป็น
+    CMYK/Gray ให้ แต่ "ไม่แตะ /CS ของ group" → เหลือ DeviceRGB ค้าง → preflight
+    โรงพิมพ์ฟ้องว่าเป็น RGB (เช่น ดินสอ bullet, ดาวหัวบท, ดาวหน้า part, ใบไม้ note).
+    วน object ทั้งไฟล์แล้วเขียน /CS ใหม่ให้ตรง target ที่ recolor ไป (vector คงเดิม).
+    """
+    count = 0
+    for obj in pdf.objects:
+        try:
+            grp = obj.get("/Group")
+        except Exception:
+            continue                       # ไม่ใช่ dict/stream — ข้าม
+        if grp is None:
+            continue
+        try:
+            is_rgb = str(grp.get("/CS")) == "/DeviceRGB"
+        except Exception:
+            continue
+        if is_rgb:
+            grp["/CS"] = target_cs
+            count += 1
+    if count:
+        q.put(f"  transparency-group CS: แก้ RGB → {str(target_cs).lstrip('/')} ({count} groups)")
+
 ROOT = Path(__file__).parent.parent.resolve()
 INPUT_DIR = ROOT / "input"
 OUTPUT_DIR = ROOT / "output"
@@ -282,6 +310,13 @@ _ICC_CS_TABLE = {
     "RGB ": ("RGB",  "rgb",  3, "RGB color space"),
 }
 
+# blending color space ที่ถูกต้องของ transparency group ต่อ target ของ mutool recolor
+# (rgb ไม่ต้องแก้ — DeviceRGB ถูกอยู่แล้ว)
+_GROUP_CS_FIX = {
+    "gray": pikepdf.Name("/DeviceGray"),
+    "cmyk": pikepdf.Name("/DeviceCMYK"),
+}
+
 
 def _icc_colorspace(path: Path) -> str:
     """อ่าน 4 bytes ที่ offset 16 ของไฟล์ ICC → คืน color space signature เช่น 'GRAY' / 'CMYK' / 'RGB '"""
@@ -340,6 +375,11 @@ def apply_color_pipeline(
     display_name = Path(profile).stem.replace("_", " ")
     q.put(f"$ pikepdf: ฝัง ICC {profile} ({channels}-channel) ลง /OutputIntents")
     with pikepdf.open(interim_pdf) as pdf:
+        # แก้ transparency-group RGB → target ก่อน (เฉพาะ gray/cmyk; rgb ถูกอยู่แล้ว)
+        group_cs = _GROUP_CS_FIX.get(mutool_arg)
+        if group_cs is not None:
+            fix_transparency_group_cs(pdf, group_cs, q)
+
         icc_stream = pdf.make_stream(icc_data, {"/N": channels})
         intent = pikepdf.Dictionary({
             "/Type": pikepdf.Name("/OutputIntent"),
