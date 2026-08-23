@@ -22,6 +22,13 @@ from pathlib import Path
 from bs4 import BeautifulSoup
 
 
+# หัวข้อ h2 ที่ไม่ต้องการให้ขึ้นในสารบัญย่อยอัตโนมัติ (เทียบข้อความ strip ช่องว่างหัว-ท้ายแล้ว)
+# เพิ่ม/ลบข้อความในเซตนี้เพื่อคุมว่าหัวข้อไหน "ไม่" โผล่ในสารบัญ
+SUB_TOC_EXCLUDE = {
+    "สรุปคำศัพท์ในบทนี้",
+}
+
+
 def add_sub_toc(soup: BeautifulSoup) -> int:
     """แทรกสารบัญย่อยระดับ h2 ใต้แต่ละบทใน TOC (return จำนวนที่เพิ่ม)."""
     # ลบ toc-auto เดิม (idempotent)
@@ -42,6 +49,8 @@ def add_sub_toc(soup: BeautifulSoup) -> int:
             text = h2.get_text(" ", strip=True)
             if not text:
                 continue
+            if text in SUB_TOC_EXCLUDE:
+                continue  # ข้ามหัวข้อที่ไม่ต้องการใน TOC (เช่น "สรุปคำศัพท์ในบทนี้")
             idx += 1
             hid = h2.get("id")
             if not hid:
