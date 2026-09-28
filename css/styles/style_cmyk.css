@@ -1667,6 +1667,13 @@ body {
   color: #000000 !important;              /* K100 — font Light + line-height ผ่อน → ไม่ดูหนา */
 }
 
+/* ยกเลิกเยื้องบรรทัดแรก (.no-indent จาก editor) — เฉพาะย่อหน้า หรือทั้งคอลัมน์ bd-col
+   ต้องมี !important เพราะกฎเยื้องด้านบนใช้ !important — specificity สูงกว่าเลยชนะ
+   (และชนะ custom template ที่ตั้ง .content p ทับด้วย) · กระทบเฉพาะ text-indent */
+.content p.no-indent { text-indent: 0 !important; }
+.content .bd-col.no-indent p { text-indent: 0 !important; }
+.preface-content p.no-indent { text-indent: 0 !important; }   /* คำนำก็ใช้ได้ */
+
 .preface-content p {
   font-family: 'IBM Plex Sans Thai Looped', 'Anuphan', sans-serif !important;
   font-size: 9.6pt !important;
