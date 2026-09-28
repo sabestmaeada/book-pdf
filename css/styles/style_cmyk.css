@@ -1348,6 +1348,15 @@ img {
   image-rendering: auto;
 }
 
+/* รูป inline (.inline-img) — ไอคอน/รูปเล็กแทรกในบรรทัดข้อความ (ลูกของ <p>)
+   ขนาดมาจาก inline style="height:1.4em" (สเกลตามฟอนต์) หรือ px จาก editor
+   — อย่า override height และห้ามใส่ max-width/margin แบบรูป block */
+.inline-img {
+  display: inline-block;
+  vertical-align: middle;
+  width: auto;          /* กำหนดแค่ height → คงสัดส่วนอัตโนมัติ */
+}
+
 .content h4::before,
 .code-filename::before {
   content: none;
@@ -1517,10 +1526,10 @@ td .inline-code,
   border-width: 0.4pt !important;
 }
 
-th img,
-td img,
-.content th img,
-.content td img {
+th img:not(.inline-img),
+td img:not(.inline-img),
+.content th img:not(.inline-img),
+.content td img:not(.inline-img) {
   max-width: 100% !important;
   max-height: 32mm !important;
   height: auto !important;
