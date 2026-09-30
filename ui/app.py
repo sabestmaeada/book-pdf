@@ -493,6 +493,8 @@ def build_pipeline(
     crop_marks: bool,
     pages: str,
     template_css: tuple[str, bytes] | None,
+    sub_toc: bool,
+    sub_toc_exclude: str,
     q: Queue,
 ) -> None:
     try:
@@ -548,10 +550,19 @@ def build_pipeline(
         #    → ไม่เขียน px ทับไฟล์ที่ user เปิดใน editor (กันรูปเกินกรอบ)
         q.put("\n[1/3] sync_toc.py")
         synced_html = html_path.with_name(html_path.stem + ".synced.html")
-        rc = stream_subprocess(
-            ["python3", str(SYNC_SCRIPT), str(html_path), "-o", str(synced_html)],
-            cwd=ROOT, output_queue=q,
-        )
+        sync_cmd = ["python3", str(SYNC_SCRIPT), str(html_path), "-o", str(synced_html)]
+        if not sub_toc:
+            sync_cmd.append("--no-sub")          # ปิดสารบัญย่อย h2 (จาก checkbox ใน UI)
+        else:
+            # ช่อง exclude ใน UI = source of truth แทนที่ SUB_TOC_EXCLUDE ใน code ทั้งหมด
+            # (บรรทัดละ 1 หัวข้อ เทียบตรงทั้งข้อความ) — ช่องว่าง = ไม่ตัดหัวข้อใดเลย
+            lines = [ln.strip() for ln in sub_toc_exclude.splitlines() if ln.strip()]
+            if lines:
+                for ln in lines:
+                    sync_cmd += ["--exclude", ln]
+            else:
+                sync_cmd += ["--exclude", ""]    # แทนที่ default ด้วยชุดว่าง
+        rc = stream_subprocess(sync_cmd, cwd=ROOT, output_queue=q)
         if rc != 0:
             q.put(json.dumps({"__error__": f"sync_toc failed (exit {rc})"}))
             return
@@ -727,6 +738,8 @@ def build():
     left_graphic = read_optional("left_graphic")
     right_graphic = read_optional("right_graphic")
     crop_marks = request.form.get("crop_marks") is not None
+    sub_toc = request.form.get("sub_toc") is not None
+    sub_toc_exclude = request.form.get("sub_toc_exclude", "")
 
     # Per-book CSS override — ไม่บังคับ
     template_css = read_optional("template_css")
@@ -764,7 +777,9 @@ def build():
         f"right={'✓' if right_graphic else '–'}  "
         f"template={'✓ ' + template_css[0] if template_css else '–'}  "
         f"crop_marks={crop_marks}  "
-        f"pages={pages_clean!r}",
+        f"pages={pages_clean!r}  "
+        f"sub_toc={sub_toc}  "
+        f"sub_toc_exclude={len([l for l in sub_toc_exclude.splitlines() if l.strip()])} รายการ",
         flush=True,
     )
 
@@ -772,7 +787,8 @@ def build():
     worker = threading.Thread(
         target=build_pipeline,
         args=(zip_bytes, profile, profile_cs_raw, size_css, style_css,
-              left_graphic, right_graphic, crop_marks, pages_clean, template_css, q),
+              left_graphic, right_graphic, crop_marks, pages_clean, template_css,
+              sub_toc, sub_toc_exclude, q),
         daemon=True,
     )
     worker.start()

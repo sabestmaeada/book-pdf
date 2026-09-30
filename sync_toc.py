@@ -29,8 +29,14 @@ SUB_TOC_EXCLUDE = {
 }
 
 
-def add_sub_toc(soup: BeautifulSoup) -> int:
-    """แทรกสารบัญย่อยระดับ h2 ใต้แต่ละบทใน TOC (return จำนวนที่เพิ่ม)."""
+def add_sub_toc(soup: BeautifulSoup, exclude: set[str] | None = None) -> int:
+    """แทรกสารบัญย่อยระดับ h2 ใต้แต่ละบทใน TOC (return จำนวนที่เพิ่ม).
+
+    exclude: ชุดหัวข้อที่ไม่เอาเข้าสารบัญ (เทียบตรงทั้งข้อความ)
+             None = ใช้ SUB_TOC_EXCLUDE default; ส่งมา (แม้เซตว่าง) = แทนที่ default ทั้งหมด
+    """
+    if exclude is None:
+        exclude = SUB_TOC_EXCLUDE
     # ลบ toc-auto เดิม (idempotent)
     for a in soup.select("a.toc-item.toc-auto"):
         a.decompose()
@@ -49,7 +55,7 @@ def add_sub_toc(soup: BeautifulSoup) -> int:
             text = h2.get_text(" ", strip=True)
             if not text:
                 continue
-            if text in SUB_TOC_EXCLUDE:
+            if text in exclude:
                 continue  # ข้ามหัวข้อที่ไม่ต้องการใน TOC (เช่น "สรุปคำศัพท์ในบทนี้")
             idx += 1
             hid = h2.get("id")
@@ -79,7 +85,8 @@ def add_sub_toc(soup: BeautifulSoup) -> int:
     return added
 
 
-def sync(html: str, sub: bool = True) -> tuple[str, list[str], list[str], int]:
+def sync(html: str, sub: bool = True,
+         exclude: set[str] | None = None) -> tuple[str, list[str], list[str], int]:
     soup = BeautifulSoup(html, "html.parser")
 
     chapters: dict[str, str] = {}
@@ -110,7 +117,7 @@ def sync(html: str, sub: bool = True) -> tuple[str, list[str], list[str], int]:
             name_el.append(new_title)
             updated.append(target)
 
-    sub_added = add_sub_toc(soup) if sub else 0
+    sub_added = add_sub_toc(soup, exclude=exclude) if sub else 0
 
     return str(soup), updated, missing, sub_added
 
@@ -126,6 +133,11 @@ def main() -> int:
         "--no-sub", action="store_true",
         help="ไม่สร้างสารบัญย่อย h2 (sync เฉพาะชื่อบทแบบเดิม)",
     )
+    parser.add_argument(
+        "--exclude", action="append", metavar="TEXT",
+        help="หัวข้อ h2 ที่ไม่เอาเข้าสารบัญ (ส่งซ้ำได้หลายครั้ง) — "
+             "ถ้าส่งมา จะแทนที่ SUB_TOC_EXCLUDE ทั้งหมด; ส่งค่าว่าง = ไม่ตัดอะไรเลย",
+    )
     args = parser.parse_args()
 
     if not args.input.is_file():
@@ -134,8 +146,13 @@ def main() -> int:
 
     out_path = args.output or args.input.with_suffix(".synced.html")
 
+    # --exclude ถูกส่งมา (แม้ค่าว่าง) = แทนที่ default ทั้งหมด; ไม่ส่งเลย = default เดิม
+    exclude = None
+    if args.exclude is not None:
+        exclude = {e.strip() for e in args.exclude if e.strip()}
+
     html = args.input.read_text(encoding="utf-8")
-    new_html, updated, missing, sub_added = sync(html, sub=not args.no_sub)
+    new_html, updated, missing, sub_added = sync(html, sub=not args.no_sub, exclude=exclude)
     out_path.write_text(new_html, encoding="utf-8")
 
     print(f"wrote: {out_path}")

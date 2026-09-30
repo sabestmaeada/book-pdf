@@ -69,6 +69,25 @@
       <p class="hint">ค่าเริ่มต้นไม่แสดง — ติ๊กเมื่อต้องการส่งให้โรงพิมพ์ตัดเล่ม</p>
     </div>
 
+    <!-- สารบัญ -->
+    <div class="field checkbox-field">
+      <label for="sub_toc">
+        <input type="checkbox" id="sub_toc" name="sub_toc" checked>
+        สารบัญย่อย — ดึงหัวข้อ h2 ของแต่ละบทเข้าสารบัญ
+      </label>
+      <p class="hint">ค่าเริ่มต้นเปิด — ถ้าปิด สารบัญจะเหลือเฉพาะชื่อบท</p>
+    </div>
+
+    <div class="field" id="sub_toc_exclude_field">
+      <label for="sub_toc_exclude">
+        หัวข้อ h2 ที่ไม่เอาเข้าสารบัญ
+        <span class="hint-inline">(บรรทัดละ 1 หัวข้อ — เทียบตรงทั้งข้อความ)</span>
+      </label>
+      <textarea id="sub_toc_exclude" name="sub_toc_exclude" rows="3"
+                style="width: 100%; box-sizing: border-box; resize: vertical;">สรุปคำศัพท์ในบทนี้</textarea>
+      <p class="hint">รายการนี้แทนที่ค่าในระบบทั้งหมด — ลบให้ว่างถ้าต้องการให้ h2 เข้าสารบัญครบทุกหัวข้อ</p>
+    </div>
+
     <div class="field">
       <label for="pages">หน้าที่ต้องการ <span class="hint-inline">(ไม่บังคับ — ถ้าไม่ใส่ = ทั้งเล่ม)</span></label>
       <input type="text" id="pages" name="pages" placeholder="เช่น: 1,4-8,12  หรือ  4-20">
@@ -208,6 +227,15 @@ function onProfileChange() {
 
 styleSel.addEventListener('change', onStyleChange);
 profileSel.addEventListener('change', onProfileChange);
+
+// สารบัญย่อย: ช่อง exclude แสดงเฉพาะตอนเปิดสารบัญย่อย
+const subTocChk = document.getElementById('sub_toc');
+const subTocExcludeField = document.getElementById('sub_toc_exclude_field');
+function onSubTocChange() {
+  subTocExcludeField.style.display = subTocChk.checked ? '' : 'none';
+}
+subTocChk.addEventListener('change', onSubTocChange);
+onSubTocChange();
 updateStatusMsg();  // แสดงสถานะเริ่มต้น (ไม่แก้ค่า)
 
 clearCacheBtn.addEventListener('click', async () => {
